@@ -27,14 +27,10 @@ export function PublicNav() {
           <Image
             src="/logos/main-logo.jpeg"
             alt="SkillTek Institute"
-            width={36}
-            height={36}
-            className="h-9 w-9 rounded-lg object-cover shadow-lg shadow-brand-600/30"
+            width={48}
+            height={48}
+            className="h-12 w-12 object-contain"
           />
-          <span className="text-[15px] font-semibold tracking-tight text-white">
-            SkillTek{" "}
-            <span className="font-normal text-slate-400">Institute</span>
-          </span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

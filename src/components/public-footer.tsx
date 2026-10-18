@@ -13,14 +13,10 @@ export function PublicFooter() {
             <Image
               src="/logos/main-logo.jpeg"
               alt="SkillTek Institute"
-              width={36}
-              height={36}
-              className="h-9 w-9 rounded-lg object-cover"
+              width={56}
+              height={56}
+              className="h-14 w-14 object-contain"
             />
-            <span className="text-[15px] font-semibold tracking-tight text-white">
-              SkillTek{" "}
-              <span className="font-normal text-slate-400">Institute</span>
-            </span>
           </Link>
           <p className="mt-4 max-w-sm text-sm leading-relaxed">
             A modern institute committed to quality education, industry-aligned
