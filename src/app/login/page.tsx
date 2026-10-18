@@ -10,15 +10,14 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden flex-col justify-between bg-slate-900 p-10 text-white lg:flex">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center">
           <Image
             src="/logos/main-logo.png"
             alt="SkillTek"
             width={2172}
             height={724}
-            className="h-9 w-auto object-contain"
+            className="h-12 w-auto object-contain"
           />
-          <span className="text-lg font-bold">SkillTek</span>
         </Link>
         <div>
           <Image
@@ -26,7 +25,7 @@ export default function LoginPage() {
             alt="SkillTek"
             width={2172}
             height={724}
-            className="mb-4 h-16 w-auto object-contain"
+            className="mb-6 h-24 w-auto object-contain"
           />
           <h1 className="text-3xl font-bold">Institute Management Portal</h1>
           <p className="mt-3 max-w-md text-slate-300">
@@ -42,15 +41,14 @@ export default function LoginPage() {
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center">
               <Image
                 src="/logos/main-logo.png"
                 alt="SkillTek"
                 width={2172}
                 height={724}
-                className="h-9 w-auto object-contain"
+                className="h-12 w-auto object-contain"
               />
-              <span className="text-lg font-bold text-slate-900">SkillTek</span>
             </Link>
           </div>
           <h2 className="text-2xl font-bold text-slate-900">Welcome back</h2>

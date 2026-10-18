@@ -15,7 +15,7 @@ export function PublicFooter() {
               alt="SkillTek Institute"
               width={2172}
               height={724}
-              className="h-12 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
           </Link>
           <p className="mt-4 max-w-sm text-sm leading-relaxed">

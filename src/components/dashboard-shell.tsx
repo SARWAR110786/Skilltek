@@ -56,15 +56,14 @@ export function DashboardShell({
 
   const sidebar = (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center gap-2 border-b border-slate-800 px-5">
+      <div className="flex h-20 items-center border-b border-slate-800 px-5">
           <Image
             src="/logos/main-logo.png"
             alt="SkillTek"
             width={2172}
             height={724}
-            className="h-9 w-auto object-contain"
+            className="h-12 w-auto object-contain"
           />
-        <span className="text-lg font-bold text-white">SkillTek</span>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {nav.map((item) => {
