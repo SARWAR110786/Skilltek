@@ -141,21 +141,19 @@ export default async function HomePage() {
           </div>
 
           <div className="animate-float-soft">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur">
-              <div className="grid grid-cols-2 gap-3">
-                {quickFacts.map((f, i) => (
-                  <Reveal key={f.label} delay={i * 110} className="h-full">
-                    <div className="h-full rounded-xl border border-white/10 bg-slate-900/60 p-5">
-                      <p className="text-3xl font-bold text-white">
-                        <Counter to={f.value} suffix={f.suffix} />
-                      </p>
-                      <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500">
-                        {f.label}
-                      </p>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
+            <div className="grid grid-cols-2 gap-3">
+              {quickFacts.map((f, i) => (
+                <Reveal key={f.label} delay={i * 110} className="h-full">
+                  <div className="h-full rounded-xl border border-white/10 bg-slate-900/60 p-5">
+                    <p className="text-3xl font-bold text-white">
+                      <Counter to={f.value} suffix={f.suffix} />
+                    </p>
+                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+                      {f.label}
+                    </p>
+                  </div>
+                </Reveal>
+              ))}
             </div>
           </div>
         </div>

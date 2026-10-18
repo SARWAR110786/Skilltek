@@ -7,6 +7,11 @@ const ROUTE_ROLES: { prefix: string; role: Role }[] = [
   { prefix: "/student", role: "STUDENT" },
 ];
 
+function signOut(res: NextResponse) {
+  res.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });
+  return res;
+}
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get(SESSION_COOKIE)?.value;
@@ -26,22 +31,29 @@ export async function proxy(req: NextRequest) {
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
+    return NextResponse.next();
   }
 
-  if (pathname === "/login" && user) {
-    const url = req.nextUrl.clone();
-    url.pathname =
-      user.role === "ADMIN"
-        ? "/admin"
-        : user.role === "TEACHER"
-          ? "/teacher"
-          : "/student";
-    return NextResponse.redirect(url);
+  // Any public page ends the session, so returning to the portal (e.g. via
+  // "Login Portal") always asks for credentials again.
+  if (user) {
+    return signOut(NextResponse.next());
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/teacher/:path*", "/student/:path*", "/login"],
+  matcher: [
+    "/admin/:path*",
+    "/teacher/:path*",
+    "/student/:path*",
+    "/login",
+    "/",
+    "/about",
+    "/courses",
+    "/services",
+    "/admissions",
+    "/contact",
+  ],
 };
