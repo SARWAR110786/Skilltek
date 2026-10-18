@@ -6,6 +6,16 @@ import { PrismaPg } from "@prisma/adapter-pg";
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL as string });
 const prisma = new PrismaClient({ adapter });
 
+const DATABASE_URL = process.env.DATABASE_URL ?? "";
+const isLocal = /@(localhost|127\.0\.0\.1|\[::1\])[:/]/.test(DATABASE_URL);
+if (!isLocal && process.env.ALLOW_DESTRUCTIVE_SEED !== "1") {
+  console.error(
+    "Refusing to run: this seed WIPES ALL DATA and the database is not local.\n" +
+      "To proceed against a remote/production database, re-run with ALLOW_DESTRUCTIVE_SEED=1",
+  );
+  process.exit(1);
+}
+
 const ADMIN_EMAIL = "sarwaralii785@gmail.com";
 const ADMIN_PASSWORD = "sarwar123";
 
