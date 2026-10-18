@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
 import { ArrowRight, CheckCircle2, Clock } from "lucide-react";
@@ -90,15 +89,6 @@ export default async function HomePage() {
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 py-20 lg:grid-cols-2 lg:py-28">
           <div>
-            <Image
-              src="/logos/main-logo.jpeg"
-              alt="SkillTek Institute"
-              width={96}
-              height={96}
-              priority
-              className="mb-6 h-20 w-20 rounded-2xl object-contain shadow-xl shadow-brand-600/20 sm:h-24 sm:w-24"
-            />
-
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-slate-300 backdrop-blur">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60" />

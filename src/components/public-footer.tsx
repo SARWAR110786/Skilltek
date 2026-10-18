@@ -11,7 +11,7 @@ export function PublicFooter() {
         <div className="lg:col-span-2">
           <Link href="/" className="flex items-center gap-2.5">
             <Image
-              src="/logos/main-logo.jpeg"
+              src="/logos/main-logo.png"
               alt="SkillTek Institute"
               width={56}
               height={56}

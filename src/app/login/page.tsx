@@ -12,7 +12,7 @@ export default function LoginPage() {
       <div className="relative hidden flex-col justify-between bg-slate-900 p-10 text-white lg:flex">
         <Link href="/" className="flex items-center gap-2">
           <Image
-            src="/logos/main-logo.jpeg"
+            src="/logos/main-logo.png"
             alt="SkillTek"
             width={36}
             height={36}
@@ -22,7 +22,7 @@ export default function LoginPage() {
         </Link>
         <div>
           <Image
-            src="/logos/main-logo.jpeg"
+            src="/logos/main-logo.png"
             alt="SkillTek"
             width={64}
             height={64}
@@ -44,7 +44,7 @@ export default function LoginPage() {
           <div className="mb-8 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/logos/main-logo.jpeg"
+                src="/logos/main-logo.png"
                 alt="SkillTek"
                 width={36}
                 height={36}

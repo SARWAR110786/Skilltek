@@ -58,7 +58,7 @@ export function DashboardShell({
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-2 border-b border-slate-800 px-5">
         <Image
-          src="/logos/main-logo.jpeg"
+          src="/logos/main-logo.png"
           alt="SkillTek"
           width={32}
           height={32}

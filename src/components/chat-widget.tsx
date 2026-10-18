@@ -57,7 +57,7 @@ export function ChatWidget() {
           <div className="flex items-center justify-between bg-brand-600 px-4 py-3 text-white">
             <div className="flex items-center gap-2">
               <Image
-                src="/logos/main-logo.jpeg"
+                src="/logos/main-logo.png"
                 alt="SkillTek"
                 width={32}
                 height={32}

@@ -25,7 +25,7 @@ export function PublicNav() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2.5">
           <Image
-            src="/logos/main-logo.jpeg"
+            src="/logos/main-logo.png"
             alt="SkillTek Institute"
             width={48}
             height={48}
