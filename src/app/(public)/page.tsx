@@ -4,7 +4,7 @@ import { ArrowRight, CheckCircle2, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { ChatWidget } from "@/components/chat-widget";
 import { Reveal } from "@/components/reveal";
-import { TechIcons } from "@/components/tech-icons";
+import { Typewriter } from "@/components/typewriter";
 import { EnquiryForm } from "@/app/(public)/admissions/EnquiryForm";
 import { SERVICES } from "@/lib/services";
 
@@ -80,30 +80,31 @@ export default async function HomePage() {
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-brand-600/20 blur-[130px]" />
 
-        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 py-20 lg:grid-cols-2 lg:py-28">
+        <div className="relative mx-auto max-w-3xl px-4 py-20 text-center lg:py-28">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-slate-300 backdrop-blur">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" />
               </span>
-              Admissions Open — Fall 2026
+              Admissions Open
             </span>
 
-            <h1 className="mt-6 text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-[3.4rem]">
-              Learn today,{" "}
-              <span className="bg-gradient-to-r from-brand-400 to-brand-300 bg-clip-text text-transparent">
-                lead tomorrow.
-              </span>
+            <h1 className="mt-6 text-5xl font-bold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
+              <Typewriter
+                prefix="Learn today, "
+                accent="lead tomorrow."
+                accentClassName="bg-gradient-to-r from-brand-400 to-brand-300 bg-clip-text text-transparent"
+              />
             </h1>
 
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-400">
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-400">
               SkillTek Institute delivers quality education through
               industry-aligned programs, experienced faculty and a fully digital
               campus — supporting students from admission to graduation.
             </p>
 
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/admissions"
                 className="group inline-flex items-center gap-2 rounded-lg bg-brand-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-500"
@@ -120,7 +121,7 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/10 pt-6">
+            <div className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 border-t border-white/10 pt-6">
               {TRUST.map((t) => (
                 <span
                   key={t}
@@ -132,8 +133,6 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
-
-          <TechIcons />
         </div>
       </section>
 
