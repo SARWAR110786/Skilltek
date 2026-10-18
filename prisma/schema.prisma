@@ -341,39 +341,6 @@ model AssignmentFile {
   @@index([submissionId])
 }
 
-// ------------------------- GALLERY -------------------------
-
-model GalleryAlbum {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  year        Int?
-  published   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  images GalleryImage[]
-
-  @@index([year])
-  @@index([published])
-}
-
-model GalleryImage {
-  id        String   @id @default(cuid())
-  albumId   String
-  fileName  String
-  mimeType  String
-  size      Int
-  data      Bytes
-  caption   String?
-  order     Int      @default(0)
-  createdAt DateTime @default(now())
-
-  album GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
-
-  @@index([albumId])
-}
-
 // ------------------------- SETTINGS (singleton) -------------------------
 
 model Setting {

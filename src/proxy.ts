@@ -53,8 +53,6 @@ export const config = {
     "/about",
     "/courses",
     "/services",
-    "/gallery",
-    "/gallery/:path*",
     "/admissions",
     "/contact",
   ],

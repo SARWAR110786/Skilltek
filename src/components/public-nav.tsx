@@ -11,7 +11,6 @@ const LINKS = [
   { href: "/", label: "Home" },
   { href: "/courses", label: "Programs" },
   { href: "/services", label: "Services" },
-  { href: "/gallery", label: "Gallery" },
   { href: "/about", label: "About" },
   { href: "/admissions", label: "Admissions" },
   { href: "/contact", label: "Contact" },
