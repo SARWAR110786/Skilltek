@@ -1,0 +1,97 @@
+import Link from "next/link";
+import { GraduationCap, Mail, MapPin, Phone, Send } from "lucide-react";
+
+const YEAR = new Date().getFullYear();
+
+export function PublicFooter() {
+  return (
+    <footer className="mt-auto border-t border-white/10 bg-slate-950 text-slate-400">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="lg:col-span-2">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-white">
+              <GraduationCap className="h-5 w-5" />
+            </span>
+            <span className="text-[15px] font-semibold text-white">
+              SkillTek{" "}
+              <span className="font-normal text-slate-400">Institute</span>
+            </span>
+          </div>
+          <p className="mt-4 max-w-sm text-sm leading-relaxed">
+            A modern institute committed to quality education, industry-aligned
+            programs and a complete digital campus experience.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+              Affiliated Programs
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+              Certified Faculty
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+              Placement Support
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="mb-4 text-sm font-semibold text-white">Quick Links</h4>
+          <ul className="space-y-2.5 text-sm">
+            {[
+              { href: "/courses", label: "Programs" },
+              { href: "/services", label: "Tech Solutions" },
+              { href: "/admissions", label: "Admissions" },
+              { href: "/about", label: "About Us" },
+              { href: "/contact", label: "Contact" },
+              { href: "/login", label: "Student Portal" },
+            ].map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="transition-colors hover:text-white">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-4 text-sm font-semibold text-white">Get in Touch</h4>
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-start gap-2.5">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
+              123 Education Street, Lahore
+            </li>
+            <li className="flex items-center gap-2.5">
+              <Phone className="h-4 w-4 shrink-0 text-brand-400" />
+              +92 000 0000000
+            </li>
+            <li className="flex items-center gap-2.5">
+              <Mail className="h-4 w-4 shrink-0 text-brand-400" />
+              info@skilltek.com
+            </li>
+          </ul>
+          <Link
+            href="/admissions"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-500"
+          >
+            Apply Now <Send className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </div>
+
+      <div className="border-t border-white/10">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-4 text-xs text-slate-500 sm:flex-row">
+          <span>© {YEAR} SkillTek Institute. All rights reserved.</span>
+          <span className="flex items-center gap-4">
+            <Link href="/about" className="hover:text-slate-300">
+              Privacy Policy
+            </Link>
+            <Link href="/about" className="hover:text-slate-300">
+              Terms of Use
+            </Link>
+          </span>
+        </div>
+      </div>
+    </footer>
+  );
+}

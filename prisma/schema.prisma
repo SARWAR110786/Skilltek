@@ -1,0 +1,363 @@
+// SkillTek Institute Management System - Database Schema
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ------------------------- ENUMS -------------------------
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
+enum NoticeTarget {
+  ALL
+  TEACHERS
+  STUDENTS
+}
+
+enum ChallanStatus {
+  UNPAID
+  PARTIAL
+  PAID
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  ADMITTED
+  CLOSED
+}
+
+enum QuizStatus {
+  DRAFT
+  ASSIGNED
+}
+
+enum AssignStatus {
+  DRAFT
+  ASSIGNED
+}
+
+// ------------------------- CORE USERS -------------------------
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      Role       @default(STUDENT)
+  status    UserStatus @default(ACTIVE)
+  phone     String?
+  avatarUrl String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  teacher Teacher?
+  student Student?
+  notices Notice[] @relation("NoticeCreatedBy")
+  markedAttendance Attendance[] @relation("AttendanceMarkedBy")
+}
+
+// ------------------------- ACADEMICS -------------------------
+
+model Course {
+  id             String   @id @default(cuid())
+  title          String
+  description    String?
+  durationMonths Int      @default(3)
+  active         Boolean  @default(true)
+  teacherId      String?
+  createdAt      DateTime @default(now())
+
+  teacher   Teacher?   @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  students  Student[]
+  enquiries Enquiry[]
+  bankQuestions QuizBankQuestion[]
+  quizzes       Quiz[]
+  assignments   Assignment[]
+}
+
+model Teacher {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  cnic        String?
+  joiningDate DateTime?
+  bio         String?
+  createdAt   DateTime  @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses Course[]
+  bankQuestions QuizBankQuestion[]
+  quizzes       Quiz[]
+  assignments   Assignment[]
+}
+
+model Student {
+  id            String     @id @default(cuid())
+  userId        String     @unique
+  admissionNo   String     @unique
+  cnic          String?
+  dateOfBirth   DateTime?
+  gender        String?
+  address       String?
+  guardianName  String?
+  guardianPhone String?
+  courseId      String?
+  admissionDate DateTime   @default(now())
+  status        UserStatus @default(ACTIVE)
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course     Course?      @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  attendance Attendance[]
+  challans   Challan[]
+  quizAttempts QuizAttempt[]
+  assignmentSubmissions AssignmentSubmission[]
+}
+
+model Challan {
+  id            String        @id @default(cuid())
+  challanNo     String        @unique
+  studentId     String
+  title         String
+  feeMonth      Int?
+  feeYear       Int?
+  amount        Float
+  items         Json?
+  lateFee       Float         @default(0)
+  paidAmount    Float         @default(0)
+  dueDate       DateTime
+  status        ChallanStatus @default(UNPAID)
+  paidDate      DateTime?
+  paymentMethod String?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Attendance {
+  id         String           @id @default(cuid())
+  studentId  String
+  date       DateTime
+  status     AttendanceStatus
+  markedById String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  student  Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  markedBy User?   @relation("AttendanceMarkedBy", fields: [markedById], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, date])
+  @@index([date])
+}
+
+// ------------------------- CONTENT -------------------------
+
+model Notice {
+  id          String       @id @default(cuid())
+  title       String
+  body        String
+  target      NoticeTarget @default(ALL)
+  pinned      Boolean      @default(false)
+  createdById String?
+  createdAt   DateTime     @default(now())
+
+  createdBy User? @relation("NoticeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+}
+
+model Enquiry {
+  id        String        @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  courseId  String?
+  service   String?
+  message   String?
+  status    EnquiryStatus @default(NEW)
+  createdAt DateTime      @default(now())
+
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+}
+
+// ------------------------- QUIZZES -------------------------
+
+model QuizBankQuestion {
+  id            String   @id @default(cuid())
+  teacherId     String
+  courseId      String?
+  text          String
+  optionA       String
+  optionB       String
+  optionC       String?
+  optionD       String?
+  correctOption String
+  marks         Int      @default(1)
+  createdAt     DateTime @default(now())
+
+  teacher       Teacher        @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  course        Course?        @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  quizQuestions QuizQuestion[]
+
+  @@index([teacherId])
+  @@index([courseId])
+}
+
+model Quiz {
+  id              String     @id @default(cuid())
+  title           String
+  description     String?
+  courseId        String
+  teacherId       String
+  durationMinutes Int        @default(15)
+  totalMarks      Int        @default(0)
+  status          QuizStatus @default(DRAFT)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  course    Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher   Teacher        @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@index([courseId])
+  @@index([teacherId])
+}
+
+model QuizQuestion {
+  id         String @id @default(cuid())
+  quizId     String
+  questionId String
+  order      Int    @default(0)
+
+  quiz     Quiz             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question QuizBankQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, questionId])
+}
+
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  quizId      String
+  studentId   String
+  score       Int      @default(0)
+  total       Int      @default(0)
+  answers     Json?
+  violated    Boolean  @default(false)
+  submittedAt DateTime @default(now())
+
+  quiz    Quiz    @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, studentId])
+}
+
+// ----------------------- ASSIGNMENTS -----------------------
+
+model Assignment {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  courseId    String
+  teacherId   String
+  marks       Int          @default(0)
+  dueDate     DateTime?
+  status      AssignStatus @default(DRAFT)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  course      Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher     Teacher                @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  attachments AssignmentAttachment[]
+  submissions AssignmentSubmission[]
+
+  @@index([courseId])
+  @@index([teacherId])
+}
+
+model AssignmentAttachment {
+  id           String   @id @default(cuid())
+  assignmentId String
+  fileName     String
+  mimeType     String
+  size         Int
+  data         Bytes
+  createdAt    DateTime @default(now())
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@index([assignmentId])
+}
+
+model AssignmentSubmission {
+  id            String   @id @default(cuid())
+  assignmentId  String
+  studentId     String
+  note          String?
+  marksObtained Int?
+  submittedAt   DateTime @default(now())
+
+  assignment Assignment     @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  files      AssignmentFile[]
+
+  @@unique([assignmentId, studentId])
+}
+
+model AssignmentFile {
+  id           String   @id @default(cuid())
+  submissionId String
+  fileName     String
+  mimeType     String
+  size         Int
+  data         Bytes
+  createdAt    DateTime @default(now())
+
+  submission AssignmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+}
+
+// ------------------------- SETTINGS (singleton) -------------------------
+
+model Setting {
+  id            String   @id @default("singleton")
+  instituteName String   @default("SkillTek")
+  tagline       String   @default("Empowering Skills, Shaping Futures")
+  email         String   @default("info@skilltek.com")
+  phone         String   @default("+92 000 0000000")
+  address       String   @default("123 Education Street")
+  logoUrl       String?
+  currency      String   @default("PKR")
+  bankName          String?
+  bankBranch        String?
+  bankAccountTitle  String?
+  bankAccountNumber String?
+  bankIban          String?
+  paymentInstructions String?
+  aiEnabled     Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+}

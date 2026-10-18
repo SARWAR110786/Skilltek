@@ -1,0 +1,151 @@
+import Link from "next/link";
+import { connection } from "next/server";
+import { Plus, Trash2 } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { requireUser, getTeacherProfile } from "@/lib/guard";
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  CardHeader,
+  Field,
+  Input,
+  PageHeader,
+  Select,
+  Table,
+  Textarea,
+} from "@/components/ui";
+import { formatDateTime } from "@/lib/utils";
+import { createQuiz, deleteQuiz } from "./actions";
+
+async function getData(teacherId: string, courseIds: string[]) {
+  await connection();
+  const [courses, bank, quizzes] = await Promise.all([
+    prisma.course.findMany({ where: { id: { in: courseIds } }, orderBy: { title: "asc" } }),
+    prisma.quizBankQuestion.findMany({
+      where: { teacherId },
+      include: { course: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.quiz.findMany({
+      where: { teacherId },
+      include: { course: true, _count: { select: { questions: true, attempts: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+  return { courses, bank, quizzes };
+}
+
+export default async function TeacherQuizzesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; deleted?: string }>;
+}) {
+  const user = await requireUser("TEACHER");
+  const teacher = await getTeacherProfile(user.id);
+  const teacherId = teacher?.id ?? "";
+  const courseIds = teacher?.courses.map((c) => c.id) ?? [];
+  const { courses, bank, quizzes } = await getData(teacherId, courseIds);
+  const sp = await searchParams;
+
+  const groups = [
+    { key: "general", label: "General", items: bank.filter((q) => !q.courseId) },
+    ...courses.map((c) => ({
+      key: c.id,
+      label: c.title,
+      items: bank.filter((q) => q.courseId === c.id),
+    })),
+  ].filter((g) => g.items.length > 0);
+
+  return (
+    <div>
+      <PageHeader title="Quizzes" subtitle="Create quizzes from your bank and assign them to a course" />
+
+      {sp.error === "required" && <Alert tone="error">Please provide a title and a valid course.</Alert>}
+      {sp.error === "noquestions" && <Alert tone="error">Select at least one question from your quiz bank.</Alert>}
+      {sp.deleted && <Alert tone="success">Quiz deleted.</Alert>}
+
+      {bank.length === 0 && (
+        <Alert tone="info">
+          Your quiz bank is empty. <Link href="/teacher/quiz-bank" className="font-semibold underline">Add questions first</Link>.
+        </Alert>
+      )}
+
+      <Card className="mb-6">
+        <CardHeader title="Create Quiz" subtitle="Pick a course and the questions to include" />
+        <form action={createQuiz} className="grid gap-4 p-5 md:grid-cols-2">
+          <Field label="Title"><Input name="title" placeholder="e.g. Chapter 1 Test" required /></Field>
+          <Field label="Course">
+            <Select name="courseId" required defaultValue="">
+              <option value="" disabled>Select a course</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>{c.title}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Duration (minutes)"><Input name="durationMinutes" type="number" min={1} defaultValue={15} /></Field>
+          <div className="md:col-span-2">
+            <Field label="Description"><Textarea name="description" rows={2} placeholder="Optional instructions for students" /></Field>
+          </div>
+          <div className="md:col-span-2">
+            <span className="mb-1 block text-sm font-medium text-slate-700">Questions from bank</span>
+            <div className="max-h-72 space-y-3 overflow-y-auto rounded-lg border border-slate-200 p-3">
+              {groups.map((g) => (
+                <div key={g.key}>
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{g.label}</p>
+                  <div className="space-y-1">
+                    {g.items.map((q) => (
+                      <label key={q.id} className="flex items-start gap-2 rounded-md px-2 py-1 text-sm text-slate-600 hover:bg-slate-50">
+                        <input type="checkbox" name="questionIds" value={q.id} className="mt-0.5 h-4 w-4 rounded" />
+                        <span>
+                          {q.text} <span className="text-xs text-slate-400">({q.marks} mark{q.marks === 1 ? "" : "s"})</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {groups.length === 0 && <p className="p-4 text-center text-sm text-slate-400">No questions available.</p>}
+            </div>
+          </div>
+          <div className="md:col-span-2">
+            <Button type="submit" disabled={bank.length === 0}><Plus className="h-4 w-4" /> Create Quiz</Button>
+          </div>
+        </form>
+      </Card>
+
+      <Card>
+        <CardHeader title="All Quizzes" subtitle={`${quizzes.length} quiz${quizzes.length === 1 ? "" : "zes"}`} />
+        <Table head={["Title", "Course", "Questions", "Marks", "Attempts", "Status", ""]}>
+          {quizzes.map((q) => (
+            <tr key={q.id} className="hover:bg-slate-50">
+              <td className="px-4 py-3">
+                <Link href={`/teacher/quizzes/${q.id}`} className="font-medium text-slate-800 hover:text-brand-600">{q.title}</Link>
+                <p className="text-xs text-slate-400">{formatDateTime(q.createdAt)}</p>
+              </td>
+              <td className="px-4 py-3 text-slate-600">{q.course.title}</td>
+              <td className="px-4 py-3 text-slate-600">{q._count.questions}</td>
+              <td className="px-4 py-3 text-slate-600">{q.totalMarks}</td>
+              <td className="px-4 py-3 text-slate-600">{q._count.attempts}</td>
+              <td className="px-4 py-3">
+                <Badge tone={q.status === "ASSIGNED" ? "green" : "gray"}>{q.status}</Badge>
+              </td>
+              <td className="px-4 py-3">
+                <form action={deleteQuiz}>
+                  <input type="hidden" name="id" value={q.id} />
+                  <button type="submit" className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label="Delete">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </form>
+              </td>
+            </tr>
+          ))}
+          {quizzes.length === 0 && (
+            <tr><td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-400">No quizzes yet.</td></tr>
+          )}
+        </Table>
+      </Card>
+    </div>
+  );
+}

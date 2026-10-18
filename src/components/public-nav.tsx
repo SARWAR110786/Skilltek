@@ -1,0 +1,106 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { GraduationCap, Menu, User, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/courses", label: "Programs" },
+  { href: "/services", label: "Services" },
+  { href: "/about", label: "About" },
+  { href: "/admissions", label: "Admissions" },
+  { href: "/contact", label: "Contact" },
+];
+
+export function PublicNav() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+        <Link href="/" className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-white shadow-lg shadow-brand-600/30">
+            <GraduationCap className="h-5 w-5" />
+          </span>
+          <span className="text-[15px] font-semibold tracking-tight text-white">
+            SkillTek{" "}
+            <span className="font-normal text-slate-400">Institute</span>
+          </span>
+        </Link>
+
+        <nav className="hidden items-center gap-1 md:flex">
+          {LINKS.map((l) => {
+            const active = pathname === l.href;
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={cn(
+                  "relative rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  active ? "text-white" : "text-slate-300 hover:text-white",
+                )}
+              >
+                {l.label}
+                {active && (
+                  <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-brand-500" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="hidden items-center gap-3 md:flex">
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
+          >
+            <User className="h-4 w-4" />
+            Login Portal
+          </Link>
+        </div>
+
+        <button
+          className="rounded-md p-2 text-slate-300 hover:bg-white/5 md:hidden"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Toggle menu"
+        >
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      {open && (
+        <div className="border-t border-white/10 bg-slate-950/95 backdrop-blur-xl md:hidden">
+          <nav className="mx-auto flex max-w-6xl flex-col p-4">
+            {LINKS.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "rounded-md px-3 py-2.5 text-sm font-medium",
+                  pathname === l.href
+                    ? "text-white"
+                    : "text-slate-300 hover:bg-white/5",
+                )}
+              >
+                {l.label}
+              </Link>
+            ))}
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-center text-sm font-medium text-white"
+            >
+              <User className="h-4 w-4" />
+              Login Portal
+            </Link>
+          </nav>
+        </div>
+      )}
+    </header>
+  );
+}
