@@ -6,19 +6,24 @@ recommended free stack is **Vercel** (hosting) + **Neon** (Postgres).
 ## 1. Database — Neon
 
 1. Create a project at https://neon.tech (free tier).
-2. Open **Connection Details** and copy the **pooled** connection string
-   (the host contains `-pooler`). It looks like:
-   `postgresql://USER:PASSWORD@ep-xxx-pooler.REGION.aws.neon.tech/DBNAME?sslmode=require`
-3. Keep this as `DATABASE_URL`.
+2. Open **Connect** in the Neon Console. Copy **both** strings:
+   - **Pooled** (host contains `-pooler`) → used by the app at runtime:
+     `postgresql://USER:PASSWORD@ep-xxx-pooler.REGION.aws.neon.tech/DBNAME?sslmode=require`
+   - **Direct / unpooled** (no `-pooler`) → used by Prisma for migrations.
+3. Keep the pooled string as `DATABASE_URL` and the direct string as `DIRECT_URL`.
 
 ## 2. Environment variables
 
 | Variable         | Required | Notes                                                       |
 | ---------------- | -------- | ----------------------------------------------------------- |
 | `DATABASE_URL`   | yes      | Neon **pooled** connection string (must include `sslmode`). |
+| `DIRECT_URL`     | yes      | Neon **direct** (unpooled) string; Prisma CLI uses it for migrations. |
 | `AUTH_SECRET`    | yes      | Signs the session JWT. In production the app refuses to start auth without it. |
 | `OPENAI_API_KEY` | no       | Enables live AI replies in the chat widget.                 |
 | `OPENAI_MODEL`   | no       | Defaults to a built-in model when the key is set.           |
+
+> Why two? Prisma Migrate needs a direct connection; the app uses the pooled one.
+> `prisma.config.ts` points the CLI at `DIRECT_URL` (falling back to `DATABASE_URL` locally).
 
 Generate a secret:
 
