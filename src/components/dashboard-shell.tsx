@@ -90,7 +90,7 @@ export function DashboardShell({
         })}
       </nav>
       <div className="border-t border-slate-800 p-3">
-        <div className="mb-2 flex items-center gap-3 px-2 py-1">
+        <div className="flex items-center gap-3 px-2 py-1">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-700 text-xs font-semibold text-white">
             {initials(user.name)}
           </span>
@@ -99,15 +99,6 @@ export function DashboardShell({
             <p className="truncate text-xs text-slate-400">{roleLabel}</p>
           </div>
         </div>
-        <form action="/api/auth/logout" method="post">
-          <button
-            type="submit"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </button>
-        </form>
       </div>
     </div>
   );
@@ -149,6 +140,15 @@ export function DashboardShell({
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-600 text-xs font-semibold text-white">
               {initials(user.name)}
             </span>
+            <form action="/api/auth/logout" method="post">
+              <button
+                type="submit"
+                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign out</span>
+              </button>
+            </form>
           </div>
         </header>
         <main className="flex-1 p-4 lg:p-8">{children}</main>
