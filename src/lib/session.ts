@@ -12,9 +12,18 @@ export type SessionUser = {
 };
 
 function getSecret() {
-  return new TextEncoder().encode(
-    process.env.AUTH_SECRET ?? "skilltek-dev-secret-change-this-in-production",
-  );
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "AUTH_SECRET is not set. Refusing to sign or verify sessions with a default secret in production.",
+      );
+    }
+    return new TextEncoder().encode(
+      "skilltek-dev-secret-change-this-in-production",
+    );
+  }
+  return new TextEncoder().encode(secret);
 }
 
 export async function signSession(user: SessionUser): Promise<string> {

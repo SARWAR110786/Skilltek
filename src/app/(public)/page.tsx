@@ -65,10 +65,10 @@ const TRUST = [
 const ADMISSION_CONTACT = [
   {
     title: "Visit our campus",
-    text: "123 Education Street, Lahore — open Monday to Saturday.",
+    text: "Near Dargah Shah Mubeen, Beside Dr Luchman Clinic, Doctor Street, Thatta.",
   },
-  { title: "Call our admissions desk", text: "+92 000 0000000" },
-  { title: "Email us", text: "admissions@skilltek.com" },
+  { title: "Call our admissions desk", text: "0312 2098894" },
+  { title: "Email us", text: "theskilltek@gmail.com" },
 ];
 
 export default async function HomePage() {

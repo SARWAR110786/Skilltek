@@ -36,9 +36,9 @@ async function main() {
       id: "singleton",
       instituteName: "SkillTek",
       tagline: "Empowering Skills, Shaping Futures",
-      email: "info@skilltek.com",
-      phone: "+92 300 1234567",
-      address: "12 Tech Avenue, Gulberg III, Lahore",
+      email: "theskilltek@gmail.com",
+      phone: "0312 2098894",
+      address: "Near Dargah Shah Mubeen, Beside Dr Luchman Clinic, Doctor Street, Thatta",
       currency: "PKR",
       paymentInstructions:
         "Pay online or at any branch, then submit a copy of this challan to the accounts office.",

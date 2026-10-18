@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { GraduationCap, Menu, User, X } from "lucide-react";
+import { Menu, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
@@ -23,9 +24,13 @@ export function PublicNav() {
     <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-white shadow-lg shadow-brand-600/30">
-            <GraduationCap className="h-5 w-5" />
-          </span>
+          <Image
+            src="/logos/main-logo.jpeg"
+            alt="SkillTek Institute"
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-lg object-cover shadow-lg shadow-brand-600/30"
+          />
           <span className="text-[15px] font-semibold tracking-tight text-white">
             SkillTek{" "}
             <span className="font-normal text-slate-400">Institute</span>

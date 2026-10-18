@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   title: "SkillTek Institute",
   description:
     "SkillTek Institute — Empowering Skills, Shaping Futures. Courses, admissions, results and student portal.",
+  icons: {
+    icon: "/logos/icon.jpeg",
+    shortcut: "/logos/icon.jpeg",
+    apple: "/logos/icon.jpeg",
+  },
 };
 
 export const instant = false;

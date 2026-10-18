@@ -39,6 +39,7 @@ async function getData(courseId?: string) {
 const ERRORS: Record<string, string> = {
   required: "Name and email are required.",
   email: "A user with that email already exists.",
+  password: "Password must be at least 6 characters.",
 };
 
 function filterChip(active: boolean) {
@@ -107,6 +108,9 @@ export default async function StudentsPage({
             <Field label="Email">
               <Input name="email" type="email" defaultValue={editing.user.email} required />
             </Field>
+            <Field label="New password" hint="Leave blank to keep current">
+              <Input name="password" type="password" minLength={6} autoComplete="new-password" placeholder="At least 6 characters" />
+            </Field>
             <Field label="Phone">
               <Input name="phone" defaultValue={editing.user.phone ?? ""} />
             </Field>
@@ -154,7 +158,9 @@ export default async function StudentsPage({
           <form action={createStudent} className="grid gap-4 p-5 md:grid-cols-3">
             <Field label="Full name"><Input name="name" required /></Field>
             <Field label="Email"><Input name="email" type="email" required /></Field>
-            <Field label="Password" hint="Default: student123"><Input name="password" placeholder="student123" /></Field>
+            <Field label="Password" hint="Set the student's login password (min 6 characters)">
+              <Input name="password" type="password" minLength={6} required autoComplete="new-password" placeholder="At least 6 characters" />
+            </Field>
             <Field label="Phone"><Input name="phone" /></Field>
             <Field label="CNIC" hint="Optional"><Input name="cnic" placeholder="35202-1234567-1" /></Field>
             <Field label="Gender">

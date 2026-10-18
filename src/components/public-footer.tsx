@@ -1,5 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
-import { GraduationCap, Mail, MapPin, Phone, Send } from "lucide-react";
+import { Mail, MapPin, Phone, Send } from "lucide-react";
 
 const YEAR = new Date().getFullYear();
 
@@ -8,15 +9,19 @@ export function PublicFooter() {
     <footer className="mt-auto border-t border-white/10 bg-slate-950 text-slate-400">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-2">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-white">
-              <GraduationCap className="h-5 w-5" />
-            </span>
-            <span className="text-[15px] font-semibold text-white">
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image
+              src="/logos/main-logo.jpeg"
+              alt="SkillTek Institute"
+              width={36}
+              height={36}
+              className="h-9 w-9 rounded-lg object-cover"
+            />
+            <span className="text-[15px] font-semibold tracking-tight text-white">
               SkillTek{" "}
               <span className="font-normal text-slate-400">Institute</span>
             </span>
-          </div>
+          </Link>
           <p className="mt-4 max-w-sm text-sm leading-relaxed">
             A modern institute committed to quality education, industry-aligned
             programs and a complete digital campus experience.
@@ -59,15 +64,15 @@ export function PublicFooter() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-start gap-2.5">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
-              123 Education Street, Lahore
+              Near Dargah Shah Mubeen, Beside Dr Luchman Clinic, Doctor Street, Thatta
             </li>
             <li className="flex items-center gap-2.5">
               <Phone className="h-4 w-4 shrink-0 text-brand-400" />
-              +92 000 0000000
+              0312 2098894
             </li>
             <li className="flex items-center gap-2.5">
               <Mail className="h-4 w-4 shrink-0 text-brand-400" />
-              info@skilltek.com
+              theskilltek@gmail.com
             </li>
           </ul>
           <Link

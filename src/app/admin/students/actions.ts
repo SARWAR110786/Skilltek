@@ -14,7 +14,7 @@ export async function createStudent(formData: FormData) {
   const email = String(formData.get("email") ?? "")
     .toLowerCase()
     .trim();
-  const password = String(formData.get("password") ?? "").trim() || "student123";
+  const password = String(formData.get("password") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const cnic = String(formData.get("cnic") ?? "").trim();
   const courseId = String(formData.get("courseId") ?? "").trim();
@@ -25,6 +25,10 @@ export async function createStudent(formData: FormData) {
 
   if (!name || !email) {
     redirect("/admin/students?error=required");
+  }
+
+  if (password.length < 6) {
+    redirect("/admin/students?error=password");
   }
 
   const exists = await prisma.user.findUnique({ where: { email } });
@@ -84,6 +88,7 @@ export async function updateStudent(formData: FormData) {
 
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").toLowerCase().trim();
+  const password = String(formData.get("password") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const cnic = String(formData.get("cnic") ?? "").trim();
   const courseId = String(formData.get("courseId") ?? "").trim();
@@ -97,6 +102,10 @@ export async function updateStudent(formData: FormData) {
     redirect("/admin/students?error=required");
   }
 
+  if (password && password.length < 6) {
+    redirect("/admin/students?error=password");
+  }
+
   const exists = await prisma.user.findUnique({ where: { email } });
   if (exists && exists.id !== student.userId) {
     redirect("/admin/students?error=email");
@@ -104,7 +113,13 @@ export async function updateStudent(formData: FormData) {
 
   await prisma.user.update({
     where: { id: student.userId },
-    data: { name, email, phone: phone || null, status: status === "INACTIVE" ? "INACTIVE" : "ACTIVE" },
+    data: {
+      name,
+      email,
+      phone: phone || null,
+      status: status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+      ...(password ? { password: await bcrypt.hash(password, 10) } : {}),
+    },
   });
 
   await prisma.student.update({

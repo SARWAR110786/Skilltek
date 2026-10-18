@@ -13,7 +13,7 @@ export async function createTeacher(formData: FormData) {
   const email = String(formData.get("email") ?? "")
     .toLowerCase()
     .trim();
-  const password = String(formData.get("password") ?? "").trim() || "teacher123";
+  const password = String(formData.get("password") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const cnic = String(formData.get("cnic") ?? "").trim();
   const courseIds = formData
@@ -23,6 +23,10 @@ export async function createTeacher(formData: FormData) {
 
   if (!name || !email) {
     redirect("/admin/teachers?error=required");
+  }
+
+  if (password.length < 6) {
+    redirect("/admin/teachers?error=password");
   }
 
   const exists = await prisma.user.findUnique({ where: { email } });
@@ -81,6 +85,7 @@ export async function updateTeacher(formData: FormData) {
 
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").toLowerCase().trim();
+  const password = String(formData.get("password") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const cnic = String(formData.get("cnic") ?? "").trim();
   const courseIds = formData
@@ -92,6 +97,10 @@ export async function updateTeacher(formData: FormData) {
     redirect("/admin/teachers?error=required");
   }
 
+  if (password && password.length < 6) {
+    redirect("/admin/teachers?error=password");
+  }
+
   const exists = await prisma.user.findUnique({ where: { email } });
   if (exists && exists.id !== teacher.userId) {
     redirect("/admin/teachers?error=email");
@@ -99,7 +108,12 @@ export async function updateTeacher(formData: FormData) {
 
   await prisma.user.update({
     where: { id: teacher.userId },
-    data: { name, email, phone: phone || null },
+    data: {
+      name,
+      email,
+      phone: phone || null,
+      ...(password ? { password: await bcrypt.hash(password, 10) } : {}),
+    },
   });
 
   await prisma.teacher.update({

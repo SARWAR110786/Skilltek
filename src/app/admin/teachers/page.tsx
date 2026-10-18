@@ -33,6 +33,7 @@ async function getData() {
 const ERRORS: Record<string, string> = {
   required: "Name and email are required.",
   email: "A user with that email already exists.",
+  password: "Password must be at least 6 characters.",
 };
 
 function CourseCheckboxes({
@@ -99,6 +100,9 @@ export default async function TeachersPage({
             <input type="hidden" name="id" value={editing.id} />
             <Field label="Full name"><Input name="name" defaultValue={editing.user.name} required /></Field>
             <Field label="Email"><Input name="email" type="email" defaultValue={editing.user.email} required /></Field>
+            <Field label="New password" hint="Leave blank to keep current">
+              <Input name="password" type="password" minLength={6} autoComplete="new-password" placeholder="At least 6 characters" />
+            </Field>
             <Field label="Phone"><Input name="phone" defaultValue={editing.user.phone ?? ""} /></Field>
             <Field label="CNIC" hint="Optional"><Input name="cnic" defaultValue={editing.cnic ?? ""} placeholder="35202-1234567-1" /></Field>
             <div className="md:col-span-3">
@@ -116,7 +120,9 @@ export default async function TeachersPage({
           <form action={createTeacher} className="grid gap-4 p-5 md:grid-cols-3">
             <Field label="Full name"><Input name="name" required /></Field>
             <Field label="Email"><Input name="email" type="email" required /></Field>
-            <Field label="Password" hint="Default: teacher123"><Input name="password" placeholder="teacher123" /></Field>
+            <Field label="Password" hint="Set the teacher's login password (min 6 characters)">
+              <Input name="password" type="password" minLength={6} required autoComplete="new-password" placeholder="At least 6 characters" />
+            </Field>
             <Field label="Phone"><Input name="phone" /></Field>
             <Field label="CNIC" hint="Optional"><Input name="cnic" placeholder="35202-1234567-1" /></Field>
             <div className="md:col-span-3">

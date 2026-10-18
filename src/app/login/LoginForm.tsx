@@ -23,7 +23,7 @@ export function LoginForm() {
           name="email"
           type="email"
           autoComplete="email"
-          placeholder="you@skilltek.com"
+          placeholder="Enter your email address"
           required
         />
       </Field>

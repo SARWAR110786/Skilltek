@@ -6,9 +6,13 @@ import { EnquiryForm } from "../admissions/EnquiryForm";
 export const metadata = { title: "Contact · SkillTek" };
 
 const DETAILS = [
-  { icon: MapPin, title: "Address", value: "123 Education Street, Lahore" },
-  { icon: Phone, title: "Phone", value: "+92 000 0000000" },
-  { icon: Mail, title: "Email", value: "info@skilltek.com" },
+  {
+    icon: MapPin,
+    title: "Address",
+    value: "Near Dargah Shah Mubeen, Beside Dr Luchman Clinic, Doctor Street, Thatta",
+  },
+  { icon: Phone, title: "Phone", value: "0312 2098894" },
+  { icon: Mail, title: "Email", value: "theskilltek@gmail.com" },
 ];
 
 export default function ContactPage() {

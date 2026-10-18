@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -56,9 +57,13 @@ export function DashboardShell({
   const sidebar = (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-2 border-b border-slate-800 px-5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-white">
-          ST
-        </span>
+        <Image
+          src="/logos/main-logo.jpeg"
+          alt="SkillTek"
+          width={32}
+          height={32}
+          className="h-8 w-8 rounded-lg object-cover"
+        />
         <span className="text-lg font-bold text-white">SkillTek</span>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
