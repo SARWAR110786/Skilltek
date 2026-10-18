@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Bot, Send, Sparkles, X } from "lucide-react";
+import Image from "next/image";
+import { Send, Sparkles, X } from "lucide-react";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -55,7 +56,13 @@ export function ChatWidget() {
         <div className="fixed bottom-24 right-4 z-50 flex h-96 w-80 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:w-96">
           <div className="flex items-center justify-between bg-brand-600 px-4 py-3 text-white">
             <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
+              <Image
+                src="/logos/main-logo.jpeg"
+                alt="SkillTek"
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-lg object-cover"
+              />
               <div className="leading-tight">
                 <p className="text-sm font-semibold">SkillTek Assistant</p>
                 <p className="text-[11px] text-brand-100">
