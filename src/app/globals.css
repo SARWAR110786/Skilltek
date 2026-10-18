@@ -236,6 +236,56 @@ body {
   animation: orbit-reverse 10s linear infinite;
 }
 
+/* ------------------------------------------------------------------ */
+/* Floating 3D tech icons                                              */
+/* ------------------------------------------------------------------ */
+
+@keyframes float-tile {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+.float-tile {
+  animation: float-tile 7s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 30s linear infinite;
+}
+
+@keyframes spin-slow-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+.animate-spin-slow-reverse {
+  animation: spin-slow-reverse 42s linear infinite;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-pop-in,
   .animate-fade-in-up,
@@ -243,7 +293,11 @@ body {
   .animate-fade-in-up-delay-2,
   .animate-wobble,
   .animate-orbit,
-  .animate-orbit-reverse {
+  .animate-orbit-reverse,
+  .float-tile,
+  .animate-spin-slow,
+  .animate-spin-slow-reverse,
+  .animate-pulse-glow {
     animation: none !important;
   }
 }

@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { ChatWidget } from "@/components/chat-widget";
 import { Reveal } from "@/components/reveal";
+import { TechIcons } from "@/components/tech-icons";
 import { EnquiryForm } from "@/app/(public)/admissions/EnquiryForm";
 import { SERVICES } from "@/lib/services";
 
@@ -79,7 +80,7 @@ export default async function HomePage() {
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-brand-600/20 blur-[130px]" />
 
-        <div className="relative mx-auto max-w-6xl px-4 py-20 lg:py-28">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 py-20 lg:grid-cols-2 lg:py-28">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-slate-300 backdrop-blur">
               <span className="relative flex h-2 w-2">
@@ -131,6 +132,8 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
+
+          <TechIcons />
         </div>
       </section>
 
