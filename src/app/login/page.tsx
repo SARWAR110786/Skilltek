@@ -44,12 +44,6 @@ export default function LoginPage() {
             Sign in to access your dashboard.
           </p>
           <LoginForm />
-          <div className="mt-6 rounded-lg bg-slate-100 p-3 text-xs text-slate-600">
-            <p className="font-semibold text-slate-700">Demo accounts</p>
-            <p className="mt-1">admin@skilltek.com / admin123</p>
-            <p>teacher@skilltek.com / teacher123</p>
-            <p>student@skilltek.com / student123</p>
-          </div>
         </div>
       </div>
     </div>
