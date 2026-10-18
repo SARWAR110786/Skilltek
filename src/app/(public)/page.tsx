@@ -3,7 +3,6 @@ import { connection } from "next/server";
 import { ArrowRight, CheckCircle2, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { ChatWidget } from "@/components/chat-widget";
-import { Counter } from "@/components/counter";
 import { Reveal } from "@/components/reveal";
 import { EnquiryForm } from "@/app/(public)/admissions/EnquiryForm";
 import { SERVICES } from "@/lib/services";
@@ -72,14 +71,7 @@ const ADMISSION_CONTACT = [
 ];
 
 export default async function HomePage() {
-  const { courses, studentCount, courseCount } = await getData();
-
-  const quickFacts = [
-    { label: "Active Programs", value: courseCount, suffix: "+" },
-    { label: "Enrolled Students", value: studentCount, suffix: "+" },
-    { label: "Expert Faculty", value: 20, suffix: "+" },
-    { label: "Placement Support", value: 95, suffix: "%" },
-  ];
+  const { courses } = await getData();
 
   return (
     <div className="relative">
@@ -87,7 +79,7 @@ export default async function HomePage() {
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-brand-600/20 blur-[130px]" />
 
-        <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 py-20 lg:grid-cols-2 lg:py-28">
+        <div className="relative mx-auto max-w-6xl px-4 py-20 lg:py-28">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-slate-300 backdrop-blur">
               <span className="relative flex h-2 w-2">
@@ -136,23 +128,6 @@ export default async function HomePage() {
                   <CheckCircle2 className="h-4 w-4 text-brand-400" />
                   {t}
                 </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="animate-float-soft">
-            <div className="grid grid-cols-2 gap-3">
-              {quickFacts.map((f, i) => (
-                <Reveal key={f.label} delay={i * 110} className="h-full">
-                  <div className="h-full rounded-xl border border-white/10 bg-slate-900/60 p-5">
-                    <p className="text-3xl font-bold text-white">
-                      <Counter to={f.value} suffix={f.suffix} />
-                    </p>
-                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500">
-                      {f.label}
-                    </p>
-                  </div>
-                </Reveal>
               ))}
             </div>
           </div>
