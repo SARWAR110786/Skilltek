@@ -14,9 +14,9 @@ export default function LoginPage() {
           <Image
             src="/logos/main-logo.png"
             alt="SkillTek"
-            width={36}
-            height={36}
-            className="h-9 w-9 rounded-lg object-cover"
+            width={2172}
+            height={724}
+            className="h-9 w-auto object-contain"
           />
           <span className="text-lg font-bold">SkillTek</span>
         </Link>
@@ -24,9 +24,9 @@ export default function LoginPage() {
           <Image
             src="/logos/main-logo.png"
             alt="SkillTek"
-            width={64}
-            height={64}
-            className="mb-4 h-16 w-16 rounded-xl object-cover"
+            width={2172}
+            height={724}
+            className="mb-4 h-16 w-auto object-contain"
           />
           <h1 className="text-3xl font-bold">Institute Management Portal</h1>
           <p className="mt-3 max-w-md text-slate-300">
@@ -46,9 +46,9 @@ export default function LoginPage() {
               <Image
                 src="/logos/main-logo.png"
                 alt="SkillTek"
-                width={36}
-                height={36}
-                className="h-9 w-9 rounded-lg object-cover"
+                width={2172}
+                height={724}
+                className="h-9 w-auto object-contain"
               />
               <span className="text-lg font-bold text-slate-900">SkillTek</span>
             </Link>

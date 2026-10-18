@@ -13,9 +13,9 @@ export function PublicFooter() {
             <Image
               src="/logos/main-logo.png"
               alt="SkillTek Institute"
-              width={56}
-              height={56}
-              className="h-14 w-14 object-contain"
+              width={2172}
+              height={724}
+              className="h-12 w-auto object-contain"
             />
           </Link>
           <p className="mt-4 max-w-sm text-sm leading-relaxed">

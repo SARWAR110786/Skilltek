@@ -27,9 +27,9 @@ export function PublicNav() {
           <Image
             src="/logos/main-logo.png"
             alt="SkillTek Institute"
-            width={48}
-            height={48}
-            className="h-12 w-12 object-contain"
+            width={2172}
+            height={724}
+            className="h-10 w-auto object-contain"
           />
         </Link>
 

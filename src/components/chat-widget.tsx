@@ -59,9 +59,9 @@ export function ChatWidget() {
               <Image
                 src="/logos/main-logo.png"
                 alt="SkillTek"
-                width={32}
-                height={32}
-                className="h-8 w-8 rounded-lg object-cover"
+                width={2172}
+                height={724}
+                className="h-7 w-auto object-contain"
               />
               <div className="leading-tight">
                 <p className="text-sm font-semibold">SkillTek Assistant</p>
