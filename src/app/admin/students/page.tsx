@@ -242,7 +242,7 @@ export default async function StudentsPage({
             <Download className="h-4 w-4" /> Download CSV template
           </a>
           <form action={importStudents} className="flex flex-wrap items-end gap-3">
-            <Field label="CSV file" hint="Name, Email, Password required · max 300 rows">
+            <Field label="CSV file">
               <input
                 type="file"
                 name="file"

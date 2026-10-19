@@ -13,8 +13,8 @@ import {
   PageHeader,
   Select,
   Table,
-  Textarea,
 } from "@/components/ui";
+import { AiAssistTextarea } from "@/components/ai-assist";
 import { DownloadForm } from "@/components/download-form";
 import { createCourse, deleteCourse, updateCourse } from "./actions";
 
@@ -97,7 +97,7 @@ export default async function CoursesPage({
             </Field>
             <div className="md:col-span-2">
               <Field label="Description">
-                <Textarea name="description" rows={2} defaultValue={editing.description ?? ""} />
+                <AiAssistTextarea name="description" kind="course" rows={2} defaultValue={editing.description ?? ""} placeholder="Describe the course — or type a title and let AI draft it…" />
               </Field>
             </div>
             <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
@@ -134,7 +134,7 @@ export default async function CoursesPage({
             </Field>
             <div className="md:col-span-2">
               <Field label="Description">
-                <Textarea name="description" rows={2} />
+                <AiAssistTextarea name="description" kind="course" rows={2} placeholder="Describe the course — or type a title and let AI draft it…" />
               </Field>
             </div>
             <div className="md:col-span-2">

@@ -103,8 +103,8 @@ export function ChatWidget() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Ask a question…"
-              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500"
+              aria-label="Message"
+              className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-black outline-none focus:border-brand-500"
             />
             <button
               onClick={send}
@@ -124,7 +124,7 @@ export function ChatWidget() {
         aria-label="Open SkillTek assistant"
       >
         <span className="absolute inset-0 animate-ping rounded-full bg-brand-400 opacity-30" />
-        <RobotIcon className="relative h-8 w-8" />
+        <RobotIcon className="relative h-9 w-9" />
       </button>
     </>
   );

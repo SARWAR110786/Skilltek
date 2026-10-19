@@ -1,6 +1,11 @@
 export function RobotIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 48 48" fill="none" className={className} aria-hidden="true">
+    <svg
+      viewBox="0 0 48 48"
+      fill="none"
+      className={["robot-wave", className].filter(Boolean).join(" ")}
+      aria-hidden="true"
+    >
       <style>{`
         .robot-eyes {
           transform-box: fill-box;
@@ -18,6 +23,22 @@ export function RobotIcon({ className }: { className?: string }) {
         @keyframes robot-glow {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.35; }
+        }
+        .robot-wave {
+          transform-origin: 75% 92%;
+          animation: robot-wave 5s ease-in-out infinite;
+        }
+        @keyframes robot-wave {
+          0%, 55% { transform: rotate(0deg); }
+          60% { transform: rotate(-14deg); }
+          65% { transform: rotate(12deg); }
+          70% { transform: rotate(-10deg); }
+          75% { transform: rotate(8deg); }
+          80% { transform: rotate(-5deg); }
+          85%, 100% { transform: rotate(0deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .robot-wave, .robot-eyes, .robot-antenna { animation: none; }
         }
       `}</style>
 

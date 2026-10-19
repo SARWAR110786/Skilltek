@@ -15,10 +15,8 @@ import {
   Select,
   Table,
 } from "@/components/ui";
-import { AiAssistTextarea } from "@/components/ai-assist";
+import { QuizQuestionFields } from "@/components/quiz-question-fields";
 import { createBankQuestion, updateBankQuestion, deleteBankQuestion } from "./actions";
-
-const OPTIONS = ["A", "B", "C", "D"] as const;
 
 async function getData(teacherId: string, courseIds: string[]) {
   await connection();
@@ -76,22 +74,14 @@ export default async function QuizBankPage({
           className="grid gap-4 p-5 md:grid-cols-2"
         >
           {editing && <input type="hidden" name="id" value={editing.id} />}
-          <div className="md:col-span-2">
-            <Field label="Question" hint="Type a topic or hint, then use Generate with AI — or write your own">
-              <AiAssistTextarea name="text" kind="question" rows={2} defaultValue={editing?.text ?? ""} placeholder="Type the question (or a topic to generate one)…" required />
-            </Field>
-          </div>
-          <Field label="Option A"><Input name="optionA" defaultValue={editing?.optionA ?? ""} required /></Field>
-          <Field label="Option B"><Input name="optionB" defaultValue={editing?.optionB ?? ""} required /></Field>
-          <Field label="Option C"><Input name="optionC" defaultValue={editing?.optionC ?? ""} /></Field>
-          <Field label="Option D"><Input name="optionD" defaultValue={editing?.optionD ?? ""} /></Field>
-          <Field label="Correct option">
-            <Select name="correctOption" defaultValue={editing?.correctOption ?? "A"}>
-              {OPTIONS.map((o) => (
-                <option key={o} value={o}>Option {o}</option>
-              ))}
-            </Select>
-          </Field>
+          <QuizQuestionFields
+            defaultText={editing?.text ?? ""}
+            defaultOptionA={editing?.optionA ?? ""}
+            defaultOptionB={editing?.optionB ?? ""}
+            defaultOptionC={editing?.optionC ?? ""}
+            defaultOptionD={editing?.optionD ?? ""}
+            defaultCorrect={editing?.correctOption ?? "A"}
+          />
           <Field label="Marks">
             <Input name="marks" type="number" min={1} defaultValue={editing?.marks ?? 1} />
           </Field>

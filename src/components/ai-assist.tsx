@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Eraser, Loader2, Sparkles } from "lucide-react";
 import { Textarea } from "@/components/ui";
 
-export type AiAssistKind = "assignment" | "quiz" | "question";
+export type AiAssistKind = "assignment" | "quiz" | "question" | "course";
 
 export function AiAssistTextarea({
   name,
