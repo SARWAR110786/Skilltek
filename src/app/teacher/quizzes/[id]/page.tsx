@@ -15,8 +15,9 @@ import {
   PageHeader,
   Select,
   Table,
-  Textarea,
 } from "@/components/ui";
+import { AiAssistTextarea } from "@/components/ai-assist";
+import { QuestionPicker } from "@/components/question-picker";
 import { formatDateTime } from "@/lib/utils";
 import { updateQuiz, toggleQuizStatus, deleteQuiz } from "../actions";
 
@@ -115,25 +116,15 @@ export default async function TeacherQuizDetailPage({
               </Field>
               <Field label="Duration (minutes)"><Input name="durationMinutes" type="number" min={1} defaultValue={quiz.durationMinutes} /></Field>
             </div>
-            <Field label="Description"><Textarea name="description" rows={2} defaultValue={quiz.description ?? ""} /></Field>
+            <Field label="Description">
+              <AiAssistTextarea name="description" kind="quiz" rows={2} defaultValue={quiz.description ?? ""} />
+            </Field>
             <div>
               <span className="mb-1 block text-sm font-medium text-slate-700">Questions</span>
-              <div className="max-h-72 space-y-3 overflow-y-auto rounded-lg border border-slate-200 p-3">
-                {groups.map((g) => (
-                  <div key={g.key}>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{g.label}</p>
-                    <div className="space-y-1">
-                      {g.items.map((q) => (
-                        <label key={q.id} className="flex items-start gap-2 rounded-md px-2 py-1 text-sm text-slate-600 hover:bg-slate-50">
-                          <input type="checkbox" name="questionIds" value={q.id} defaultChecked={selected.has(q.id)} className="mt-0.5 h-4 w-4 rounded" />
-                          <span>{q.text} <span className="text-xs text-slate-400">({q.marks} mark{q.marks === 1 ? "" : "s"})</span></span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                {groups.length === 0 && <p className="p-4 text-center text-sm text-slate-400">No questions available.</p>}
-              </div>
+              <QuestionPicker
+                groups={groups.map((g) => ({ key: g.key, label: g.label, items: g.items.map((q) => ({ id: q.id, text: q.text, marks: q.marks })) }))}
+                initialSelected={Array.from(selected)}
+              />
             </div>
             <Button type="submit"><CheckCircle2 className="h-4 w-4" /> Save Changes</Button>
           </form>

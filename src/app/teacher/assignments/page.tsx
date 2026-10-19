@@ -14,8 +14,8 @@ import {
   PageHeader,
   Select,
   Table,
-  Textarea,
 } from "@/components/ui";
+import { AiAssistTextarea } from "@/components/ai-assist";
 import { formatDate } from "@/lib/utils";
 import { createAssignment, deleteAssignment } from "./actions";
 
@@ -66,7 +66,9 @@ export default async function TeacherAssignmentsPage({
           <Field label="Marks"><Input name="marks" type="number" min={0} defaultValue={10} /></Field>
           <Field label="Deadline (days after creation)"><Input name="days" type="number" min={1} defaultValue={7} /></Field>
           <div className="md:col-span-2">
-            <Field label="Description / Instructions"><Textarea name="description" rows={3} placeholder="What should students do?" /></Field>
+            <Field label="Description / Instructions">
+              <AiAssistTextarea name="description" kind="assignment" rows={3} placeholder="What should students do? Or type a title and let AI draft it…" />
+            </Field>
           </div>
           <div className="md:col-span-2">
             <Field label="Reference files" hint="Optional — attach one or more files for students">

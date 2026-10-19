@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { Trash2 } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 import {
@@ -16,7 +16,7 @@ import {
   Table,
 } from "@/components/ui";
 import { DownloadForm } from "@/components/download-form";
-import { createStudent, deleteStudent, updateStudent } from "./actions";
+import { createStudent, deleteStudent, updateStudent, importStudents } from "./actions";
 
 export const instant = false;
 
@@ -40,6 +40,11 @@ const ERRORS: Record<string, string> = {
   required: "Name and email are required.",
   email: "A user with that email already exists.",
   password: "Password must be at least 6 characters.",
+  nofile: "Please choose a CSV file to upload.",
+  bigfile: "CSV file is too large (max 2 MB).",
+  csvempty: "The CSV has no data rows. Add students below the header row.",
+  csvheader: 'The CSV header must include at least "Name" and "Email" columns.',
+  csvbig: "Too many rows — import up to 300 students at a time.",
 };
 
 function filterChip(active: boolean) {
@@ -60,6 +65,9 @@ export default async function StudentsPage({
     created?: string;
     updated?: string;
     edit?: string;
+    imported?: string;
+    skipped?: string;
+    errors?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -88,6 +96,13 @@ export default async function StudentsPage({
       {error && <Alert tone="error">{error}</Alert>}
       {sp.created === "1" && <Alert tone="success">Student created successfully.</Alert>}
       {sp.updated === "1" && <Alert tone="success">Student updated successfully.</Alert>}
+      {sp.imported && (
+        <Alert tone={Number(sp.skipped ?? 0) > 0 ? "info" : "success"}>
+          Bulk import finished: {sp.imported} student{Number(sp.imported) === 1 ? "" : "s"} created
+          {Number(sp.skipped ?? 0) > 0 ? `, ${sp.skipped} row(s) skipped.` : "."}
+          {sp.errors ? ` Skipped — ${sp.errors}` : ""}
+        </Alert>
+      )}
 
       {editing ? (
         <Card className="mb-6">
@@ -211,6 +226,33 @@ export default async function StudentsPage({
             action="/api/export/students"
             fields={courseFilter ? [{ kind: "hidden", name: "course", value: courseFilter }] : []}
           />
+        </div>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader
+          title="Bulk Import Students"
+          subtitle="Download the CSV template, fill in one student per row, then upload — all accounts are created at once"
+        />
+        <div className="flex flex-wrap items-end gap-4 p-5">
+          <a
+            href="/api/import/students/template"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700"
+          >
+            <Download className="h-4 w-4" /> Download CSV template
+          </a>
+          <form action={importStudents} className="flex flex-wrap items-end gap-3">
+            <Field label="CSV file" hint="Name, Email, Password required · max 300 rows">
+              <input
+                type="file"
+                name="file"
+                accept=".csv,text/csv"
+                required
+                className="block w-full cursor-pointer rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-white"
+              />
+            </Field>
+            <Button type="submit">Upload &amp; Create Students</Button>
+          </form>
         </div>
       </Card>
 

@@ -15,8 +15,8 @@ import {
   PageHeader,
   Select,
   Table,
-  Textarea,
 } from "@/components/ui";
+import { AiAssistTextarea } from "@/components/ai-assist";
 import { dateInputValue, formatDate, formatDateTime } from "@/lib/utils";
 import {
   updateAssignment,
@@ -120,7 +120,9 @@ export default async function TeacherAssignmentDetailPage({
                 }
               />
             </Field>
-            <Field label="Description / Instructions"><Textarea name="description" rows={3} defaultValue={assignment.description ?? ""} /></Field>
+            <Field label="Description / Instructions">
+              <AiAssistTextarea name="description" kind="assignment" rows={3} defaultValue={assignment.description ?? ""} />
+            </Field>
             <Field label="Add reference files">
               <input type="file" name="files" multiple className="block w-full cursor-pointer rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-white" />
             </Field>

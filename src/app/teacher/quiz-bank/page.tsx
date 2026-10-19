@@ -14,8 +14,8 @@ import {
   PageHeader,
   Select,
   Table,
-  Textarea,
 } from "@/components/ui";
+import { AiAssistTextarea } from "@/components/ai-assist";
 import { createBankQuestion, updateBankQuestion, deleteBankQuestion } from "./actions";
 
 const OPTIONS = ["A", "B", "C", "D"] as const;
@@ -77,8 +77,8 @@ export default async function QuizBankPage({
         >
           {editing && <input type="hidden" name="id" value={editing.id} />}
           <div className="md:col-span-2">
-            <Field label="Question">
-              <Textarea name="text" rows={2} defaultValue={editing?.text ?? ""} placeholder="Type the question…" required />
+            <Field label="Question" hint="Type a topic or hint, then use Generate with AI — or write your own">
+              <AiAssistTextarea name="text" kind="question" rows={2} defaultValue={editing?.text ?? ""} placeholder="Type the question (or a topic to generate one)…" required />
             </Field>
           </div>
           <Field label="Option A"><Input name="optionA" defaultValue={editing?.optionA ?? ""} required /></Field>

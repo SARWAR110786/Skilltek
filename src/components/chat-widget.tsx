@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { Send, Sparkles, X } from "lucide-react";
+import { Send, X } from "lucide-react";
+import { RobotIcon } from "@/components/robot-icon";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -66,7 +67,7 @@ export function ChatWidget() {
               <div className="leading-tight">
                 <p className="text-sm font-semibold">SkillTek Assistant</p>
                 <p className="text-[11px] text-brand-100">
-                  AI assistant · replies instantly
+                  AI assistant · ready to help
                 </p>
               </div>
             </div>
@@ -119,10 +120,11 @@ export function ChatWidget() {
 
       <button
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-6 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg shadow-brand-600/30 transition-colors hover:bg-brand-500"
+        className="group fixed bottom-6 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg shadow-brand-600/40 transition-transform hover:scale-105"
         aria-label="Open SkillTek assistant"
       >
-        <Sparkles className="h-6 w-6" />
+        <span className="absolute inset-0 animate-ping rounded-full bg-brand-400 opacity-30" />
+        <RobotIcon className="relative h-8 w-8" />
       </button>
     </>
   );
