@@ -140,6 +140,15 @@ export function InstallApp() {
     };
   }, []);
 
+  function downloadApk() {
+    const link = document.createElement("a");
+    link.href = "/downloads/skilltek.apk";
+    link.download = "SkillTek.apk";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
   async function androidInstall() {
     if (installed) return;
     if (promptEvent) {
@@ -152,7 +161,7 @@ export function InstallApp() {
       setPromptEvent(null);
       return;
     }
-    setHelp("android");
+    downloadApk();
   }
 
   return (
@@ -175,6 +184,16 @@ export function InstallApp() {
           iPhone / iPad
         </button>
       </div>
+      <p className="mt-2 text-xs text-slate-400">
+        Android without Chrome install?{" "}
+        <button
+          type="button"
+          onClick={downloadApk}
+          className="font-medium text-brand-300 underline underline-offset-2 hover:text-brand-200"
+        >
+          Download the APK
+        </button>
+      </p>
       {installed && (
         <p className="mt-2 text-xs font-medium text-emerald-400">
           App installed on this device.
