@@ -15,8 +15,8 @@ import { InstallApp } from "@/components/install-app";
 
 export const metadata = {
   title: "Download the App · SkillTek",
-  description:
-    "Install the SkillTek app on Android or iPhone for one-tap access to classes, results, challans and notices.",
+    description:
+      "Install the SkillTek app on Android for one-tap access to classes, results, challans and notices.",
 };
 
 const FEATURES = [
@@ -56,12 +56,12 @@ const STEPS = [
   {
     n: "01",
     title: "Open the SkillTek site",
-    text: "On your phone, go to skilltek-cg41.vercel.app in Chrome (Android) or Safari (iPhone).",
+    text: "On your Android phone, open skilltek-cg41.vercel.app in Chrome.",
   },
   {
     n: "02",
     title: "Tap install",
-    text: "Choose Android to install instantly, or use the ⋮ / Share menu and pick “Add to Home screen”.",
+    text: "Tap the Android button to install instantly, or use the ⋮ menu and pick “Install app”.",
   },
   {
     n: "03",
@@ -84,7 +84,7 @@ export default function DownloadPage() {
           <Reveal>
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-brand-300">
-                <Smartphone className="h-3.5 w-3.5" /> Android &amp; iOS
+                <Smartphone className="h-3.5 w-3.5" /> Android app
               </span>
               <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 Install in seconds
@@ -122,7 +122,7 @@ export default function DownloadPage() {
               <div className="relative rounded-[2rem] border border-white/15 bg-slate-900 p-3 shadow-2xl">
                 <div className="mx-auto mb-3 h-1.5 w-16 rounded-full bg-white/15" />
                 <div className="overflow-hidden rounded-[1.5rem] bg-slate-950">
-                  <div className="flex items-center justify-center border-b border-white/10 bg-white/[0.03] px-4 py-5">
+                  <div className="flex items-center justify-center border-b border-white/10 bg-slate-900 px-4 py-5">
                     <Image
                       src="/logos/main-logo.png"
                       alt="SkillTek Institute"

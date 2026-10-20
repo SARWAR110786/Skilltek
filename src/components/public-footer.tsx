@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone, Send } from "lucide-react";
-import { InstallApp } from "@/components/install-app";
 
 const YEAR = new Date().getFullYear();
 
@@ -33,15 +32,6 @@ export function PublicFooter() {
             <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
               Placement Support
             </span>
-          </div>
-          <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-sm font-semibold text-white">Get the SkillTek app</p>
-            <p className="mt-1 text-xs leading-relaxed text-slate-400">
-              Install the portal on your phone for one-tap access to classes, results and notices.
-            </p>
-            <div className="mt-3">
-              <InstallApp />
-            </div>
           </div>
         </div>
 

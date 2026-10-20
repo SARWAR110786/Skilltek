@@ -1,16 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { verifySession, SESSION_COOKIE, type Role } from "@/lib/session";
+import { verifySession, SESSION_COOKIE, homeForRole, type Role } from "@/lib/session";
 
 const ROUTE_ROLES: { prefix: string; role: Role }[] = [
   { prefix: "/admin", role: "ADMIN" },
   { prefix: "/teacher", role: "TEACHER" },
   { prefix: "/student", role: "STUDENT" },
 ];
-
-function signOut(res: NextResponse) {
-  res.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });
-  return res;
-}
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -34,10 +29,14 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Any public page ends the session, so returning to the portal (e.g. via
-  // "Login Portal") always asks for credentials again.
-  if (user) {
-    return signOut(NextResponse.next());
+  // Public pages keep the session alive so returning to the portal does not
+  // require signing in again. Visiting /login while already signed in goes
+  // straight to the matching dashboard.
+  if (pathname === "/login" && user) {
+    const url = req.nextUrl.clone();
+    url.pathname = homeForRole(user.role);
+    url.search = "";
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
@@ -55,5 +54,6 @@ export const config = {
     "/services",
     "/admissions",
     "/contact",
+    "/download",
   ],
 };

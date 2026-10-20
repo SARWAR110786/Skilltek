@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description:
       "SkillTek Institute — courses, admissions, results and the student portal.",
     id: "/",
-    start_url: "/",
+    start_url: "/login",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
