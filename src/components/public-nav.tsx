@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, User, X } from "lucide-react";
+import { Menu, Smartphone, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
@@ -14,6 +14,7 @@ const LINKS = [
   { href: "/about", label: "About" },
   { href: "/admissions", label: "Admissions" },
   { href: "/contact", label: "Contact" },
+  { href: "/download", label: "Download App" },
 ];
 
 export function PublicNav() {
@@ -56,6 +57,13 @@ export function PublicNav() {
 
         <div className="hidden items-center gap-3 md:flex">
           <Link
+            href="/download"
+            className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:border-brand-400 hover:bg-brand-600/20"
+          >
+            <Smartphone className="h-4 w-4" />
+            Get App
+          </Link>
+          <Link
             href="/login"
             className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700"
           >
@@ -91,6 +99,14 @@ export function PublicNav() {
                 {l.label}
               </Link>
             ))}
+            <Link
+              href="/download"
+              onClick={() => setOpen(false)}
+              className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-center text-sm font-medium text-white"
+            >
+              <Smartphone className="h-4 w-4" />
+              Get the App
+            </Link>
             <Link
               href="/login"
               onClick={() => setOpen(false)}
