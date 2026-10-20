@@ -7,12 +7,30 @@ import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE, signSession, homeForRole } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 
-export type LoginState = { error?: string };
+export type LoginState = { error?: string; redirectTo?: string };
 
 export async function loginAction(
   _prev: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
+  let result: LoginState;
+  try {
+    result = await doLogin(formData);
+  } catch (err) {
+    console.error("[login] unexpected error:", err);
+    return {
+      error:
+        "Something went wrong signing you in. " +
+        (err instanceof Error ? err.message : String(err)),
+    };
+  }
+  if (result.redirectTo) {
+    redirect(result.redirectTo);
+  }
+  return result;
+}
+
+async function doLogin(formData: FormData): Promise<LoginState> {
   const email = String(formData.get("email") ?? "")
     .toLowerCase()
     .trim();
@@ -22,10 +40,10 @@ export async function loginAction(
     return { error: "Please enter your email and password." };
   }
 
-  const store = await headers();
+  const hdrs = await headers();
   const ip =
-    store.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    store.get("x-real-ip") ||
+    hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    hdrs.get("x-real-ip") ||
     "unknown";
 
   const ipLimit = rateLimit(`login:ip:${ip}`, 10, 5 * 60_000);
@@ -71,5 +89,5 @@ export async function loginAction(
     maxAge: 60 * 60 * 24 * 7,
   });
 
-  redirect(homeForRole(user.role));
+  return { redirectTo: homeForRole(user.role) };
 }

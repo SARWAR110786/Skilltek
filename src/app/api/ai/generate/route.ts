@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
 
-const AiKind = z.enum(["assignment", "quiz", "question", "course", "mcq"]);
+const AiKind = z.enum([
+  "assignment",
+  "quiz",
+  "question",
+  "course",
+  "mcq",
+  "notice",
+]);
 
 const Body = z.object({
   kind: AiKind,
@@ -22,6 +29,8 @@ Plain text only. 2-4 short lines. No markdown.`,
 Plain text only, just the question text — no options, no answer, no markdown.`,
   course: `Write a short, attractive course description for a school website (what students will learn, who it is for, outcomes).
 Plain text only. 2-4 short sentences. No markdown, no greetings.`,
+  notice: `Write a clear, friendly notice/announcement for students and teachers in a school portal (what is happening, when, what people should do, and any important details).
+Plain text only. 2-5 short sentences. No markdown, no headers, no greetings or signatures.`,
   mcq: `Create ONE multiple-choice question for a quiz based on the topic/hint provided.
 Return ONLY valid JSON in exactly this shape:
 {"text":"the question","optionA":"first option","optionB":"second option","optionC":"third option","optionD":"fourth option","correctOption":"A"}
@@ -53,6 +62,9 @@ function templateText(
   }
   if (kind === "course") {
     return `Learn ${scope || "the essential skills of this course"} through hands-on lessons and practical projects.\nDesigned for beginners and professionals who want to build real-world skills with guidance from experienced instructors.`;
+  }
+  if (kind === "notice") {
+    return `Please note: ${scope || "an important update from the institute"}.\nAll students and staff are requested to take note of the details and act accordingly. For any questions, contact the administration office.`;
   }
   return `Explain the key concepts of ${scope || "the topic provided"} with a practical example.`;
 }

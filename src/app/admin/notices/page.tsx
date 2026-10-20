@@ -11,8 +11,8 @@ import {
   PageHeader,
   Select,
   Table,
-  Textarea,
 } from "@/components/ui";
+import { AiAssistTextarea } from "@/components/ai-assist";
 import { formatDateTime } from "@/lib/utils";
 import { createNotice, deleteNotice } from "./actions";
 
@@ -55,7 +55,15 @@ export default async function NoticesPage({
             </Select>
           </Field>
           <div className="md:col-span-2">
-            <Field label="Message"><Textarea name="body" rows={3} required /></Field>
+            <Field label="Message">
+              <AiAssistTextarea
+                name="body"
+                kind="notice"
+                rows={3}
+                required
+                placeholder="Type a short hint, then Generate with AI — or write the notice yourself."
+              />
+            </Field>
           </div>
           <label className="flex items-center gap-2 self-end text-sm text-slate-600">
             <input type="checkbox" name="pinned" className="h-4 w-4 rounded" /> Pin to top
