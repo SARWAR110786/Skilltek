@@ -85,10 +85,10 @@ export function PublicFooter() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-4 text-xs text-slate-500 sm:flex-row">
           <span>© {YEAR} SkillTek Institute. All rights reserved.</span>
           <span className="flex items-center gap-4">
-            <Link href="/about" className="hover:text-slate-300">
+            <Link href="/privacy" className="hover:text-slate-300">
               Privacy Policy
             </Link>
-            <Link href="/about" className="hover:text-slate-300">
+            <Link href="/terms" className="hover:text-slate-300">
               Terms of Use
             </Link>
           </span>

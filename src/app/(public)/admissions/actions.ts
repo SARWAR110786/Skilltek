@@ -1,6 +1,8 @@
 "use server";
 
+import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
 
 export type EnquiryState = { ok?: boolean; error?: string };
 
@@ -19,6 +21,20 @@ export async function submitEnquiry(
 
   if (!name || (!email && !phone)) {
     return { error: "Please provide your name and a contact (email or phone)." };
+  }
+
+  const store = await headers();
+  const ip =
+    store.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    store.get("x-real-ip") ||
+    "unknown";
+  const limit = rateLimit(`enquiry:${ip}`, 5, 10 * 60_000);
+  if (!limit.ok) {
+    return {
+      error: `Too many submissions. Please try again in ${Math.ceil(
+        limit.retryAfterSeconds / 60,
+      )} minute(s).`,
+    };
   }
 
   try {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -42,6 +43,18 @@ function fallbackReply(userText: string, context: string): string {
 }
 
 export async function POST(req: Request) {
+  const limit = rateLimit(`chat:${clientIp(req)}`, 20, 5 * 60_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      {
+        reply: `You're sending messages too quickly. Please wait ${Math.ceil(
+          limit.retryAfterSeconds / 60,
+        )} minute(s) and try again.`,
+      },
+      { status: 429 },
+    );
+  }
+
   let messages: Msg[] = [];
   try {
     const body = await req.json();

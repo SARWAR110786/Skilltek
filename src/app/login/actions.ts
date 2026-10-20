@@ -1,10 +1,11 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE, signSession, homeForRole } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 export type LoginState = { error?: string };
 
@@ -19,6 +20,29 @@ export async function loginAction(
 
   if (!email || !password) {
     return { error: "Please enter your email and password." };
+  }
+
+  const store = await headers();
+  const ip =
+    store.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    store.get("x-real-ip") ||
+    "unknown";
+
+  const ipLimit = rateLimit(`login:ip:${ip}`, 10, 5 * 60_000);
+  if (!ipLimit.ok) {
+    return {
+      error: `Too many attempts. Please try again in ${Math.ceil(
+        ipLimit.retryAfterSeconds / 60,
+      )} minute(s).`,
+    };
+  }
+  const emailLimit = rateLimit(`login:email:${email}`, 5, 10 * 60_000);
+  if (!emailLimit.ok) {
+    return {
+      error: `Too many attempts for this account. Please try again in ${Math.ceil(
+        emailLimit.retryAfterSeconds / 60,
+      )} minute(s).`,
+    };
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
@@ -38,8 +62,8 @@ export async function loginAction(
     role: user.role,
   });
 
-  const store = await cookies();
-  store.set(SESSION_COOKIE, token, {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
