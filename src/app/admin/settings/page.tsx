@@ -10,6 +10,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import { updateSettings } from "./actions";
+import { ChangePasswordForm } from "./ChangePasswordForm";
 
 async function getSettings() {
   await connection();
@@ -61,6 +62,14 @@ export default async function SettingsPage() {
 
           <div className="md:col-span-2"><Button type="submit">Save Settings</Button></div>
         </form>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader
+          title="Account Security"
+          subtitle="Change the password used to sign in to the admin portal"
+        />
+        <ChangePasswordForm />
       </Card>
     </div>
   );

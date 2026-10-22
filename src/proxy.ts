@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { verifySession, SESSION_COOKIE, homeForRole, type Role } from "@/lib/session";
+import { verifySession, SESSION_COOKIE, type Role } from "@/lib/session";
 
 const ROUTE_ROLES: { prefix: string; role: Role }[] = [
   { prefix: "/admin", role: "ADMIN" },
@@ -29,16 +29,8 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Public pages keep the session alive so returning to the portal does not
-  // require signing in again. Visiting /login while already signed in goes
-  // straight to the matching dashboard.
-  if (pathname === "/login" && user) {
-    const url = req.nextUrl.clone();
-    url.pathname = homeForRole(user.role);
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
-
+  // The login form is always shown so a password is required even when a
+  // session cookie is still present.
   return NextResponse.next();
 }
 
