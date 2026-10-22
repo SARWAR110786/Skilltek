@@ -15,7 +15,7 @@ const PILLARS = [
 const FOUNDERS = [
   {
     name: "Sarfaraz Ahmed",
-    role: "Founder",
+    role: "Founder / CEO",
     image: "/founders/founder.jpg",
     tagline:
       "Experienced IT Instructor, Trainer, Educationist & Marketing Professional · Social & Youth Activist",
@@ -24,18 +24,18 @@ const FOUNDERS = [
       "Over the years, he has worked closely with various organizations to design impactful programs that enhance career opportunities and build leadership skills for young people. He has led initiatives that inspire, educate and motivate the next generation to realize their potential and contribute positively to society.",
       "His work extends beyond the classroom: he aims to create meaningful change in the community by fostering collaboration and advocating for youth empowerment.",
     ],
-    portfolio: "",
+    linkedin: "https://www.linkedin.com/in/sarfarazahmed07/",
   },
   {
     name: "Sarwar Ali",
-    role: "Co-Founder",
+    role: "Co Founder / CTO",
     image: "/founders/Co-Founder.jpeg",
     tagline: "Data Scientist, AI Enthusiast · Automation + Agentic AI Developer · IT Trainer",
     bio: [
       "Sarwar Ali is a Data Scientist and AI enthusiast focused on automation and agentic AI development. He designs intelligent workflows and AI-powered systems that solve real-world problems, and shares that expertise as an IT trainer.",
       "At SkillTek, he leads the technology and curriculum direction, helping students build hands-on, job-ready skills in data, AI and modern software. His goal is to make advanced technology practical, accessible and useful for the next generation.",
     ],
-    portfolio: "",
+    linkedin: "https://www.linkedin.com/in/sarwar-ali-6991b1277/",
   },
 ];
 
@@ -128,12 +128,12 @@ export default function AboutPage() {
                       ))}
                     </div>
                     <a
-                      href={f.portfolio || "#"}
-                      target={f.portfolio ? "_blank" : undefined}
-                      rel={f.portfolio ? "noopener noreferrer" : undefined}
+                      href={f.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-500"
                     >
-                      View Portfolio
+                      View LinkedIn Profile
                       <ArrowUpRight className="h-4 w-4" />
                     </a>
                   </div>
