@@ -7,6 +7,9 @@ import { Reveal } from "@/components/reveal";
 
 export const metadata = { title: "Courses · SkillTek" };
 
+// Reads live data through connection(); allow this segment to block.
+export const instant = false;
+
 async function getCourses() {
   try {
     await connection();

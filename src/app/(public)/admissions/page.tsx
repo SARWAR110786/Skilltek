@@ -7,6 +7,9 @@ import { EnquiryForm } from "./EnquiryForm";
 
 export const metadata = { title: "Admissions · SkillTek" };
 
+// Reads live data through connection(); allow this segment to block.
+export const instant = false;
+
 async function getCourses() {
   try {
     await connection();

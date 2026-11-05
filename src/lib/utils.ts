@@ -68,7 +68,3 @@ export function parseDateInput(value: string): Date {
   return new Date(y || 1970, (m || 1) - 1, d || 1);
 }
 
-export function admissionNo(prefix = "SKT"): string {
-  const stamp = Date.now().toString().slice(-6);
-  return `${prefix}-${stamp}`;
-}

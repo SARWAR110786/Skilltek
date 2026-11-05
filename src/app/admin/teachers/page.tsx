@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Trash2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import {
   Alert,
   Badge,
@@ -14,14 +15,36 @@ import {
   Table,
 } from "@/components/ui";
 import { DownloadForm } from "@/components/download-form";
+import { CoursePicker } from "@/components/course-picker";
+import { NumericInput } from "@/components/numeric-input";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { createTeacher, deleteTeacher, updateTeacher } from "./actions";
 
 export const instant = false;
 
-async function getData() {
+async function getData(search?: string) {
   await connection();
+  const query = search?.trim();
+
+  const where: Prisma.TeacherWhereInput | undefined = query
+    ? {
+        OR: [
+          { user: { name: { contains: query, mode: "insensitive" } } },
+          { user: { email: { contains: query, mode: "insensitive" } } },
+          { user: { phone: { contains: query, mode: "insensitive" } } },
+          { cnic: { contains: query, mode: "insensitive" } },
+          {
+            courses: {
+              some: { title: { contains: query, mode: "insensitive" } },
+            },
+          },
+        ],
+      }
+    : undefined;
+
   const [teachers, courses] = await Promise.all([
     prisma.teacher.findMany({
+      where,
       orderBy: { createdAt: "desc" },
       include: { user: true, courses: { orderBy: { title: "asc" } } },
     }),
@@ -31,55 +54,38 @@ async function getData() {
 }
 
 const ERRORS: Record<string, string> = {
-  required: "Name and email are required.",
+  required: "Please fill in every field — all fields are required.",
+  name: "Enter a valid full name (2–80 characters).",
+  invalidEmail: "Enter a valid email address.",
   email: "A user with that email already exists.",
-  password: "Password must be at least 6 characters.",
+  password: "Password must be between 6 and 72 characters.",
+  phone: "Enter a valid 11-digit phone number, e.g. 0300-1234567.",
+  cnic: "Enter a valid 13-digit CNIC in the format XXXXX-XXXXXXX-X, e.g. 41409-1234567-1.",
+  course: "Select at least one valid course.",
 };
-
-function CourseCheckboxes({
-  courses,
-  checked = [],
-}: {
-  courses: { id: string; title: string }[];
-  checked?: string[];
-}) {
-  if (courses.length === 0) {
-    return <p className="text-sm text-slate-400">No courses yet. Create a course first.</p>;
-  }
-  return (
-    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {courses.map((c) => (
-        <label
-          key={c.id}
-          className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:border-brand-300 hover:bg-brand-50"
-        >
-          <input
-            type="checkbox"
-            name="courseIds"
-            value={c.id}
-            defaultChecked={checked.includes(c.id)}
-            className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
-          />
-          {c.title}
-        </label>
-      ))}
-    </div>
-  );
-}
 
 export default async function TeachersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; created?: string; updated?: string; edit?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    q?: string;
+    created?: string;
+    updated?: string;
+    edit?: string;
+  }>;
 }) {
-  const { teachers, courses } = await getData();
   const sp = await searchParams;
+  const { teachers, courses } = await getData();
   const error = sp.error ? ERRORS[sp.error] : null;
   const editing = sp.edit ? teachers.find((t) => t.id === sp.edit) : null;
 
   return (
     <div>
-      <PageHeader title="Teachers" subtitle={`${teachers.length} faculty member${teachers.length === 1 ? "" : "s"}`} />
+      <PageHeader
+        title="Teachers"
+        subtitle={`${teachers.length} faculty member${teachers.length === 1 ? "" : "s"}`}
+      />
 
       {error && <Alert tone="error">{error}</Alert>}
       {sp.created === "1" && <Alert tone="success">Teacher created successfully.</Alert>}
@@ -98,50 +104,152 @@ export default async function TeachersPage({
           />
           <form action={updateTeacher} className="grid gap-4 p-5 md:grid-cols-3">
             <input type="hidden" name="id" value={editing.id} />
-            <Field label="Full name"><Input name="name" defaultValue={editing.user.name} required /></Field>
-            <Field label="Email"><Input name="email" type="email" defaultValue={editing.user.email} required /></Field>
-            <Field label="New password" hint="Leave blank to keep current">
-              <Input name="password" type="password" minLength={6} autoComplete="new-password" placeholder="At least 6 characters" />
+            <Field label="Full name" required>
+              <Input
+                name="name"
+                defaultValue={editing.user.name}
+                required
+                minLength={2}
+                maxLength={80}
+                autoComplete="name"
+              />
             </Field>
-            <Field label="Phone"><Input name="phone" defaultValue={editing.user.phone ?? ""} /></Field>
-            <Field label="CNIC" hint="Optional"><Input name="cnic" defaultValue={editing.cnic ?? ""} placeholder="35202-1234567-1" /></Field>
+            <Field label="Email" required>
+              <Input
+                name="email"
+                type="email"
+                defaultValue={editing.user.email}
+                required
+                autoComplete="email"
+              />
+            </Field>
+            <Field label="New password" hint="Leave blank to keep current">
+              <Input
+                name="password"
+                type="password"
+                minLength={6}
+                maxLength={72}
+                autoComplete="new-password"
+                placeholder="At least 6 characters"
+              />
+            </Field>
+            <Field label="Phone" required>
+              <NumericInput
+                mode="phone"
+                name="phone"
+                defaultValue={editing.user.phone ?? ""}
+                required
+              />
+            </Field>
+            <Field label="CNIC" required>
+              <NumericInput
+                mode="cnic"
+                name="cnic"
+                defaultValue={editing.cnic ?? ""}
+                placeholder="35202-1234567-1"
+                required
+              />
+            </Field>
             <div className="md:col-span-3">
-              <span className="mb-1 block text-sm font-medium text-slate-700">Assign courses</span>
-              <CourseCheckboxes courses={courses} checked={editing.courses.map((c) => c.id)} />
+              <span className="mb-1 block text-sm font-medium text-slate-700">
+                Assign courses
+                <span className="ml-0.5 text-rose-600" aria-hidden="true">
+                  *
+                </span>
+              </span>
+              <CoursePicker
+                courses={courses}
+                selected={editing.courses.map((c) => c.id)}
+              />
+              <span className="mt-1 block text-xs text-slate-400">
+                Select one or more courses.
+              </span>
             </div>
             <div className="md:col-span-3">
-              <Button type="submit">Save changes</Button>
+              <Button type="submit" disabled={courses.length === 0}>
+                Save changes
+              </Button>
             </div>
           </form>
         </Card>
       ) : (
         <Card className="mb-6">
           <CardHeader title="Add New Teacher" subtitle="Creates a teacher login account and assigns courses" />
+          {courses.length === 0 && (
+            <div className="px-5 pt-4">
+              <Alert tone="info">
+                No courses yet.{" "}
+                <Link href="/admin/courses" className="underline">
+                  Create a course
+                </Link>{" "}
+                before adding a teacher.
+              </Alert>
+            </div>
+          )}
           <form action={createTeacher} className="grid gap-4 p-5 md:grid-cols-3">
-            <Field label="Full name"><Input name="name" required /></Field>
-            <Field label="Email"><Input name="email" type="email" required /></Field>
-            <Field label="Password" hint="Set the teacher's login password (min 6 characters)">
-              <Input name="password" type="password" minLength={6} required autoComplete="new-password" placeholder="At least 6 characters" />
+            <Field label="Full name" required>
+              <Input
+                name="name"
+                required
+                minLength={2}
+                maxLength={80}
+                autoComplete="name"
+              />
             </Field>
-            <Field label="Phone"><Input name="phone" /></Field>
-            <Field label="CNIC" hint="Optional"><Input name="cnic" placeholder="35202-1234567-1" /></Field>
+            <Field label="Email" required>
+              <Input
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+              />
+            </Field>
+            <Field label="Password" hint="Set the teacher's login password (min 6 characters)" required>
+              <Input
+                name="password"
+                type="password"
+                minLength={6}
+                maxLength={72}
+                required
+                autoComplete="new-password"
+                placeholder="At least 6 characters"
+              />
+            </Field>
+            <Field label="Phone" required>
+              <NumericInput mode="phone" name="phone" required />
+            </Field>
+            <Field label="CNIC" required>
+              <NumericInput
+                mode="cnic"
+                name="cnic"
+                placeholder="35202-1234567-1"
+                required
+              />
+            </Field>
             <div className="md:col-span-3">
-              <span className="mb-1 block text-sm font-medium text-slate-700">Assign courses</span>
-              <CourseCheckboxes courses={courses} />
+              <span className="mb-1 block text-sm font-medium text-slate-700">
+                Assign courses
+                <span className="ml-0.5 text-rose-600" aria-hidden="true">
+                  *
+                </span>
+              </span>
+              <CoursePicker courses={courses} />
+              <span className="mt-1 block text-xs text-slate-400">
+                Select one or more courses.
+              </span>
             </div>
             <div className="md:col-span-3">
-              <Button type="submit">Create Teacher</Button>
+              <Button type="submit" disabled={courses.length === 0}>
+                Create Teacher
+              </Button>
             </div>
           </form>
         </Card>
       )}
 
-      <Card className="mb-6">
-        <CardHeader title="Download" subtitle="Export the teacher list" />
-        <div className="p-5">
-          <DownloadForm action="/api/export/teachers" fields={[]} />
-        </div>
-      </Card>
+      {/* Search removed as requested */}
+
+      {/* Download removed as requested */}
 
       <Card>
         <CardHeader title="All Teachers" />
@@ -172,16 +280,13 @@ export default async function TeachersPage({
                   >
                     Edit
                   </Link>
-                  <form action={deleteTeacher}>
+                  <ConfirmDelete
+                    action={deleteTeacher}
+                    message={`Delete ${t.user.name}? This will remove their login and unassign their courses.`}
+                  >
                     <input type="hidden" name="id" value={t.id} />
-                    <button
-                      type="submit"
-                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </form>
+                    <Trash2 className="h-4 w-4" />
+                  </ConfirmDelete>
                 </div>
               </td>
             </tr>
@@ -189,7 +294,7 @@ export default async function TeachersPage({
           {teachers.length === 0 && (
             <tr>
               <td colSpan={3} className="px-4 py-10 text-center text-sm text-slate-400">
-                No teachers yet. Add your first teacher above.
+                "No teachers yet. Add your first teacher above."
               </td>
             </tr>
           )}

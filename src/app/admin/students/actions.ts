@@ -5,59 +5,206 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/guard";
-import { admissionNo as genAdmissionNo } from "@/lib/utils";
+import {
+  courseCodeFromTitle,
+  formatRollNo,
+  parseRollSerial,
+  rollPrefix,
+  rollYear,
+} from "@/lib/roll-number";
+import { normalizeCnic, normalizePhone } from "@/lib/validation";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const GENDERS = ["Male", "Female"];
+
+type StudentInput = {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  cnic: string;
+  courseId: string;
+  guardianName: string;
+  guardianPhone: string;
+  gender: string;
+  address: string;
+};
+
+function readStudentForm(formData: FormData): StudentInput {
+  return {
+    name: String(formData.get("name") ?? "").trim(),
+    email: String(formData.get("email") ?? "").toLowerCase().trim(),
+    password: String(formData.get("password") ?? "").trim(),
+    phone: String(formData.get("phone") ?? "").trim(),
+    cnic: String(formData.get("cnic") ?? "").trim(),
+    courseId: String(formData.get("courseId") ?? "").trim(),
+    guardianName: String(formData.get("guardianName") ?? "").trim(),
+    guardianPhone: String(formData.get("guardianPhone") ?? "").trim(),
+    gender: String(formData.get("gender") ?? "").trim(),
+    address: String(formData.get("address") ?? "").trim(),
+  };
+}
+
+function validateStudent(input: StudentInput, requirePassword: boolean): string | null {
+  if (
+    !input.name ||
+    !input.email ||
+    !input.phone ||
+    !input.cnic ||
+    !input.gender ||
+    !input.courseId ||
+    !input.guardianName ||
+    !input.guardianPhone ||
+    !input.address ||
+    (requirePassword && !input.password)
+  ) {
+    return "required";
+  }
+  if (input.name.length < 2 || input.name.length > 80) return "name";
+  if (input.email.length > 254 || !EMAIL_RE.test(input.email)) {
+    return "invalidEmail";
+  }
+  if (
+    (requirePassword || input.password) &&
+    (input.password.length < 6 || input.password.length > 72)
+  ) {
+    return "password";
+  }
+  if (!normalizePhone(input.phone)) return "phone";
+  if (!normalizeCnic(input.cnic)) return "cnic";
+  if (!GENDERS.includes(input.gender)) return "gender";
+  if (input.guardianName.length < 2 || input.guardianName.length > 80) {
+    return "guardian";
+  }
+  if (!normalizePhone(input.guardianPhone)) return "guardianPhone";
+  if (input.address.length < 5 || input.address.length > 200) {
+    return "address";
+  }
+  return null;
+}
+
+async function courseExists(courseId: string): Promise<boolean> {
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    select: { id: true },
+  });
+  return Boolean(course);
+}
+
+type CourseCodeSource = { id: string; title: string; code: string | null };
+
+async function ensureCourseCode(course: CourseCodeSource): Promise<string> {
+  if (course.code) return course.code;
+
+  const base = courseCodeFromTitle(course.title) || "GEN";
+  let code = base;
+  let suffix = 2;
+
+  while (
+    await prisma.course.findFirst({
+      where: { code, NOT: { id: course.id } },
+      select: { id: true },
+    })
+  ) {
+    code = `${base.slice(0, 4)}${suffix}`;
+    suffix += 1;
+  }
+
+  await prisma.course.update({ where: { id: course.id }, data: { code } });
+  return code;
+}
+
+async function nextRollNo(
+  courseId: string | null,
+  date: Date = new Date(),
+): Promise<string> {
+  let code = "GEN";
+
+  if (courseId) {
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: { id: true, title: true, code: true },
+    });
+    if (!course) throw new Error("Course not found");
+    code = await ensureCourseCode(course);
+  }
+
+  const year = rollYear(date);
+  const prefix = rollPrefix(year, code);
+  const existing = await prisma.student.findMany({
+    where: { admissionNo: { startsWith: prefix } },
+    select: { admissionNo: true },
+  });
+  const lastSerial = existing.reduce(
+    (highest, row) => Math.max(highest, parseRollSerial(row.admissionNo, prefix)),
+    0,
+  );
+
+  return formatRollNo(year, code, lastSerial + 1);
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { code?: string }).code === "P2002"
+  );
+}
 
 export async function createStudent(formData: FormData) {
   await requireUser("ADMIN");
 
-  const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "")
-    .toLowerCase()
-    .trim();
-  const password = String(formData.get("password") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
-  const cnic = String(formData.get("cnic") ?? "").trim();
-  const courseId = String(formData.get("courseId") ?? "").trim();
-  const guardianName = String(formData.get("guardianName") ?? "").trim();
-  const guardianPhone = String(formData.get("guardianPhone") ?? "").trim();
-  const gender = String(formData.get("gender") ?? "").trim();
-  const address = String(formData.get("address") ?? "").trim();
-
-  if (!name || !email) {
-    redirect("/admin/students?error=required");
+  const input = readStudentForm(formData);
+  const invalid = validateStudent(input, true);
+  if (invalid) {
+    redirect(`/admin/students?error=${invalid}`);
+  }
+  if (!(await courseExists(input.courseId))) {
+    redirect("/admin/students?error=course");
   }
 
-  if (password.length < 6) {
-    redirect("/admin/students?error=password");
-  }
-
-  const exists = await prisma.user.findUnique({ where: { email } });
+  const exists = await prisma.user.findUnique({ where: { email: input.email } });
   if (exists) {
     redirect("/admin/students?error=email");
   }
 
-  const hashed = await bcrypt.hash(password, 10);
+  const hashed = await bcrypt.hash(input.password, 10);
+  const admissionDate = new Date();
 
-  await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashed,
-      role: "STUDENT",
-      phone: phone || null,
-      student: {
-        create: {
-          admissionNo: genAdmissionNo("SKT"),
-          cnic: cnic || null,
-          gender: gender || null,
-          address: address || null,
-          guardianName: guardianName || null,
-          guardianPhone: guardianPhone || null,
-          courseId: courseId || null,
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    const rollNo = await nextRollNo(input.courseId, admissionDate);
+    try {
+      await prisma.user.create({
+        data: {
+          name: input.name,
+          email: input.email,
+          password: hashed,
+          role: "STUDENT",
+          phone: normalizePhone(input.phone) ?? input.phone,
+          student: {
+            create: {
+              admissionNo: rollNo,
+              cnic: normalizeCnic(input.cnic),
+              gender: input.gender,
+              address: input.address,
+              guardianName: input.guardianName,
+              guardianPhone:
+                normalizePhone(input.guardianPhone) ?? input.guardianPhone,
+              courseId: input.courseId,
+            },
+          },
         },
-      },
-    },
-  });
+      });
+      break;
+    } catch (error) {
+      if (!isUniqueViolation(error) || attempt === 5) throw error;
+      const emailTaken = await prisma.user.findUnique({
+        where: { email: input.email },
+        select: { id: true },
+      });
+      if (emailTaken) redirect("/admin/students?error=email");
+    }
+  }
 
   revalidatePath("/admin/students");
   revalidatePath("/admin");
@@ -69,12 +216,17 @@ export async function deleteStudent(formData: FormData) {
   await requireUser("ADMIN");
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const student = await prisma.student.findUnique({ where: { id } });
+  const student = await prisma.student.findUnique({
+    where: { id },
+    select: { userId: true },
+  });
   if (student) {
     await prisma.user.delete({ where: { id: student.userId } });
   }
   revalidatePath("/admin/students");
   revalidatePath("/admin");
+  revalidatePath("/admin/attendance");
+  revalidatePath("/admin/challans");
 }
 
 export async function updateStudent(formData: FormData) {
@@ -86,53 +238,59 @@ export async function updateStudent(formData: FormData) {
   const student = await prisma.student.findUnique({ where: { id } });
   if (!student) return;
 
-  const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").toLowerCase().trim();
-  const password = String(formData.get("password") ?? "").trim();
-  const phone = String(formData.get("phone") ?? "").trim();
-  const cnic = String(formData.get("cnic") ?? "").trim();
-  const courseId = String(formData.get("courseId") ?? "").trim();
-  const guardianName = String(formData.get("guardianName") ?? "").trim();
-  const guardianPhone = String(formData.get("guardianPhone") ?? "").trim();
-  const gender = String(formData.get("gender") ?? "").trim();
-  const address = String(formData.get("address") ?? "").trim();
+  const input = readStudentForm(formData);
   const status = String(formData.get("status") ?? "ACTIVE").trim() || "ACTIVE";
 
-  if (!name || !email) {
-    redirect("/admin/students?error=required");
+  const invalid = validateStudent(input, false);
+  if (invalid) {
+    redirect(`/admin/students?error=${invalid}&edit=${id}`);
+  }
+  if (!(await courseExists(input.courseId))) {
+    redirect(`/admin/students?error=course&edit=${id}`);
   }
 
-  if (password && password.length < 6) {
-    redirect("/admin/students?error=password");
-  }
-
-  const exists = await prisma.user.findUnique({ where: { email } });
+  const exists = await prisma.user.findUnique({ where: { email: input.email } });
   if (exists && exists.id !== student.userId) {
-    redirect("/admin/students?error=email");
+    redirect(`/admin/students?error=email&edit=${id}`);
   }
 
   await prisma.user.update({
     where: { id: student.userId },
     data: {
-      name,
-      email,
-      phone: phone || null,
+      name: input.name,
+      email: input.email,
+      phone: normalizePhone(input.phone) ?? input.phone,
       status: status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
-      ...(password ? { password: await bcrypt.hash(password, 10) } : {}),
+      ...(input.password
+        ? { password: await bcrypt.hash(input.password, 10) }
+        : {}),
     },
   });
 
-  await prisma.student.update({
-    where: { id },
-    data: {
-      cnic: cnic || null,
-      gender: gender || null,
-      address: address || null,
-      guardianName: guardianName || null,
-      guardianPhone: guardianPhone || null,
-      courseId: courseId || null,
-    },
-  });
+  const courseChanged = student.courseId !== input.courseId;
+  let newRollNo = courseChanged ? await nextRollNo(input.courseId) : null;
+
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      await prisma.student.update({
+        where: { id },
+        data: {
+          ...(newRollNo ? { admissionNo: newRollNo } : {}),
+          cnic: normalizeCnic(input.cnic),
+          gender: input.gender,
+          address: input.address,
+          guardianName: input.guardianName,
+          guardianPhone:
+            normalizePhone(input.guardianPhone) ?? input.guardianPhone,
+          courseId: input.courseId,
+        },
+      });
+      break;
+    } catch (error) {
+      if (!isUniqueViolation(error) || attempt === 5) throw error;
+      newRollNo = await nextRollNo(input.courseId);
+    }
+  }
 
   revalidatePath("/admin/students");
   revalidatePath("/admin");
@@ -226,7 +384,9 @@ export async function importStudents(formData: FormData) {
   const cell = (row: string[], i: number) => (i === -1 ? "" : (row[i] ?? "").trim());
   const dataRows = rows.slice(1);
 
-  const courses = await prisma.course.findMany({ select: { id: true, title: true } });
+  const courses = await prisma.course.findMany({
+    select: { id: true, title: true, code: true },
+  });
   const courseByTitle = new Map(courses.map((c) => [c.title.toLowerCase(), c.id]));
 
   const emails = dataRows
@@ -248,6 +408,9 @@ export async function importStudents(formData: FormData) {
     const email = cell(row, ix.email).toLowerCase();
     const password = cell(row, ix.password);
     const courseTitle = cell(row, ix.course).toLowerCase();
+    const phone = cell(row, ix.phone);
+    const cnic = cell(row, ix.cnic);
+    const guardianPhone = cell(row, ix.guardianPhone);
 
     if (!name && !email && !password) return; // blank row
     if (!name) {
@@ -274,38 +437,62 @@ export async function importStudents(formData: FormData) {
       errors.push(`Row ${line}: unknown course "${cell(row, ix.course)}"`);
       return;
     }
+    if (phone && !normalizePhone(phone)) {
+      errors.push(`Row ${line}: invalid phone number`);
+      return;
+    }
+    if (cnic && !normalizeCnic(cnic)) {
+      errors.push(`Row ${line}: invalid CNIC (use 13 digits, e.g. 41409-1234567-1)`);
+      return;
+    }
+    if (guardianPhone && !normalizePhone(guardianPhone)) {
+      errors.push(`Row ${line}: invalid guardian phone number`);
+      return;
+    }
     seen.add(email);
     valid.push({ row, line });
   });
 
-  const stamp = Date.now().toString().slice(-6);
   let imported = 0;
 
   for (let i = 0; i < valid.length; i++) {
     const { row, line } = valid[i];
     const courseTitle = cell(row, ix.course).toLowerCase();
+    const courseId = courseTitle ? (courseByTitle.get(courseTitle) ?? null) : null;
+
     try {
-      await prisma.user.create({
-        data: {
-          name: cell(row, ix.name),
-          email: cell(row, ix.email).toLowerCase(),
-          password: await bcrypt.hash(cell(row, ix.password), 10),
-          role: "STUDENT",
-          phone: cell(row, ix.phone) || null,
-          student: {
-            create: {
-              admissionNo: `SKT-${stamp}-${String(i + 1).padStart(3, "0")}`,
-              cnic: cell(row, ix.cnic) || null,
-              gender: cell(row, ix.gender) || null,
-              address: cell(row, ix.address) || null,
-              guardianName: cell(row, ix.guardianName) || null,
-              guardianPhone: cell(row, ix.guardianPhone) || null,
-              courseId: courseTitle ? (courseByTitle.get(courseTitle) ?? null) : null,
+      const password = await bcrypt.hash(cell(row, ix.password), 10);
+      let rollNo = await nextRollNo(courseId);
+
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        try {
+          await prisma.user.create({
+            data: {
+              name: cell(row, ix.name),
+              email: cell(row, ix.email).toLowerCase(),
+              password,
+              role: "STUDENT",
+              phone: normalizePhone(cell(row, ix.phone)),
+              student: {
+                create: {
+                  admissionNo: rollNo,
+                  cnic: normalizeCnic(cell(row, ix.cnic)),
+                  gender: cell(row, ix.gender) || null,
+                  address: cell(row, ix.address) || null,
+                  guardianName: cell(row, ix.guardianName) || null,
+                  guardianPhone: normalizePhone(cell(row, ix.guardianPhone)),
+                  courseId,
+                },
+              },
             },
-          },
-        },
-      });
-      imported++;
+          });
+          imported++;
+          break;
+        } catch (error) {
+          if (!isUniqueViolation(error) || attempt === 5) throw error;
+          rollNo = await nextRollNo(courseId);
+        }
+      }
     } catch {
       errors.push(`Row ${line}: could not be saved`);
     }

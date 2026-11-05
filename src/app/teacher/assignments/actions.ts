@@ -36,11 +36,21 @@ export async function createAssignment(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const courseId = String(formData.get("courseId") ?? "");
-  const marks = Math.max(0, Number(formData.get("marks") ?? 0) || 0);
+  const marksRaw = formData.get("marks");
+  const marks = Number(marksRaw);
   const days = readDays(formData.get("days"));
   const courseIds = teacher.courses.map((c) => c.id);
 
-  if (!title || !courseIds.includes(courseId)) redirect("/teacher/assignments?error=required");
+  if (
+    !title ||
+    !courseIds.includes(courseId) ||
+    marksRaw === null ||
+    marksRaw === "" ||
+    !Number.isFinite(marks) ||
+    marks < 1
+  ) {
+    redirect("/teacher/assignments?error=required");
+  }
 
   const attachments = await readFiles(formData);
   const assignment = await prisma.assignment.create({
@@ -49,7 +59,7 @@ export async function createAssignment(formData: FormData) {
       description: description || null,
       courseId,
       teacherId: teacher.id,
-      marks,
+      marks: Math.floor(marks),
       dueDate: days ? daysToDate(new Date(), days) : null,
       status: "DRAFT",
       attachments: attachments.length ? { create: attachments } : undefined,

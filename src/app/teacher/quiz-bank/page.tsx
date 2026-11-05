@@ -16,6 +16,7 @@ import {
   Table,
 } from "@/components/ui";
 import { QuizQuestionFields } from "@/components/quiz-question-fields";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { createBankQuestion, updateBankQuestion, deleteBankQuestion } from "./actions";
 
 async function getData(teacherId: string, courseIds: string[]) {
@@ -82,12 +83,9 @@ export default async function QuizBankPage({
             defaultOptionD={editing?.optionD ?? ""}
             defaultCorrect={editing?.correctOption ?? "A"}
           />
-          <Field label="Marks">
-            <Input name="marks" type="number" min={1} defaultValue={editing?.marks ?? 1} />
-          </Field>
-          <Field label="Course (optional)" hint="Leave blank for a general question">
-            <Select name="courseId" defaultValue={editing?.courseId ?? ""}>
-              <option value="">General</option>
+          <Field label="Course" required>
+            <Select name="courseId" required defaultValue={editing?.courseId ?? ""}>
+              <option value="" disabled>Select a course</option>
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>{c.title}</option>
               ))}
@@ -106,7 +104,7 @@ export default async function QuizBankPage({
 
       <Card>
         <CardHeader title="Questions" subtitle={`${questions.length} question${questions.length === 1 ? "" : "s"} in bank`} />
-        <Table head={["Question", "Correct", "Marks", "Course", "Used", ""]}>
+        <Table head={["Question", "Correct", "Course", "Used", ""]}>
           {questions.map((q) => (
             <tr key={q.id} className="hover:bg-slate-50">
               <td className="max-w-md px-4 py-3">
@@ -118,7 +116,6 @@ export default async function QuizBankPage({
                 </p>
               </td>
               <td className="px-4 py-3"><Badge tone="green">{q.correctOption}</Badge></td>
-              <td className="px-4 py-3 text-slate-600">{q.marks}</td>
               <td className="px-4 py-3 text-slate-600">{q.course?.title ?? "General"}</td>
               <td className="px-4 py-3"><Badge tone="gray">{q._count.quizQuestions}</Badge></td>
               <td className="px-4 py-3">
@@ -130,12 +127,10 @@ export default async function QuizBankPage({
                   >
                     <Pencil className="h-4 w-4" />
                   </Link>
-                  <form action={deleteBankQuestion}>
+                  <ConfirmDelete action={deleteBankQuestion} message="Delete this question from the bank?">
                     <input type="hidden" name="id" value={q.id} />
-                    <button type="submit" className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label="Delete">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </form>
+                    <Trash2 className="h-4 w-4" />
+                  </ConfirmDelete>
                 </div>
               </td>
             </tr>

@@ -14,8 +14,9 @@ import {
   Select,
   Table,
 } from "@/components/ui";
-import { AiAssistTextarea } from "@/components/ai-assist";
+
 import { DownloadForm } from "@/components/download-form";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { createCourse, deleteCourse, updateCourse } from "./actions";
 
 export const instant = false;
@@ -39,7 +40,8 @@ async function getData() {
 }
 
 const ERRORS: Record<string, string> = {
-  required: "Title is required.",
+  required: "Please fill in all required fields correctly.",
+  title: "Course title already exists.",
 };
 
 export default async function CoursesPage({
@@ -81,8 +83,18 @@ export default async function CoursesPage({
           />
           <form action={updateCourse} className="grid gap-4 p-5 md:grid-cols-2">
             <input type="hidden" name="id" value={editing.id} />
-            <Field label="Title">
-              <Input name="title" defaultValue={editing.title} required />
+            <Field label="Title" required>
+              <Input name="title" defaultValue={editing.title} required minLength={2} maxLength={80} />
+            </Field>
+            <Field label="Course code" hint="Used in roll numbers, e.g. SK-2K26-WD-01">
+              <Input
+                name="code"
+                defaultValue={editing.code ?? ""}
+                maxLength={5}
+                pattern="[A-Za-z0-9]{1,5}"
+                title="1–5 letters or digits; leave blank to auto-generate."
+                placeholder="e.g. WD"
+              />
             </Field>
             <Field label="Assign teacher">
               <Select name="teacherId" defaultValue={editing.teacherId ?? ""}>
@@ -92,12 +104,26 @@ export default async function CoursesPage({
                 ))}
               </Select>
             </Field>
-            <Field label="Duration (months)">
-              <Input name="durationMonths" type="number" min={1} defaultValue={editing.durationMonths} />
+            <Field label="Duration (months)" required>
+              <Input
+                name="durationMonths"
+                type="number"
+                min={1}
+                max={60}
+                defaultValue={editing.durationMonths}
+                required
+              />
             </Field>
             <div className="md:col-span-2">
-              <Field label="Description">
-                <AiAssistTextarea name="description" kind="course" rows={2} defaultValue={editing.description ?? ""} placeholder="Describe the course — or type a title and let AI draft it…" />
+              <Field label="Description" required>
+                <textarea
+                  name="description"
+                  rows={3}
+                  required
+                  defaultValue={editing.description ?? ""}
+                  placeholder="Describe the course"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+                />
               </Field>
             </div>
             <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
@@ -118,23 +144,30 @@ export default async function CoursesPage({
         <Card className="mb-6">
           <CardHeader title="Add New Course" />
           <form action={createCourse} className="grid gap-4 p-5 md:grid-cols-2">
-            <Field label="Title">
-              <Input name="title" required />
+            <Field label="Title" required>
+              <Input name="title" required minLength={2} maxLength={80} />
             </Field>
-            <Field label="Assign teacher">
-              <Select name="teacherId" defaultValue="">
-                <option value="">Unassigned</option>
-                {teachers.map((t) => (
-                  <option key={t.id} value={t.id}>{t.user.name}</option>
-                ))}
-              </Select>
+            <Field label="Course code" hint="Used in roll numbers, e.g. SK-2K26-WD-01. Leave blank to auto-generate.">
+              <Input
+                name="code"
+                maxLength={5}
+                pattern="[A-Za-z0-9]{1,5}"
+                title="1–5 letters or digits; leave blank to auto-generate."
+                placeholder="e.g. WD"
+              />
             </Field>
-            <Field label="Duration (months)">
-              <Input name="durationMonths" type="number" min={1} defaultValue={3} />
+            <Field label="Duration (months)" required>
+              <Input name="durationMonths" type="number" min={1} max={60} defaultValue={3} required />
             </Field>
             <div className="md:col-span-2">
-              <Field label="Description">
-                <AiAssistTextarea name="description" kind="course" rows={2} placeholder="Describe the course — or type a title and let AI draft it…" />
+              <Field label="Description" required>
+                <textarea
+                  name="description"
+                  rows={3}
+                  required
+                  placeholder="Describe the course"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+                />
               </Field>
             </div>
             <div className="md:col-span-2">
@@ -158,6 +191,7 @@ export default async function CoursesPage({
             <tr key={c.id} className="hover:bg-slate-50">
               <td className="px-4 py-3">
                 <p className="font-medium text-slate-800">{c.title}</p>
+                <p className="text-xs font-mono text-slate-500">Code: {c.code ?? "—"}</p>
                 <p className="line-clamp-1 text-xs text-slate-400">{c.description ?? "—"}</p>
               </td>
               <td className="px-4 py-3 text-slate-600">{c.durationMonths} mo</td>
@@ -177,12 +211,10 @@ export default async function CoursesPage({
                   >
                     View Students
                   </Link>
-                  <form action={deleteCourse}>
+                  <ConfirmDelete action={deleteCourse} message={`Delete ${c.title}? This may affect students and teachers.`}>
                     <input type="hidden" name="id" value={c.id} />
-                    <button type="submit" className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label="Delete">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </form>
+                    <Trash2 className="h-4 w-4" />
+                  </ConfirmDelete>
                 </div>
               </td>
             </tr>

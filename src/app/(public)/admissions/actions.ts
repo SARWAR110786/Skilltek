@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
+import { normalizePhone } from "@/lib/validation";
 
 export type EnquiryState = { ok?: boolean; error?: string };
 
@@ -21,6 +22,11 @@ export async function submitEnquiry(
 
   if (!name || (!email && !phone)) {
     return { error: "Please provide your name and a contact (email or phone)." };
+  }
+
+  const normalizedPhone = phone ? normalizePhone(phone) : null;
+  if (phone && !normalizedPhone) {
+    return { error: "Please enter a valid phone number." };
   }
 
   const store = await headers();
@@ -42,7 +48,7 @@ export async function submitEnquiry(
       data: {
         name,
         email: email || null,
-        phone: phone || null,
+        phone: normalizedPhone,
         courseId: courseId || null,
         service: serviceValue || null,
         message: message || null,

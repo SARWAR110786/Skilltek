@@ -19,7 +19,18 @@ export async function saveAttendance(formData: FormData) {
     redirect(back || "/");
   }
 
-  const date = parseDateInput(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const selected = parseDateInput(dateStr);
+  const d = new Date(selected);
+  d.setHours(0, 0, 0, 0);
+  if (d > today) {
+    const target = back && back.trim() ? back.trim() : "/admin/attendance";
+    const sep = target.includes("?") ? "&" : "?";
+    redirect(`${target}${sep}error=future`);
+  }
+
+  const date = selected;
 
   const toSave: { studentId: string; status: "PRESENT" | "ABSENT" }[] = [];
   const toClear: string[] = [];

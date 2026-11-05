@@ -185,7 +185,7 @@ export async function GET(
     drawKV(left, ly, "Name", challan.student.user.name, colWidth);
     drawKV(colSplit, ly, "Bank", bank.name, colWidth);
     ly -= 9;
-    drawKV(left, ly, "Adm #", challan.student.admissionNo, colWidth);
+    drawKV(left, ly, "Roll No", challan.student.admissionNo, colWidth);
     drawKV(colSplit, ly, "Branch", bank.branch, colWidth);
     ly -= 9;
     drawKV(left, ly, "Course", challan.student.course?.title ?? "-", colWidth);

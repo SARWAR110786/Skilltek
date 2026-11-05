@@ -44,7 +44,7 @@ async function getData(courseParam: string | undefined, dateValue: string) {
 export default async function AdminAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ course?: string; date?: string; saved?: string }>;
+  searchParams: Promise<{ course?: string; date?: string; saved?: string; error?: string }>;
 }) {
   await requireUser("ADMIN");
   const sp = await searchParams;
@@ -54,6 +54,11 @@ export default async function AdminAttendancePage({
   return (
     <div>
       <PageHeader title="Attendance" subtitle="Mark and review attendance course-wise" />
+      {(sp.error === "future" || (sp as any).future) && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          Attendance cannot be marked for future dates.
+        </div>
+      )}
 
       <Card className="mb-6">
         <CardHeader title="Download attendance" subtitle="Export a single day or a whole month as CSV or PDF" />

@@ -8,7 +8,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!user) return new Response("Unauthorized", { status: 401 });
 
   const { id } = await params;
-  const kind = new URL(req.url).searchParams.get("kind") ?? "attachment";
+  const search = new URL(req.url).searchParams;
+  const kind = search.get("kind") ?? "attachment";
+  const disposition = search.get("disposition") === "inline" ? "inline" : "attachment";
 
   let file: { fileName: string; mimeType: string; size: number; data: Uint8Array } | null = null;
   let allowed = false;
@@ -61,8 +63,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   return new NextResponse(Buffer.from(file.data), {
     headers: {
       "Content-Type": file.mimeType || "application/octet-stream",
-      "Content-Disposition": `attachment; filename="${encodeURIComponent(file.fileName)}"`,
+      "Content-Disposition": `${disposition}; filename="${encodeURIComponent(file.fileName)}"`,
       "Content-Length": String(file.size),
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "private, no-store",
     },
   });
 }

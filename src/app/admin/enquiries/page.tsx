@@ -10,6 +10,7 @@ import {
   Table,
 } from "@/components/ui";
 import { formatDateTime } from "@/lib/utils";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { deleteEnquiry, updateEnquiryStatus } from "./actions";
 
 async function getEnquiries() {
@@ -65,12 +66,10 @@ export default async function EnquiriesPage() {
                 </div>
               </td>
               <td className="px-4 py-3">
-                <form action={deleteEnquiry}>
+                <ConfirmDelete action={deleteEnquiry} message={`Delete enquiry from ${e.name}?`}>
                   <input type="hidden" name="id" value={e.id} />
-                  <button type="submit" className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label="Delete">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </form>
+                  <Trash2 className="h-4 w-4" />
+                </ConfirmDelete>
               </td>
             </tr>
           ))}

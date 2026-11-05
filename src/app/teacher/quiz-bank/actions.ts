@@ -26,20 +26,21 @@ export async function createBankQuestion(formData: FormData) {
   const teacher = await getTeacherProfile(user.id);
   if (!teacher) redirect("/teacher/quiz-bank");
   const f = readForm(formData);
-  if (!f.text || !f.optionA || !f.optionB) redirect("/teacher/quiz-bank?error=required");
+  if (!f.text || !f.optionA || !f.optionB || !f.optionC || !f.optionD) redirect("/teacher/quiz-bank?error=required");
 
   const courseIds = teacher.courses.map((c) => c.id);
+  if (!courseIds.includes(f.courseId)) redirect("/teacher/quiz-bank?error=required");
   await prisma.quizBankQuestion.create({
     data: {
       teacherId: teacher.id,
-      courseId: courseIds.includes(f.courseId) ? f.courseId : null,
+      courseId: f.courseId,
       text: f.text,
       optionA: f.optionA,
       optionB: f.optionB,
       optionC: f.optionC || null,
       optionD: f.optionD || null,
       correctOption: f.correctOption,
-      marks: f.marks,
+      marks: 1,
     },
   });
   revalidatePath("/teacher/quiz-bank");
@@ -55,20 +56,20 @@ export async function updateBankQuestion(formData: FormData) {
   if (!existing || existing.teacherId !== teacher.id) redirect("/teacher/quiz-bank?error=notfound");
 
   const f = readForm(formData);
-  if (!f.text || !f.optionA || !f.optionB) redirect(`/teacher/quiz-bank?edit=${id}&error=required`);
+  if (!f.text || !f.optionA || !f.optionB || !f.optionC || !f.optionD) redirect(`/teacher/quiz-bank?edit=${id}&error=required`);
 
   const courseIds = teacher.courses.map((c) => c.id);
+  if (!courseIds.includes(f.courseId)) redirect(`/teacher/quiz-bank?edit=${id}&error=required`);
   await prisma.quizBankQuestion.update({
     where: { id },
     data: {
-      courseId: courseIds.includes(f.courseId) ? f.courseId : null,
+      courseId: f.courseId,
       text: f.text,
       optionA: f.optionA,
       optionB: f.optionB,
       optionC: f.optionC || null,
       optionD: f.optionD || null,
       correctOption: f.correctOption,
-      marks: f.marks,
     },
   });
   revalidatePath("/teacher/quiz-bank");

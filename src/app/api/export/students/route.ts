@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   });
 
   const headers = [
-    "Admission #",
+    "Roll No",
     "Name",
     "Email",
     "Course",

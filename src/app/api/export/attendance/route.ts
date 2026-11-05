@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
       counts.set(r.studentId, entry);
     }
 
-    headers = ["Admission #", "Name", "Present", "Absent", "Total", "%"];
+    headers = ["Roll No", "Name", "Present", "Absent", "Total", "%"];
     rows = students.map((s) => {
       const c = counts.get(s.id) ?? { present: 0, absent: 0 };
       const total = c.present + c.absent;
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
     });
     const statusMap = Object.fromEntries(records.map((r) => [r.studentId, r.status]));
 
-    headers = ["Admission #", "Name", "Status"];
+    headers = ["Roll No", "Name", "Status"];
     rows = students.map((s) => [s.admissionNo, s.user.name, statusMap[s.id] ?? "Not marked"]);
 
     periodLabel = day.toLocaleDateString("en-GB", {

@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     "Date Issued",
     "Due Date",
     "Student",
-    "Admission #",
+    "Roll No",
     "Course",
     "Particulars",
     "Amount (PKR)",

@@ -8,6 +8,7 @@ const AiKind = z.enum([
   "question",
   "course",
   "mcq",
+  "mcqs",
   "notice",
 ]);
 
@@ -31,10 +32,14 @@ Plain text only, just the question text — no options, no answer, no markdown.`
 Plain text only. 2-4 short sentences. No markdown, no greetings.`,
   notice: `Write a clear, friendly notice/announcement for students and teachers in a school portal (what is happening, when, what people should do, and any important details).
 Plain text only. 2-5 short sentences. No markdown, no headers, no greetings or signatures.`,
-  mcq: `Create ONE multiple-choice question for a quiz based on the topic/hint provided.
-Return ONLY valid JSON in exactly this shape:
-{"text":"the question","optionA":"first option","optionB":"second option","optionC":"third option","optionD":"fourth option","correctOption":"A"}
-Rules: exactly four plausible options, exactly one correct answer, correctOption must be one of "A","B","C","D". No markdown, no explanation.`,
+  mcq: `Create ONE multiple-choice question (MCQ) for a quiz based on the topic/hint provided.
+  Return ONLY valid JSON in exactly this shape:
+  {"text":"the question","optionA":"first option","optionB":"second option","optionC":"third option","optionD":"fourth option","correctOption":"A"}
+  Rules: Make the question clear and exam-appropriate. Give exactly four plausible options (A-D). Only ONE option must be correct. Pick the correct answer randomly among A, B, C, or D and set correctOption to that letter. Do not make the correct answer obvious by length, keywords, or "all of the above". All four options must be similar in length and style. Never reveal or hint which option is correct in the question text. No markdown, no explanation, no extra text.`,
+  mcqs: `Create multiple multiple-choice questions (MCQs) for a quiz based on the topic/hint provided.
+  Return ONLY valid JSON in exactly this shape:
+  {"questions":[{"text":"the question","optionA":"first option","optionB":"second option","optionC":"third option","optionD":"fourth option","correctOption":"A"}]}
+  Rules: Create between 5 and 10 questions unless the user specifies a different number. Make questions clear and exam-appropriate. Give exactly four plausible options (A-D). Only ONE option must be correct per question. Spread the correct answer randomly across A, B, C, and D. Do not make correct answers obvious by length, keywords, or "all of the above". All four options must be similar in length and style. Never reveal or hint which option is correct. Cover different aspects of the topic. No markdown, no explanation, no extra text.`,
 };
 
 const Mcq = z.object({
@@ -44,6 +49,10 @@ const Mcq = z.object({
   optionC: z.string().min(1),
   optionD: z.string().min(1),
   correctOption: z.enum(["A", "B", "C", "D"]),
+});
+
+const Mcqs = z.object({
+  questions: z.array(Mcq).min(1).max(20),
 });
 
 type Mcq = z.infer<typeof Mcq>;
@@ -71,13 +80,26 @@ function templateText(
 
 function templateMcq(topic: string): Mcq {
   const t = topic || "the core concept";
+  const letters: Array<"A" | "B" | "C" | "D"> = ["A", "B", "C", "D"];
+  const correct = letters[Math.floor(Math.random() * letters.length)];
+  const base = `Which of the following correctly applies to ${t}?`;
+  const opts = {
+    A: `Statement A related to ${t}`,
+    B: `Statement B related to ${t}`,
+    C: `Statement C related to ${t}`,
+    D: `Statement D related to ${t}`,
+  };
+  if (correct === "A") opts.A = `Correct statement about ${t}`;
+  else if (correct === "B") opts.B = `Correct statement about ${t}`;
+  else if (correct === "C") opts.C = `Correct statement about ${t}`;
+  else opts.D = `Correct statement about ${t}`;
   return {
-    text: `Which of the following best describes ${t}?`,
-    optionA: `The correct explanation of ${t}`,
-    optionB: `A common misconception about ${t}`,
-    optionC: "An unrelated concept",
-    optionD: "None of the above",
-    correctOption: "A",
+    text: base,
+    optionA: opts.A,
+    optionB: opts.B,
+    optionC: opts.C,
+    optionD: opts.D,
+    correctOption: correct,
   };
 }
 
@@ -104,7 +126,7 @@ export async function POST(req: Request) {
   const course = (body.course ?? "").trim();
   const seed = (body.seed ?? "").trim();
   const apiKey = process.env.OPENAI_API_KEY;
-  const isMcq = body.kind === "mcq";
+  const isMcq = body.kind === "mcq" || body.kind === "mcqs";
 
   const contextParts = [
     title && `Title/topic: ${title}`,
@@ -149,6 +171,10 @@ export async function POST(req: Request) {
               .replace(/^```(?:json)?/i, "")
               .replace(/```$/, "")
               .trim();
+            if (body.kind === "mcqs") {
+              const parsed = Mcqs.parse(JSON.parse(cleaned));
+              return NextResponse.json({ questions: parsed.questions });
+            }
             const mcq = Mcq.parse(JSON.parse(cleaned));
             return NextResponse.json({ mcq });
           } catch {
@@ -164,6 +190,10 @@ export async function POST(req: Request) {
   }
 
   if (isMcq) {
+    if (body.kind === "mcqs") {
+      const questions = Array.from({ length: 10 }, () => templateMcq(seed || title));
+      return NextResponse.json({ questions });
+    }
     return NextResponse.json({ mcq: templateMcq(seed || title) });
   }
   return NextResponse.json({

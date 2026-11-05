@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { ArrowLeft, CheckCircle2, Download, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Download, Eye, Trash2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser, getTeacherProfile } from "@/lib/guard";
 import {
@@ -17,6 +17,7 @@ import {
   Table,
 } from "@/components/ui";
 import { AiAssistTextarea } from "@/components/ai-assist";
+import { MarksSelect } from "@/components/marks-select";
 import { dateInputValue, formatDate, formatDateTime } from "@/lib/utils";
 import {
   updateAssignment,
@@ -169,9 +170,29 @@ export default async function TeacherAssignmentDetailPage({
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-1">
                       {s.files.map((f) => (
-                        <a key={f.id} href={`/api/files/${f.id}?kind=submission`} className="inline-flex items-center gap-1 text-xs text-brand-600 hover:underline">
-                          <Download className="h-3.5 w-3.5" /> {f.fileName}
-                        </a>
+                        <div key={f.id} className="flex items-center gap-2">
+                          <span className="max-w-[180px] truncate text-xs text-slate-600" title={f.fileName}>
+                            {f.fileName}
+                          </span>
+                          <a
+                            href={`/api/files/${f.id}?kind=submission&disposition=inline`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-brand-600"
+                            aria-label={`View ${f.fileName}`}
+                            title="View"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </a>
+                          <a
+                            href={`/api/files/${f.id}?kind=submission`}
+                            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-brand-600"
+                            aria-label={`Download ${f.fileName}`}
+                            title="Download"
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                          </a>
+                        </div>
                       ))}
                       {s.files.length === 0 && <span className="text-xs text-slate-400">No files</span>}
                     </div>
@@ -179,14 +200,10 @@ export default async function TeacherAssignmentDetailPage({
                   <td className="px-4 py-3">
                     <form action={gradeSubmission} className="flex items-center gap-2">
                       <input type="hidden" name="id" value={s.id} />
-                      <Input
-                        name="marksObtained"
-                        type="number"
-                        min={0}
+                      <MarksSelect
                         max={assignment.marks}
-                        defaultValue={s.marksObtained ?? ""}
-                        className="w-20 px-2 py-1 text-xs"
-                        placeholder={`/${assignment.marks}`}
+                        defaultValue={s.marksObtained}
+                        className="w-24 px-2 py-1 text-xs"
                       />
                       <Button type="submit" size="sm">Save</Button>
                     </form>

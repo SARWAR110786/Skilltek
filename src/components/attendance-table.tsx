@@ -123,7 +123,7 @@ export function AttendanceTable({
           <input type="hidden" name="courseId" value={courseId} />
           <input type="hidden" name="date" value={dateValue} />
           <input type="hidden" name="back" value={back} />
-          <Table head={["Student", "Admission #", "Status", "Mark Present / Absent"]}>
+          <Table head={["Student", "Roll No", "Status", "Mark Present / Absent"]}>
             {students.map((s) => {
               const status = statuses[s.id];
               return (

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Eye } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser, getTeacherProfile } from "@/lib/guard";
 import {
@@ -15,8 +15,9 @@ import {
   Select,
   Table,
 } from "@/components/ui";
-import { AiAssistTextarea } from "@/components/ai-assist";
+
 import { formatDate } from "@/lib/utils";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { createAssignment, deleteAssignment } from "./actions";
 
 async function getData(teacherId: string, courseIds: string[]) {
@@ -48,7 +49,7 @@ export default async function TeacherAssignmentsPage({
     <div>
       <PageHeader title="Assignments" subtitle="Create assignments and share resources with your courses" />
 
-      {sp.error === "required" && <Alert tone="error">Please provide a title and a valid course.</Alert>}
+          {sp.error === "required" && <Alert tone="error">Please provide a title, a valid course, and marks greater than 0.</Alert>}
       {sp.deleted && <Alert tone="success">Assignment deleted.</Alert>}
 
       <Card className="mb-6">
@@ -63,11 +64,16 @@ export default async function TeacherAssignmentsPage({
               ))}
             </Select>
           </Field>
-          <Field label="Marks"><Input name="marks" type="number" min={0} defaultValue={10} /></Field>
+          <Field label="Marks" required><Input name="marks" type="number" min={1} defaultValue={10} required /></Field>
           <Field label="Deadline (days after creation)"><Input name="days" type="number" min={1} defaultValue={7} /></Field>
           <div className="md:col-span-2">
             <Field label="Description / Instructions">
-              <AiAssistTextarea name="description" kind="assignment" rows={3} placeholder="What should students do? Or type a title and let AI draft it…" />
+              <textarea
+                name="description"
+                rows={3}
+                placeholder="What should students do?"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+              />
             </Field>
           </div>
           <div className="md:col-span-2">
@@ -96,12 +102,20 @@ export default async function TeacherAssignmentsPage({
               <td className="px-4 py-3 text-slate-600">{a._count.submissions}</td>
               <td className="px-4 py-3"><Badge tone={a.status === "ASSIGNED" ? "green" : "gray"}>{a.status}</Badge></td>
               <td className="px-4 py-3">
-                <form action={deleteAssignment}>
-                  <input type="hidden" name="id" value={a.id} />
-                  <button type="submit" className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label="Delete">
+                <div className="flex items-center gap-2">
+                  <ConfirmDelete action={deleteAssignment} message={`Delete assignment "${a.title}"?`}>
+                    <input type="hidden" name="id" value={a.id} />
                     <Trash2 className="h-4 w-4" />
-                  </button>
-                </form>
+                  </ConfirmDelete>
+                  {a._count.submissions > 0 && (
+                    <Link
+                      href={`/teacher/assignments/${a.id}/submissions`}
+                      className="inline-flex items-center gap-1 rounded-md bg-brand-50 px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-100"
+                    >
+                      <Eye className="h-3.5 w-3.5" /> View Submissions
+                    </Link>
+                  )}
+                </div>
               </td>
             </tr>
           ))}

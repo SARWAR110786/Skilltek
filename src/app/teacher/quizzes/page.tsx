@@ -15,9 +15,10 @@ import {
   Select,
   Table,
 } from "@/components/ui";
-import { AiAssistTextarea } from "@/components/ai-assist";
+
 import { QuestionPicker } from "@/components/question-picker";
 import { formatDateTime } from "@/lib/utils";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { createQuiz, deleteQuiz } from "./actions";
 
 async function getData(teacherId: string, courseIds: string[]) {
@@ -86,9 +87,17 @@ export default async function TeacherQuizzesPage({
             </Select>
           </Field>
           <Field label="Duration (minutes)"><Input name="durationMinutes" type="number" min={1} defaultValue={15} /></Field>
+          <Field label="Total marks">
+            <Input name="totalMarks" type="number" min={1} step={0.5} defaultValue={5} placeholder="e.g. 5" />
+          </Field>
           <div className="md:col-span-2">
             <Field label="Description">
-              <AiAssistTextarea name="description" kind="quiz" rows={2} placeholder="Optional instructions for students — or type a title and let AI draft them…" />
+              <textarea
+                name="description"
+                rows={2}
+                placeholder="Optional instructions for students"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-100"
+              />
             </Field>
           </div>
           <div className="md:col-span-2">
@@ -118,12 +127,10 @@ export default async function TeacherQuizzesPage({
                 <Badge tone={q.status === "ASSIGNED" ? "green" : "gray"}>{q.status}</Badge>
               </td>
               <td className="px-4 py-3">
-                <form action={deleteQuiz}>
+                <ConfirmDelete action={deleteQuiz} message={`Delete quiz "${q.title}"?`}>
                   <input type="hidden" name="id" value={q.id} />
-                  <button type="submit" className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600" aria-label="Delete">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </form>
+                  <Trash2 className="h-4 w-4" />
+                </ConfirmDelete>
               </td>
             </tr>
           ))}

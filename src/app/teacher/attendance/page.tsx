@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, getTeacherProfile } from "@/lib/guard";
-import { PageHeader } from "@/components/ui";
+import { Card, CardHeader, PageHeader } from "@/components/ui";
 import { AttendanceTable } from "@/components/attendance-table";
 import { dateInputValue, parseDateInput } from "@/lib/utils";
 
@@ -44,7 +44,7 @@ async function getData(courseParam: string | undefined, dateValue: string, cours
 export default async function TeacherAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ course?: string; date?: string; saved?: string }>;
+  searchParams: Promise<{ course?: string; date?: string; saved?: string; error?: string }>;
 }) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
@@ -56,6 +56,11 @@ export default async function TeacherAttendancePage({
   return (
     <div>
       <PageHeader title="Attendance" subtitle="Mark attendance for a course" />
+      {(sp.error === "future" || (sp as any).future) && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          Attendance cannot be marked for future dates.
+        </div>
+      )}
 
       <AttendanceTable
         courses={courses}

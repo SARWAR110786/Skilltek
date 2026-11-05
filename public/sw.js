@@ -1,4 +1,4 @@
-const CACHE = "skilltek-static-v1";
+const CACHE = "skilltek-static-v2";
 const STATIC_PREFIXES = ["/_next/static/", "/icons/", "/logos/"];
 
 self.addEventListener("install", () => {
@@ -29,13 +29,12 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE);
-        const hit = await cache.match(req);
-        if (hit) return hit;
         try {
           const res = await fetch(req);
           if (res.ok) cache.put(req, res.clone());
           return res;
         } catch {
+          const hit = await cache.match(req);
           return hit || Response.error();
         }
       })(),
