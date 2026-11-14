@@ -28,6 +28,20 @@ DIRECT_URL=postgresql://postgres.sabbtiueycedkrupqzku:PASSWORD@aws-0-REGION.pool
 You don't need Supabase Auth, Storage or the anon/service keys — the app only
 uses the Postgres database.
 
+### Current production setup
+
+- Pooler host: `aws-0-ap-northeast-2.pooler.supabase.com`
+- The app logs in as a dedicated role `skilltek_app` (owner of the app tables),
+  user name `skilltek_app.sabbtiueycedkrupqzku`. Its password lives only in
+  Vercel's encrypted env vars. To rotate it, run in the Supabase SQL editor:
+  `alter role skilltek_app password 'new-long-random-password';` then update
+  `DATABASE_URL` and `DIRECT_URL` in Vercel and redeploy.
+- Row Level Security is ON for every table and the public `anon` /
+  `authenticated` API roles have no access, so the Supabase anon key can't
+  read or change any data. (The "RLS enabled, no policy" notice in Supabase
+  is expected.)
+- Vercel functions run in `icn1` (Seoul) next to the database.
+
 ## 2. Environment variables (Vercel → Settings → Environment Variables)
 
 | Variable         | Required | Notes |
