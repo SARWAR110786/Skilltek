@@ -20,6 +20,20 @@ export async function submitEnquiry(
   const serviceValue = service === "Other" ? serviceOther || "Other" : service;
   const message = String(formData.get("message") ?? "").trim();
 
+  if (
+    name.length > 120 ||
+    email.length > 254 ||
+    phone.length > 30 ||
+    serviceValue.length > 120 ||
+    message.length > 3000 ||
+    courseId.length > 64
+  ) {
+    return { error: "Some fields are too long. Please shorten them and try again." };
+  }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: "Please enter a valid email address." };
+  }
+
   if (!name || (!email && !phone)) {
     return { error: "Please provide your name and a contact (email or phone)." };
   }
@@ -49,7 +63,12 @@ export async function submitEnquiry(
         name,
         email: email || null,
         phone: normalizedPhone,
-        courseId: courseId || null,
+        // Ignore unknown/inactive course ids instead of failing on the FK.
+        courseId:
+          courseId &&
+          (await prisma.course.findFirst({ where: { id: courseId, active: true }, select: { id: true } }))
+            ? courseId
+            : null,
         service: serviceValue || null,
         message: message || null,
       },

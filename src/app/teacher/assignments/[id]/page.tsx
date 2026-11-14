@@ -16,6 +16,7 @@ import {
   Select,
   Table,
 } from "@/components/ui";
+import { UPLOAD_ERROR_TEXT } from "@/lib/uploads";
 import { AiAssistTextarea } from "@/components/ai-assist";
 import { MarksSelect } from "@/components/marks-select";
 import { dateInputValue, formatDate, formatDateTime } from "@/lib/utils";
@@ -90,6 +91,7 @@ export default async function TeacherAssignmentDetailPage({
       {sp.created && <Alert tone="success">Assignment created.</Alert>}
       {sp.updated && <Alert tone="success">Assignment updated.</Alert>}
       {sp.error === "required" && <Alert tone="error">Please provide a title and a valid course.</Alert>}
+      {sp.error && UPLOAD_ERROR_TEXT[sp.error] && <Alert tone="error">{UPLOAD_ERROR_TEXT[sp.error]}</Alert>}
 
       <div className="mb-6"><Badge tone={assignment.status === "ASSIGNED" ? "green" : "gray"}>{assignment.status}</Badge></div>
 

@@ -11,7 +11,9 @@ export async function getExportAuth(): Promise<SessionUser | null> {
 }
 
 function escapeCell(value: Cell): string {
-  const s = value == null ? "" : String(value);
+  let s = value == null ? "" : String(value);
+  // Neutralise spreadsheet formula injection (=, +, -, @, tab, CR at start).
+  if (typeof value === "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

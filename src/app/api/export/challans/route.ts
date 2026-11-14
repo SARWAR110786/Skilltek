@@ -9,7 +9,10 @@ const STATUSES = ["UNPAID", "PARTIAL", "PAID"] as const;
 
 export async function GET(req: Request) {
   const user = await getExportAuth();
-  if (!user) return new NextResponse("Unauthorized", { status: 401 });
+  // Fee records are private financial data: admins only.
+  if (!user || user.role !== "ADMIN") {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
 
   const { searchParams } = new URL(req.url);
   const format = (searchParams.get("format") || "csv").toLowerCase();

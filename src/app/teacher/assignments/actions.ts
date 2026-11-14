@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser, getTeacherProfile } from "@/lib/guard";
+import { readUploadedFiles } from "@/lib/uploads";
 
 function daysToDate(base: Date, days: number) {
   return new Date(base.getTime() + days * 86_400_000);
@@ -14,19 +15,6 @@ function readDays(value: FormDataEntryValue | null, fallback = 0) {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
 }
 
-async function readFiles(formData: FormData) {
-  const files = formData
-    .getAll("files")
-    .filter((f): f is File => f instanceof File && f.size > 0);
-  return Promise.all(
-    files.map(async (f) => ({
-      fileName: f.name,
-      mimeType: f.type || "application/octet-stream",
-      size: f.size,
-      data: Buffer.from(await f.arrayBuffer()),
-    })),
-  );
-}
 
 export async function createAssignment(formData: FormData) {
   const user = await requireUser("TEACHER");
@@ -52,7 +40,9 @@ export async function createAssignment(formData: FormData) {
     redirect("/teacher/assignments?error=required");
   }
 
-  const attachments = await readFiles(formData);
+  const upload = await readUploadedFiles(formData);
+  if (!upload.ok) redirect(`/teacher/assignments?error=${upload.error}`);
+  const attachments = upload.files;
   const assignment = await prisma.assignment.create({
     data: {
       title,
@@ -89,7 +79,9 @@ export async function updateAssignment(formData: FormData) {
 
   if (!title || !courseIds.includes(courseId)) redirect(`/teacher/assignments/${id}?error=required`);
 
-  const attachments = await readFiles(formData);
+  const upload = await readUploadedFiles(formData);
+  if (!upload.ok) redirect(`/teacher/assignments/${id}?error=${upload.error}`);
+  const attachments = upload.files;
   await prisma.assignment.update({
     where: { id },
     data: {
