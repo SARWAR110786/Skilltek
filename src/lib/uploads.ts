@@ -12,7 +12,8 @@ export type UploadedFile = {
   fileName: string;
   mimeType: string;
   size: number;
-  data: Buffer;
+  // Prisma `Bytes` expects a Uint8Array backed by a plain ArrayBuffer.
+  data: Uint8Array<ArrayBuffer>;
 };
 
 export type UploadResult =
@@ -36,7 +37,7 @@ export async function readUploadedFiles(formData: FormData): Promise<UploadResul
         fileName: f.name.slice(0, 200),
         mimeType: (f.type || "application/octet-stream").slice(0, 100),
         size: f.size,
-        data: Buffer.from(await f.arrayBuffer()),
+        data: new Uint8Array(await f.arrayBuffer()),
       })),
     ),
   };
