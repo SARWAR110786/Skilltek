@@ -58,7 +58,20 @@ export async function POST(req: Request) {
   let messages: Msg[] = [];
   try {
     const body = await req.json();
-    messages = Array.isArray(body.messages) ? body.messages : [];
+    const raw: unknown[] = Array.isArray(body?.messages) ? body.messages : [];
+    // Only accept user/assistant turns with bounded text. Anything else
+    // (e.g. a forged "system" message) is dropped, so visitors cannot
+    // override the assistant's instructions or send huge payloads.
+    messages = raw
+      .filter(
+        (m): m is Msg =>
+          !!m &&
+          typeof m === "object" &&
+          ((m as Msg).role === "user" || (m as Msg).role === "assistant") &&
+          typeof (m as Msg).content === "string",
+      )
+      .slice(-10)
+      .map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }));
   } catch {
     return NextResponse.json({ reply: "Invalid request." }, { status: 400 });
   }

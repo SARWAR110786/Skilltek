@@ -1,49 +1,42 @@
 # SkillTek Institute
 
-Institute management portal: public marketing site + role-based dashboards
-(Admin, Teacher, Student) for courses, students, teachers, attendance, fees
-(challans), assignments, quizzes, notices and enquiries.
+Management portal for a single institute: public website + role-based
+dashboards (Admin, Teacher, Student) for courses, students, teachers,
+attendance, fee challans, assignments, quizzes, notices and enquiries.
 
 ## Stack
 
-- **Next.js 16** (App Router, Server Actions, Turbopack) + **React 19**
-- **Prisma 7** with `@prisma/adapter-pg` on **PostgreSQL**
-- **Tailwind CSS 4**, `lucide-react`, `recharts`
+- **Next.js 16** (App Router, Server Actions) + **React 19**
+- **Prisma 7** (`@prisma/adapter-pg`) on **PostgreSQL** (Supabase)
+- **Tailwind CSS 4**, `lucide-react`, `recharts`, `pdf-lib`
 - Auth: signed session JWT (`jose`) + `bcryptjs` password hashing
 
-## Getting started
+## Getting started (local)
 
-1. Install dependencies (also runs `prisma generate`):
-
-   ```bash
-   npm install
-   ```
-
-2. Create `.env` from `.env.example` and set `DATABASE_URL` + `AUTH_SECRET`.
-
-3. Apply migrations and seed (seed is destructive — see below):
+1. `npm install` (also runs `prisma generate`)
+2. Copy `.env.example` to `.env` and fill in `DATABASE_URL`, `DIRECT_URL`,
+   `AUTH_SECRET`.
+3. Create the tables and the first admin:
 
    ```bash
    npm run db:deploy
-   npm run db:seed
+   ADMIN_EMAIL="you@example.com" ADMIN_PASSWORD="a-strong-password" npm run db:seed
    ```
 
-4. Run the dev server: `npm run dev` → http://localhost:3000
-
-Default admin created by the seed: `sarwaralii785@gmail.com` / `sarwar123`
-(change after first login).
+4. `npm run dev` → http://localhost:3000
 
 ## Scripts
 
-| Command             | Purpose                                             |
-| ------------------- | --------------------------------------------------- |
-| `npm run dev`       | Dev server.                                          |
-| `npm run build`     | Production build (runs `prisma generate`).           |
-| `npm run db:migrate`| Create/apply a dev migration.                        |
-| `npm run db:deploy` | Apply committed migrations (used in production).     |
-| `npm run db:seed`   | Reset data + create admin (**wipes all data**).      |
-| `npm run db:studio` | Prisma Studio.                                       |
+| Command              | Purpose |
+| -------------------- | ------- |
+| `npm run dev`        | Dev server. |
+| `npm run build`      | Production build. |
+| `npm run typecheck`  | TypeScript check. |
+| `npm run db:migrate` | Create/apply a dev migration. |
+| `npm run db:deploy`  | Apply committed migrations (production). |
+| `npm run db:seed`    | Create settings + first admin (non-destructive). |
+| `npm run db:studio`  | Prisma Studio. |
 
 ## Deployment
 
-See [DEPLOY.md](./DEPLOY.md) for the Vercel + Neon walkthrough.
+See [DEPLOY.md](./DEPLOY.md) — Vercel + Supabase walkthrough.

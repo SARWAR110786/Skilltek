@@ -18,10 +18,9 @@ export async function loginAction(
     result = await doLogin(formData);
   } catch (err) {
     console.error("[login] unexpected error:", err);
+    // Never echo internal error details (DB hosts, stack info) to the browser.
     return {
-      error:
-        "Something went wrong signing you in. " +
-        (err instanceof Error ? err.message : String(err)),
+      error: "Something went wrong signing you in. Please try again shortly.",
     };
   }
   if (result.redirectTo) {
@@ -38,6 +37,10 @@ async function doLogin(formData: FormData): Promise<LoginState> {
 
   if (!email || !password) {
     return { error: "Please enter your email and password." };
+  }
+  // bcrypt only uses the first 72 bytes; cap input to avoid wasted CPU.
+  if (email.length > 254 || password.length > 200) {
+    return { error: "Invalid email or password." };
   }
 
   const hdrs = await headers();

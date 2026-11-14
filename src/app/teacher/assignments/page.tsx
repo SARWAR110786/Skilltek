@@ -15,6 +15,7 @@ import {
   Select,
   Table,
 } from "@/components/ui";
+import { UPLOAD_ERROR_TEXT } from "@/lib/uploads";
 
 import { formatDate } from "@/lib/utils";
 import { ConfirmDelete } from "@/components/confirm-delete";
@@ -50,6 +51,7 @@ export default async function TeacherAssignmentsPage({
       <PageHeader title="Assignments" subtitle="Create assignments and share resources with your courses" />
 
           {sp.error === "required" && <Alert tone="error">Please provide a title, a valid course, and marks greater than 0.</Alert>}
+          {sp.error && UPLOAD_ERROR_TEXT[sp.error] && <Alert tone="error">{UPLOAD_ERROR_TEXT[sp.error]}</Alert>}
       {sp.deleted && <Alert tone="success">Assignment deleted.</Alert>}
 
       <Card className="mb-6">

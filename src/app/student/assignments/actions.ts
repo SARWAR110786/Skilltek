@@ -4,20 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser, getStudentProfile } from "@/lib/guard";
+import { readUploadedFiles } from "@/lib/uploads";
 
-async function readFiles(formData: FormData) {
-  const files = formData
-    .getAll("files")
-    .filter((f): f is File => f instanceof File && f.size > 0);
-  return Promise.all(
-    files.map(async (f) => ({
-      fileName: f.name,
-      mimeType: f.type || "application/octet-stream",
-      size: f.size,
-      data: Buffer.from(await f.arrayBuffer()),
-    })),
-  );
-}
 
 export async function submitAssignment(formData: FormData) {
   const user = await requireUser("STUDENT");
@@ -30,8 +18,10 @@ export async function submitAssignment(formData: FormData) {
     redirect("/student/assignments");
   }
 
-  const note = String(formData.get("note") ?? "").trim();
-  const files = await readFiles(formData);
+  const note = String(formData.get("note") ?? "").trim().slice(0, 5000);
+  const upload = await readUploadedFiles(formData);
+  if (!upload.ok) redirect(`/student/assignments/${assignmentId}?error=${upload.error}`);
+  const files = upload.files;
 
   const existing = await prisma.assignmentSubmission.findUnique({
     where: { assignmentId_studentId: { assignmentId, studentId: student.id } },

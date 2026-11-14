@@ -5,6 +5,7 @@ import { ArrowLeft, Award, Download, Upload } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireUser, getStudentProfile } from "@/lib/guard";
 import { Alert, Badge, Button, Card, CardHeader, Field, PageHeader, Textarea } from "@/components/ui";
+import { UPLOAD_ERROR_TEXT } from "@/lib/uploads";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { submitAssignment } from "../actions";
 
@@ -13,7 +14,7 @@ export default async function StudentAssignmentPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ submitted?: string }>;
+  searchParams: Promise<{ submitted?: string; error?: string }>;
 }) {
   const user = await requireUser("STUDENT");
   const student = await getStudentProfile(user.id);
@@ -47,6 +48,7 @@ export default async function StudentAssignmentPage({
       />
 
       {sp.submitted && <Alert tone="success">Your submission has been saved.</Alert>}
+      {sp.error && UPLOAD_ERROR_TEXT[sp.error] && <Alert tone="error">{UPLOAD_ERROR_TEXT[sp.error]}</Alert>}
 
       <div className="mb-4">
         <Badge tone={submission ? "green" : "amber"}>{submission ? "Submitted" : "Pending"}</Badge>

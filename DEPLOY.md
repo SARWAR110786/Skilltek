@@ -1,31 +1,44 @@
-# Deployment Guide
+# Deployment Guide — SkillTek Institute
 
-SkillTek Institute is a Next.js 16 app backed by PostgreSQL (Prisma 7). The
-recommended free stack is **Vercel** (hosting) + **Neon** (Postgres).
+SkillTek is a single-institute portal: a Next.js 16 app on **Vercel** with a
+**Supabase** PostgreSQL database (via Prisma 7).
 
-## 1. Database — Neon
+## 1. Database — Supabase
 
-1. Create a project at https://neon.tech (free tier).
-2. Open **Connect** in the Neon Console. Copy **both** strings:
-   - **Pooled** (host contains `-pooler`) → used by the app at runtime:
-     `postgresql://USER:PASSWORD@ep-xxx-pooler.REGION.aws.neon.tech/DBNAME?sslmode=require`
-   - **Direct / unpooled** (no `-pooler`) → used by Prisma for migrations.
-3. Keep the pooled string as `DATABASE_URL` and the direct string as `DIRECT_URL`.
+Project: `https://sabbtiueycedkrupqzku.supabase.co`
 
-## 2. Environment variables
+1. In Supabase open **Project Settings → Database** and note (or reset) the
+   **database password**.
+2. Click **Connect** at the top of the dashboard and copy two strings:
+   - **Transaction pooler** (port **6543**) → `DATABASE_URL` (app runtime)
+   - **Session pooler** (port **5432**) → `DIRECT_URL` (Prisma migrations)
+3. Add the SSL options shown below to the end of each string.
 
-| Variable         | Required | Notes                                                       |
-| ---------------- | -------- | ----------------------------------------------------------- |
-| `DATABASE_URL`   | yes      | Neon **pooled** connection string (must include `sslmode`). |
-| `DIRECT_URL`     | yes      | Neon **direct** (unpooled) string; Prisma CLI uses it for migrations. |
-| `AUTH_SECRET`    | yes      | Signs the session JWT. In production the app refuses to start auth without it. |
-| `OPENAI_API_KEY` | no       | Enables live AI replies in the chat widget.                 |
-| `OPENAI_MODEL`   | no       | Defaults to a built-in model when the key is set.           |
+```
+DATABASE_URL=postgresql://postgres.sabbtiueycedkrupqzku:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres?uselibpqcompat=true&sslmode=require
+DIRECT_URL=postgresql://postgres.sabbtiueycedkrupqzku:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres?sslmode=require
+```
 
-> Why two? Prisma Migrate needs a direct connection; the app uses the pooled one.
-> `prisma.config.ts` points the CLI at `DIRECT_URL` (falling back to `DATABASE_URL` locally).
+> Don't use the "Direct connection" host (`db.sabbtiueycedkrupqzku.supabase.co`).
+> On the free plan it is IPv6-only and Vercel can't reach it.
+>
+> If your password contains special characters (`@ # / ? %`), URL-encode them
+> (e.g. `@` → `%40`).
 
-Generate a secret:
+You don't need Supabase Auth, Storage or the anon/service keys — the app only
+uses the Postgres database.
+
+## 2. Environment variables (Vercel → Settings → Environment Variables)
+
+| Variable         | Required | Notes |
+| ---------------- | -------- | ----- |
+| `DATABASE_URL`   | yes      | Supabase transaction pooler string (above). |
+| `DIRECT_URL`     | yes      | Supabase session pooler string (above). |
+| `AUTH_SECRET`    | yes      | Long random string. Without it, login refuses to work in production. |
+| `OPENAI_API_KEY` | no       | Enables live AI in the chat widget / AI assist. |
+| `OPENAI_MODEL`   | no       | Defaults to `gpt-4o-mini`. |
+
+Generate `AUTH_SECRET`:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
@@ -33,49 +46,48 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 ## 3. Vercel
 
-1. Import the Git repository at https://vercel.com/new (framework is auto-detected
-   as Next.js).
-2. Add the environment variables above (Production + Preview) **before** deploying.
-3. Deploy. The build automatically runs (see `package.json`):
-   - `postinstall` → `prisma generate`
-   - `vercel-build` → `prisma generate && prisma migrate deploy && next build`
+1. Import the GitHub repo at https://vercel.com/new (Next.js is auto-detected).
+2. Add the variables above for **Production** (and Preview if you use it)
+   **before** the first deploy.
+3. Deploy. The build runs `vercel-build`:
+   `prisma generate && prisma migrate deploy && next build`
+   so the database tables are created/updated automatically on every deploy.
 
-   `prisma migrate deploy` applies the committed migrations to Neon on every deploy.
+## 4. Create the admin account (once)
 
-## 4. First-time database setup
-
-After the first deploy, create the admin account and institute settings. This
-step is **destructive** (it wipes all data), so it is never run automatically:
+From your computer, with `.env` filled in from `.env.example`:
 
 ```bash
-# Local machine, pointed at the Neon database:
-DATABASE_URL="<neon-pooled-url>" ALLOW_DESTRUCTIVE_SEED=1 npm run db:seed
+npm install
+ADMIN_NAME="Sarwar" ADMIN_EMAIL="you@example.com" ADMIN_PASSWORD="a-strong-password" npm run db:seed
 ```
 
-It creates the single admin login:
+This is **safe**: it only adds the institute settings row and the first admin
+if they don't exist yet. It never deletes data and never prints the password.
 
-- email: `sarwaralii785@gmail.com`
-- password: `sarwar123`  ← change this in the portal after first login
+To completely wipe a database and start over (test databases only):
 
-## 5. Verify
+```bash
+SEED_RESET=1 ALLOW_DESTRUCTIVE_SEED=1 ADMIN_EMAIL=... ADMIN_PASSWORD=... npm run db:seed
+```
 
-- `https://<your-app>/` loads the public site.
-- `/login` → sign in with the admin account → `/admin` loads.
-- Public pages end any active session by design (`proxy.ts`).
+## 5. After the first deploy
 
-## Useful scripts
+- Open `https://<your-app>/login`, sign in as admin.
+- **Admin → Settings**: set institute name, contact details and bank details
+  (used on fee challans).
+- Add courses, then teachers, then students.
 
-| Command          | Purpose                                        |
-| ---------------- | ---------------------------------------------- |
-| `npm run dev`    | Local dev server.                              |
-| `npm run build`  | Production build (runs `prisma generate`).     |
-| `npm run db:deploy` | Apply migrations (`prisma migrate deploy`). |
-| `npm run db:seed`   | Reset data + create admin (destructive, see §4). |
-| `npm run db:studio` | Prisma Studio.                              |
+## Security notes
 
-## Notes
-
-- **File uploads** (assignment attachments/submissions) are stored as bytes in
-  Postgres — keep uploads small. Server Actions default to a 1 MB body limit.
-- **Never run `db:seed` against production** unless you intend to wipe all data;
-  the script refuses non-local databases unless `ALLOW_DESTRUCTIVE_SEED=1` is set.
+- Sessions are signed cookies (HttpOnly, Secure, SameSite=Lax), re-checked
+  against the database on every request — deactivating a user logs them out
+  immediately.
+- Each role only sees its own data: teachers see only their courses' students;
+  students see only their own fees, attendance, quizzes and submissions; fee
+  exports are admin-only.
+- Uploads: max 4 MB total per submission, max 5 files, executable/HTML/SVG
+  files rejected; uploaded files are never rendered as web pages.
+- Login, enquiry and chat endpoints are rate-limited per IP (in-memory, per
+  server instance).
+- Never commit `.env`. Rotate `AUTH_SECRET` to force everyone to sign in again.
