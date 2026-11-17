@@ -4,6 +4,7 @@ import { ArrowRight, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
+import { ProgramInfo } from "@/components/program-info";
 
 export const metadata = { title: "Courses · SkillTek" };
 
@@ -44,10 +45,15 @@ export default async function CoursesPage() {
             {courses.map((c, i) => (
               <Reveal key={c.id} delay={i * 80} className="h-full">
                 <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-colors hover:border-brand-500/40 hover:bg-white/[0.05]">
-                  <h3 className="text-lg font-semibold text-white">
+                  {/* Fixed-height title and 3-line description keep every
+                      card the same size; "More info" shows the full text. */}
+                  <h3
+                    className="line-clamp-2 min-h-[3.5rem] text-lg font-semibold leading-7 text-white"
+                    title={c.title}
+                  >
                     {c.title}
                   </h3>
-                  <p className="mt-1 flex-1 text-sm leading-relaxed text-slate-400">
+                  <p className="mt-1 line-clamp-3 min-h-[4.5rem] flex-1 text-sm leading-6 text-slate-400">
                     {c.description ?? "Comprehensive training program."}
                   </p>
                   <div className="mt-4 flex items-center gap-4 text-xs text-slate-400">
@@ -56,7 +62,13 @@ export default async function CoursesPage() {
                     </span>
                     <span>{c._count.students} students enrolled</span>
                   </div>
-                  <div className="mt-5 flex items-center justify-end border-t border-white/10 pt-4">
+                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+                    <ProgramInfo
+                      title={c.title}
+                      description={c.description ?? "Comprehensive training program."}
+                      durationMonths={c.durationMonths}
+                      code={c.code}
+                    />
                     <Link
                       href="/admissions"
                       className="inline-flex items-center gap-1 text-sm font-medium text-brand-300 hover:text-brand-200"

@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { ChatWidget } from "@/components/chat-widget";
 import { Reveal } from "@/components/reveal";
+import { ProgramInfo } from "@/components/program-info";
 import { Typewriter } from "@/components/typewriter";
 import { EnquiryForm } from "@/app/(public)/admissions/EnquiryForm";
 import { SERVICES } from "@/lib/services";
@@ -199,10 +200,13 @@ export default async function HomePage() {
               {courses.map((c, i) => (
                 <Reveal key={c.id} delay={i * 90} className="h-full">
                   <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-slate-950/60 p-6 transition-colors hover:border-brand-500/40">
-                    <h3 className="text-base font-semibold text-white">
+                    <h3
+                      className="line-clamp-2 min-h-[3rem] text-base font-semibold leading-6 text-white"
+                      title={c.title}
+                    >
                       {c.title}
                     </h3>
-                    <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-slate-400">
+                    <p className="mt-2 line-clamp-2 min-h-[3rem] flex-1 text-sm leading-6 text-slate-400">
                       {c.description ?? "Comprehensive training program."}
                     </p>
                     <div className="mt-5 border-t border-white/10 pt-4 text-xs text-slate-400">
@@ -211,12 +215,20 @@ export default async function HomePage() {
                         {c.durationMonths} months program
                       </span>
                     </div>
-                    <Link
-                      href="/admissions"
-                      className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-white/80 hover:text-white"
-                    >
-                      Apply now <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      <ProgramInfo
+                        title={c.title}
+                        description={c.description ?? "Comprehensive training program."}
+                        durationMonths={c.durationMonths}
+                        code={c.code}
+                      />
+                      <Link
+                        href="/admissions"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-white/80 hover:text-white"
+                      >
+                        Apply now <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
                   </div>
                 </Reveal>
               ))}
