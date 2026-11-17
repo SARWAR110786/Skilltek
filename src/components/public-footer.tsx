@@ -45,6 +45,7 @@ export function PublicFooter() {
               { href: "/about", label: "About Us" },
               { href: "/contact", label: "Contact" },
               { href: "/download", label: "Download App" },
+              { href: "/verify", label: "Verify Certificate" },
               { href: "/login", label: "Student Portal" },
             ].map((l) => (
               <li key={l.href}>
