@@ -13,7 +13,7 @@ import {
 import { rateLimit } from "@/lib/rate-limit";
 
 export const metadata = {
-  title: "Verify Certificate · SkillTek",
+  title: "Verify Status · SkillTek",
   description:
     "Check a SkillTek Institute student's status using their roll number.",
 };
@@ -101,7 +101,7 @@ export default async function VerifyPage({
     <div>
       <PageHero
         eyebrow="Verification"
-        title="Verify Certificate"
+        title="Verify Status"
         subtitle="Enter a SkillTek Institute roll number to check the student's status."
       />
 
