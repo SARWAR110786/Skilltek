@@ -127,8 +127,11 @@ export default async function TeacherQuizzesPage({
                 <Badge tone={q.status === "ASSIGNED" ? "green" : "gray"}>{q.status}</Badge>
               </td>
               <td className="px-4 py-3">
-                <ConfirmDelete action={deleteQuiz} message={`Delete quiz "${q.title}"?`}>
-                  <input type="hidden" name="id" value={q.id} />
+                <ConfirmDelete
+                  action={deleteQuiz}
+                  message={`Delete quiz "${q.title}"?`}
+                  fields={<input type="hidden" name="id" value={q.id} />}
+                >
                   <Trash2 className="h-4 w-4" />
                 </ConfirmDelete>
               </td>

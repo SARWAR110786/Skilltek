@@ -1,30 +1,15 @@
+// DO NOT RUN on live data. Use `npm run db:renumber` instead; it creates a
+// backup, runs in one transaction, verifies counts, and supports rollback.
 import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import {
-  courseCodeFromTitle,
-  formatRollNo,
-  rollYear,
-} from "../src/lib/roll-number";
+import { formatRollNo, rollYear } from "../src/lib/roll-number";
+import { nextNumericCourseCode } from "../src/lib/course-code";
 
 const connectionString =
   process.env.DATABASE_URL ?? process.env.DIRECT_URL ?? "";
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
-
-function uniqueCode(title: string, used: Set<string>): string {
-  const base = courseCodeFromTitle(title) || "GEN";
-  let code = base;
-  let suffix = 2;
-
-  while (used.has(code)) {
-    code = `${base.slice(0, 4)}${suffix}`;
-    suffix += 1;
-  }
-
-  used.add(code);
-  return code;
-}
 
 async function main() {
   const courses = await prisma.course.findMany({
@@ -37,7 +22,8 @@ async function main() {
 
   for (const course of courses) {
     if (course.code) continue;
-    const code = uniqueCode(course.title, used);
+    const code = nextNumericCourseCode([...used]);
+    used.add(code);
     await prisma.course.update({
       where: { id: course.id },
       data: { code },

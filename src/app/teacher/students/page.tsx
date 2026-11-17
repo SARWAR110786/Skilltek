@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser, getTeacherProfile } from "@/lib/guard";
 import { Badge, Card, CardHeader, PageHeader, Table } from "@/components/ui";
 import { StudentsAutoSearch } from "@/components/students-auto-search";
+import { studentStatusLabel, studentStatusTone } from "@/lib/student-status";
 import type { Prisma } from "@/generated/prisma/client";
 
 async function getStudents(courseIds: string[], courseParam?: string, query?: string) {
@@ -64,13 +64,6 @@ export default async function TeacherStudentsPage({
       <PageHeader
         title={activeCourse ? `My Students · ${activeCourse.title}` : "My Students"}
         subtitle={`${students.length} student${students.length === 1 ? "" : "s"}${query ? ` matching "${query}"` : ""}`}
-        action={
-          activeCourse ? (
-            <Link href={`/teacher/students${query ? `?q=${encodeURIComponent(query)}` : ""}`}>
-              <Badge tone="gray">Clear filter</Badge>
-            </Link>
-          ) : undefined
-        }
       />
       <Card>
         <CardHeader
@@ -92,7 +85,11 @@ export default async function TeacherStudentsPage({
                 {s.guardianName ?? "—"}
                 {s.guardianPhone ? <span className="block text-xs text-slate-400">{s.guardianPhone}</span> : null}
               </td>
-              <td className="px-4 py-3"><Badge tone={s.user.status === "ACTIVE" ? "green" : "gray"}>{s.user.status}</Badge></td>
+              <td className="px-4 py-3">
+                <Badge tone={studentStatusTone(s.user.status, s.exitReason)}>
+                  {studentStatusLabel(s.user.status, s.exitReason)}
+                </Badge>
+              </td>
             </tr>
           ))}
           {students.length === 0 && (

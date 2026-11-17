@@ -127,8 +127,11 @@ export default async function QuizBankPage({
                   >
                     <Pencil className="h-4 w-4" />
                   </Link>
-                  <ConfirmDelete action={deleteBankQuestion} message="Delete this question from the bank?">
-                    <input type="hidden" name="id" value={q.id} />
+                  <ConfirmDelete
+                    action={deleteBankQuestion}
+                    message="Delete this question from the bank?"
+                    fields={<input type="hidden" name="id" value={q.id} />}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </ConfirmDelete>
                 </div>

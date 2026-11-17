@@ -6,13 +6,14 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/guard";
 import {
-  courseCodeFromTitle,
   formatRollNo,
   parseRollSerial,
   rollPrefix,
   rollYear,
 } from "@/lib/roll-number";
+import { nextNumericCourseCode } from "@/lib/course-code";
 import { normalizeCnic, normalizePhone } from "@/lib/validation";
+import { normalizeStudentState } from "@/lib/student-status";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GENDERS = ["Male", "Female"];
@@ -45,6 +46,10 @@ function readStudentForm(formData: FormData): StudentInput {
   };
 }
 
+function readStudentState(formData: FormData) {
+  return normalizeStudentState(formData.get("status"));
+}
+
 function validateStudent(input: StudentInput, requirePassword: boolean): string | null {
   if (
     !input.name ||
@@ -55,7 +60,6 @@ function validateStudent(input: StudentInput, requirePassword: boolean): string 
     !input.courseId ||
     !input.guardianName ||
     !input.guardianPhone ||
-    !input.address ||
     (requirePassword && !input.password)
   ) {
     return "required";
@@ -77,7 +81,7 @@ function validateStudent(input: StudentInput, requirePassword: boolean): string 
     return "guardian";
   }
   if (!normalizePhone(input.guardianPhone)) return "guardianPhone";
-  if (input.address.length < 5 || input.address.length > 200) {
+  if (input.address.length > 200) {
     return "address";
   }
   return null;
@@ -91,24 +95,13 @@ async function courseExists(courseId: string): Promise<boolean> {
   return Boolean(course);
 }
 
-type CourseCodeSource = { id: string; title: string; code: string | null };
+type CourseCodeSource = { id: string; code: string | null };
 
 async function ensureCourseCode(course: CourseCodeSource): Promise<string> {
   if (course.code) return course.code;
 
-  const base = courseCodeFromTitle(course.title) || "GEN";
-  let code = base;
-  let suffix = 2;
-
-  while (
-    await prisma.course.findFirst({
-      where: { code, NOT: { id: course.id } },
-      select: { id: true },
-    })
-  ) {
-    code = `${base.slice(0, 4)}${suffix}`;
-    suffix += 1;
-  }
+  const courses = await prisma.course.findMany({ select: { code: true } });
+  const code = nextNumericCourseCode(courses.map((c) => c.code));
 
   await prisma.course.update({ where: { id: course.id }, data: { code } });
   return code;
@@ -155,6 +148,7 @@ export async function createStudent(formData: FormData) {
   await requireUser("ADMIN");
 
   const input = readStudentForm(formData);
+  const state = readStudentState(formData);
   const invalid = validateStudent(input, true);
   if (invalid) {
     redirect(`/admin/students?error=${invalid}`);
@@ -180,13 +174,16 @@ export async function createStudent(formData: FormData) {
           email: input.email,
           password: hashed,
           role: "STUDENT",
+          status: state.status,
           phone: normalizePhone(input.phone) ?? input.phone,
           student: {
             create: {
               admissionNo: rollNo,
+              status: state.status,
+              exitReason: state.exitReason,
               cnic: normalizeCnic(input.cnic),
               gender: input.gender,
-              address: input.address,
+              address: input.address || null,
               guardianName: input.guardianName,
               guardianPhone:
                 normalizePhone(input.guardianPhone) ?? input.guardianPhone,
@@ -239,7 +236,7 @@ export async function updateStudent(formData: FormData) {
   if (!student) return;
 
   const input = readStudentForm(formData);
-  const status = String(formData.get("status") ?? "ACTIVE").trim() || "ACTIVE";
+  const state = readStudentState(formData);
 
   const invalid = validateStudent(input, false);
   if (invalid) {
@@ -260,7 +257,7 @@ export async function updateStudent(formData: FormData) {
       name: input.name,
       email: input.email,
       phone: normalizePhone(input.phone) ?? input.phone,
-      status: status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
+      status: state.status,
       ...(input.password
         ? { password: await bcrypt.hash(input.password, 10) }
         : {}),
@@ -276,9 +273,11 @@ export async function updateStudent(formData: FormData) {
         where: { id },
         data: {
           ...(newRollNo ? { admissionNo: newRollNo } : {}),
+          status: state.status,
+          exitReason: state.exitReason,
           cnic: normalizeCnic(input.cnic),
           gender: input.gender,
-          address: input.address,
+          address: input.address || null,
           guardianName: input.guardianName,
           guardianPhone:
             normalizePhone(input.guardianPhone) ?? input.guardianPhone,

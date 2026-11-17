@@ -105,8 +105,11 @@ export default async function TeacherAssignmentsPage({
               <td className="px-4 py-3"><Badge tone={a.status === "ASSIGNED" ? "green" : "gray"}>{a.status}</Badge></td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
-                  <ConfirmDelete action={deleteAssignment} message={`Delete assignment "${a.title}"?`}>
-                    <input type="hidden" name="id" value={a.id} />
+                  <ConfirmDelete
+                    action={deleteAssignment}
+                    message={`Delete assignment "${a.title}"?`}
+                    fields={<input type="hidden" name="id" value={a.id} />}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </ConfirmDelete>
                   {a._count.submissions > 0 && (

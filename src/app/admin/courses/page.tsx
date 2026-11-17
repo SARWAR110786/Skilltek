@@ -74,7 +74,7 @@ export default async function CoursesPage({
         <Card className="mb-6">
           <CardHeader
             title="Edit Course"
-            subtitle={editing.title}
+            subtitle={`${editing.title} · Code ${editing.code ?? "—"}`}
             action={
               <Link href="/admin/courses">
                 <Button variant="ghost" size="sm">Cancel</Button>
@@ -85,16 +85,6 @@ export default async function CoursesPage({
             <input type="hidden" name="id" value={editing.id} />
             <Field label="Title" required>
               <Input name="title" defaultValue={editing.title} required minLength={2} maxLength={80} />
-            </Field>
-            <Field label="Course code" hint="Used in roll numbers, e.g. SK-2K26-WD-01">
-              <Input
-                name="code"
-                defaultValue={editing.code ?? ""}
-                maxLength={5}
-                pattern="[A-Za-z0-9]{1,5}"
-                title="1–5 letters or digits; leave blank to auto-generate."
-                placeholder="e.g. WD"
-              />
             </Field>
             <Field label="Assign teacher">
               <Select name="teacherId" defaultValue={editing.teacherId ?? ""}>
@@ -142,19 +132,13 @@ export default async function CoursesPage({
         </Card>
       ) : (
         <Card className="mb-6">
-          <CardHeader title="Add New Course" />
+          <CardHeader
+            title="Add New Course"
+            subtitle="Course code is assigned automatically (001, 002, …) and used in roll numbers like SK-26-001-01."
+          />
           <form action={createCourse} className="grid gap-4 p-5 md:grid-cols-2">
             <Field label="Title" required>
               <Input name="title" required minLength={2} maxLength={80} />
-            </Field>
-            <Field label="Course code" hint="Used in roll numbers, e.g. SK-2K26-WD-01. Leave blank to auto-generate.">
-              <Input
-                name="code"
-                maxLength={5}
-                pattern="[A-Za-z0-9]{1,5}"
-                title="1–5 letters or digits; leave blank to auto-generate."
-                placeholder="e.g. WD"
-              />
             </Field>
             <Field label="Duration (months)" required>
               <Input name="durationMonths" type="number" min={1} max={60} defaultValue={3} required />
@@ -211,8 +195,11 @@ export default async function CoursesPage({
                   >
                     View Students
                   </Link>
-                  <ConfirmDelete action={deleteCourse} message={`Delete ${c.title}? This may affect students and teachers.`}>
-                    <input type="hidden" name="id" value={c.id} />
+                  <ConfirmDelete
+                    action={deleteCourse}
+                    message={`Delete ${c.title}? This may affect students and teachers.`}
+                    fields={<input type="hidden" name="id" value={c.id} />}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </ConfirmDelete>
                 </div>

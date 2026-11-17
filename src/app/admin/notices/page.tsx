@@ -91,8 +91,11 @@ export default async function NoticesPage({
               <td className="px-4 py-3 text-slate-600">{n.createdBy?.name ?? "—"}</td>
               <td className="px-4 py-3 text-xs text-slate-500">{formatDateTime(n.createdAt)}</td>
               <td className="px-4 py-3">
-                <ConfirmDelete action={deleteNotice} message={`Delete notice "${n.title}"?`}>
-                  <input type="hidden" name="id" value={n.id} />
+                <ConfirmDelete
+                  action={deleteNotice}
+                  message={`Delete notice "${n.title}"?`}
+                  fields={<input type="hidden" name="id" value={n.id} />}
+                >
                   <Trash2 className="h-4 w-4" />
                 </ConfirmDelete>
               </td>

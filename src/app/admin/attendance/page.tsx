@@ -16,7 +16,8 @@ async function getData(courseParam: string | undefined, dateValue: string) {
 
   const students = courseId
     ? await prisma.student.findMany({
-        where: { courseId },
+        // Inactive is a temporary login block only; dropouts/passouts are excluded.
+        where: { courseId, exitReason: null },
         include: { user: true },
         orderBy: { admissionNo: "asc" },
       })
@@ -46,6 +47,8 @@ export default async function AdminAttendancePage({
 }: {
   searchParams: Promise<{ course?: string; date?: string; saved?: string; error?: string }>;
 }) {
+  // Default date uses new Date(), so defer this page to request time first.
+  await connection();
   await requireUser("ADMIN");
   const sp = await searchParams;
   const dateValue = sp.date ?? dateInputValue();
@@ -96,6 +99,7 @@ export default async function AdminAttendancePage({
       </Card>
 
       <AttendanceTable
+        key={`${courseId}-${dateValue}`}
         courses={courses}
         courseId={courseId}
         dateValue={dateValue}

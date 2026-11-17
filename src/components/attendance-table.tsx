@@ -68,6 +68,12 @@ export function AttendanceTable({
     setStatuses((prev) => ({ ...prev, [id]: prev[id] === next ? "" : next }));
   }
 
+  function markAll(next: "PRESENT" | "ABSENT") {
+    const updated: Record<string, StatusValue> = {};
+    for (const s of students) updated[s.id] = next;
+    setStatuses(updated);
+  }
+
   return (
     <div className="space-y-6">
       {justSaved && (
@@ -118,6 +124,28 @@ export function AttendanceTable({
         <CardHeader
           title="Mark attendance"
           subtitle="Choose Present or Absent for each student, then save once"
+          action={
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => markAll("PRESENT")}
+                disabled={students.length === 0}
+              >
+                Mark all present
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => markAll("ABSENT")}
+                disabled={students.length === 0}
+              >
+                Mark all absent
+              </Button>
+            </div>
+          }
         />
         <form action={saveAttendance}>
           <input type="hidden" name="courseId" value={courseId} />

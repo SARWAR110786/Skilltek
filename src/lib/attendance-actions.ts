@@ -53,36 +53,39 @@ export async function saveAttendance(formData: FormData) {
     }
   }
 
-  // Teachers may only mark attendance for students enrolled in their own
-  // courses. Any other student id in the form is ignored.
-  if (user.role === "TEACHER") {
-    const requested = [...toSave.map((t) => t.studentId), ...toClear];
-    const allowed = new Set(
-      (
-        await prisma.student.findMany({
-          where: { id: { in: requested }, course: { teacher: { userId: user.id } } },
-          select: { id: true },
-        })
-      ).map((s) => s.id),
-    );
-    for (let i = toSave.length - 1; i >= 0; i--) {
-      if (!allowed.has(toSave[i].studentId)) toSave.splice(i, 1);
-    }
-    for (let i = toClear.length - 1; i >= 0; i--) {
-      if (!allowed.has(toClear[i])) toClear.splice(i, 1);
-    }
+  // Temporarily inactive students still have attendance; only permanent
+  // dropouts/passouts are rejected, including crafted form submissions.
+  // Teachers are additionally limited to students in their own courses.
+  const submittedIds = Array.from(
+    new Set([...toSave.map((entry) => entry.studentId), ...toClear]),
+  );
+  let allowedIds = new Set(submittedIds);
+  if (submittedIds.length) {
+    const eligible = await prisma.student.findMany({
+      where: {
+        id: { in: submittedIds },
+        exitReason: null,
+        ...(user.role === "TEACHER"
+          ? { course: { teacher: { userId: user.id } } }
+          : {}),
+      },
+      select: { id: true },
+    });
+    allowedIds = new Set(eligible.map((s) => s.id));
   }
+  const eligibleSaves = toSave.filter((entry) => allowedIds.has(entry.studentId));
+  const eligibleClears = toClear.filter((id) => allowedIds.has(id));
 
   const operations = [
-    ...toSave.map(({ studentId, status }) =>
+    ...eligibleSaves.map(({ studentId, status }) =>
       prisma.attendance.upsert({
         where: { studentId_date: { studentId, date } },
         create: { studentId, date, status, markedById: user.id },
         update: { status, markedById: user.id },
       }),
     ),
-    ...(toClear.length
-      ? [prisma.attendance.deleteMany({ where: { studentId: { in: toClear }, date } })]
+    ...(eligibleClears.length
+      ? [prisma.attendance.deleteMany({ where: { studentId: { in: eligibleClears }, date } })]
       : []),
   ];
 

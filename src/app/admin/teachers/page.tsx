@@ -283,8 +283,8 @@ export default async function TeachersPage({
                   <ConfirmDelete
                     action={deleteTeacher}
                     message={`Delete ${t.user.name}? This will remove their login and unassign their courses.`}
+                    fields={<input type="hidden" name="id" value={t.id} />}
                   >
-                    <input type="hidden" name="id" value={t.id} />
                     <Trash2 className="h-4 w-4" />
                   </ConfirmDelete>
                 </div>

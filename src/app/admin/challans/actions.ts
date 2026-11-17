@@ -11,6 +11,12 @@ function isUniqueViolation(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { code?: string }).code === "P2002";
 }
 
+function backWithMessage(target: string, key: string): string {
+  const base = target.startsWith("/") ? target : "/admin/challans";
+  const sep = base.includes("?") ? "&" : "?";
+  return `${base}${sep}${key}=1`;
+}
+
 export async function createChallan(formData: FormData) {
   await requireUser("ADMIN");
 
@@ -39,6 +45,9 @@ export async function createChallan(formData: FormData) {
   const student = await prisma.student.findUnique({ where: { id: studentId } });
   if (!student) {
     redirect("/admin/challans?error=student");
+  }
+  if (student.exitReason === "DROPOUT" || student.exitReason === "PASSOUT") {
+    redirect("/admin/challans?error=inactive");
   }
 
   const title = `${items.map((it) => it.label).join(", ")} - ${monthName(feeMonth - 1)} ${feeYear}`;
@@ -96,5 +105,21 @@ export async function markChallanPaid(formData: FormData) {
 
   revalidatePath("/admin/challans");
   revalidatePath("/student/challans");
-  redirect("/admin/challans?paid=1");
+  redirect(backWithMessage(String(formData.get("back") ?? ""), "paid"));
+}
+
+export async function deleteChallan(formData: FormData) {
+  await requireUser("ADMIN");
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const challan = await prisma.challan.findUnique({ where: { id }, select: { challanNo: true } });
+  if (!challan) return;
+
+  await prisma.challan.delete({ where: { id } });
+
+  revalidatePath("/admin/challans");
+  revalidatePath("/student/challans");
+  redirect(backWithMessage(String(formData.get("back") ?? ""), "deleted"));
 }

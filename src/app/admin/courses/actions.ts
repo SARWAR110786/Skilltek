@@ -4,32 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/guard";
-import { courseCodeFromTitle, normalizeCourseCode } from "@/lib/roll-number";
+import { nextNumericCourseCode } from "@/lib/course-code";
 
-async function resolveCourseCode(
-  title: string,
-  rawCode: string,
-  excludeId?: string,
-): Promise<string> {
-  const requested = normalizeCourseCode(rawCode);
-  const base = requested || courseCodeFromTitle(title) || "GEN";
-  let code = base;
-  let suffix = 2;
-
-  while (
-    await prisma.course.findFirst({
-      where: {
-        code,
-        ...(excludeId ? { NOT: { id: excludeId } } : {}),
-      },
-      select: { id: true },
-    })
-  ) {
-    code = `${base.slice(0, 4)}${suffix}`;
-    suffix += 1;
-  }
-
-  return code;
+async function nextCourseCode(): Promise<string> {
+  const courses = await prisma.course.findMany({ select: { code: true } });
+  return nextNumericCourseCode(courses.map((c) => c.code));
 }
 
 async function titleExists(title: string, excludeId?: string) {
@@ -65,10 +44,7 @@ export async function createCourse(formData: FormData) {
     redirect("/admin/courses?error=title");
   }
 
-  const code = await resolveCourseCode(
-    title,
-    String(formData.get("code") ?? ""),
-  );
+  const code = await nextCourseCode();
 
   await prisma.course.create({
     data: {
@@ -112,10 +88,7 @@ export async function updateCourse(formData: FormData) {
   });
   if (!existing) redirect("/admin/courses?error=required");
 
-  const rawCode = String(formData.get("code") ?? "");
-  const code = normalizeCourseCode(rawCode)
-    ? await resolveCourseCode(title, rawCode, id)
-    : existing.code ?? (await resolveCourseCode(title, "", id));
+  const code = existing.code ?? (await nextCourseCode());
 
   await prisma.course.update({
     where: { id },

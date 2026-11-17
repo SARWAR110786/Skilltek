@@ -3,7 +3,6 @@ import { connection } from "next/server";
 import { Download, Trash2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
-import { cn } from "@/lib/utils";
 import {
   Alert,
   Badge,
@@ -20,6 +19,15 @@ import { DownloadForm } from "@/components/download-form";
 import { NumericInput } from "@/components/numeric-input";
 import { StudentsAutoSearch } from "@/components/students-auto-search";
 import { ConfirmDelete } from "@/components/confirm-delete";
+import {
+  STUDENT_STATUS_ACTIVE,
+  STUDENT_STATUS_DROPOUT,
+  STUDENT_STATUS_INACTIVE,
+  STUDENT_STATUS_PASSOUT,
+  studentStatusLabel,
+  studentStatusTone,
+  studentStatusValue,
+} from "@/lib/student-status";
 import { createStudent, deleteStudent, updateStudent, importStudents } from "./actions";
 
 export const instant = false;
@@ -61,7 +69,7 @@ async function getData(courseId?: string, search?: string) {
 }
 
 const ERRORS: Record<string, string> = {
-  required: "Please fill in every field — all fields are required.",
+  required: "Please fill in all required fields.",
   name: "Enter a valid full name (2–80 characters).",
   invalidEmail: "Enter a valid email address.",
   email: "A user with that email already exists.",
@@ -72,22 +80,13 @@ const ERRORS: Record<string, string> = {
   course: "Select a valid course.",
   guardian: "Enter a valid guardian name (2–80 characters).",
   guardianPhone: "Enter a valid 11-digit phone number, e.g. 0300-7654321.",
-  address: "Enter a valid address (5–200 characters).",
+  address: "Address must be 200 characters or fewer.",
   nofile: "Please choose a CSV file to upload.",
   bigfile: "CSV file is too large (max 2 MB).",
   csvempty: "The CSV has no data rows. Add students below the header row.",
   csvheader: 'The CSV header must include at least "Name" and "Email" columns.',
   csvbig: "Too many rows — import up to 300 students at a time.",
 };
-
-function filterChip(active: boolean) {
-  return cn(
-    "rounded-full px-3 py-1.5 text-sm font-medium transition cursor-pointer",
-    active
-      ? "bg-brand-600 text-white shadow-sm"
-      : "border border-slate-300 bg-white text-slate-600 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700",
-  );
-}
 
 export default async function StudentsPage({
   searchParams,
@@ -122,13 +121,6 @@ export default async function StudentsPage({
       <PageHeader
         title={activeCourse ? `Students · ${activeCourse.title}` : "Students"}
         subtitle={`${students.length} enrolled student${students.length === 1 ? "" : "s"}${activeCourse ? ` in this course` : ""}${query ? ` matching "${query}"` : ""}`}
-        action={
-          activeCourse ? (
-            <Link href="/admin/students">
-              <Button variant="ghost">Clear filter</Button>
-            </Link>
-          ) : undefined
-        }
       />
 
       {error && <Alert tone="error">{error}</Alert>}
@@ -199,10 +191,20 @@ export default async function StudentsPage({
                 <option value="Female">Female</option>
               </Select>
             </Field>
-            <Field label="Status" required>
-              <Select name="status" defaultValue={editing.user.status} required>
-                <option value="ACTIVE">Active</option>
-                <option value="INACTIVE">Inactive</option>
+            <Field
+              label="Status"
+              hint="Inactive only blocks login temporarily — the student still appears in attendance and everything else. Dropout and Passout are permanent and are removed from attendance."
+              required
+            >
+              <Select
+                name="status"
+                defaultValue={studentStatusValue(editing.user.status, editing.exitReason)}
+                required
+              >
+                <option value={STUDENT_STATUS_ACTIVE}>Active</option>
+                <option value={STUDENT_STATUS_INACTIVE}>Inactive (temporary)</option>
+                <option value={STUDENT_STATUS_DROPOUT}>Dropout</option>
+                <option value={STUDENT_STATUS_PASSOUT}>Passout</option>
               </Select>
             </Field>
             <Field label="Course" required>
@@ -229,8 +231,8 @@ export default async function StudentsPage({
                 placeholder="0300-7654321"
               />
             </Field>
-            <Field label="Address" required>
-              <Input name="address" defaultValue={editing.address ?? ""} required minLength={5} maxLength={200} autoComplete="street-address" />
+            <Field label="Address" hint="Optional.">
+              <Input name="address" defaultValue={editing.address ?? ""} maxLength={200} autoComplete="street-address" />
             </Field>
             <div className="md:col-span-3">
               <Button type="submit">Save changes</Button>
@@ -295,6 +297,18 @@ export default async function StudentsPage({
                 <option value="Female">Female</option>
               </Select>
             </Field>
+            <Field
+              label="Status"
+              hint="Inactive only blocks login temporarily — the student still appears in attendance and everything else. Dropout and Passout are permanent and are removed from attendance."
+              required
+            >
+              <Select name="status" defaultValue={STUDENT_STATUS_ACTIVE} required>
+                <option value={STUDENT_STATUS_ACTIVE}>Active</option>
+                <option value={STUDENT_STATUS_INACTIVE}>Inactive (temporary)</option>
+                <option value={STUDENT_STATUS_DROPOUT}>Dropout</option>
+                <option value={STUDENT_STATUS_PASSOUT}>Passout</option>
+              </Select>
+            </Field>
             <Field label="Course" required>
               <Select name="courseId" defaultValue={courseFilter} required disabled={courses.length === 0}>
                 <option value="">Select course</option>
@@ -318,8 +332,8 @@ export default async function StudentsPage({
                 placeholder="0300-7654321"
               />
             </Field>
-            <Field label="Address" required>
-              <Input name="address" required minLength={5} maxLength={200} autoComplete="street-address" placeholder="House 12, Lahore" />
+            <Field label="Address" hint="Optional.">
+              <Input name="address" maxLength={200} autoComplete="street-address" placeholder="House 12, Lahore" />
             </Field>
             <div className="md:col-span-3">
               <Button type="submit" disabled={courses.length === 0}>Create Student</Button>
@@ -327,25 +341,6 @@ export default async function StudentsPage({
           </form>
         </Card>
       )}
-
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <span className="text-sm font-medium text-slate-500">Course wise:</span>
-        <Link
-          href={`/admin/students${query ? `?q=${encodeURIComponent(query)}` : ""}`}
-          className={filterChip(courseFilter === "")}
-        >
-          All Students
-        </Link>
-        {courses.map((c) => (
-          <Link
-            key={c.id}
-            href={`/admin/students?course=${c.id}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
-            className={filterChip(courseFilter === c.id)}
-          >
-            {c.title}
-          </Link>
-        ))}
-      </div>
 
       <Card className="mb-6">
         <CardHeader title="Download" subtitle="Export the student list" />
@@ -410,8 +405,8 @@ export default async function StudentsPage({
                 {s.guardianPhone ? <span className="block text-xs text-slate-400">{s.guardianPhone}</span> : null}
               </td>
               <td className="px-4 py-3">
-                <Badge tone={s.user.status === "ACTIVE" ? "green" : "gray"}>
-                  {s.user.status}
+                <Badge tone={studentStatusTone(s.user.status, s.exitReason)}>
+                  {studentStatusLabel(s.user.status, s.exitReason)}
                 </Badge>
               </td>
               <td className="px-4 py-3">
@@ -425,8 +420,8 @@ export default async function StudentsPage({
                   <ConfirmDelete
                     action={deleteStudent}
                     message={`Delete ${s.user.name} (${s.admissionNo})? This will remove their login and all records.`}
+                    fields={<input type="hidden" name="id" value={s.id} />}
                   >
-                    <input type="hidden" name="id" value={s.id} />
                     <Trash2 className="h-4 w-4" />
                   </ConfirmDelete>
                 </div>

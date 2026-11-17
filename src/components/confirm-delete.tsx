@@ -7,30 +7,27 @@ export function ConfirmDelete({
   action,
   message = "Are you sure you want to delete this item? This action cannot be undone.",
   confirmLabel = "Delete",
+  triggerClassName = "rounded-lg p-2 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600",
+  fields,
   children,
 }: {
   action: (formData: FormData) => void;
   message?: string;
   confirmLabel?: string;
+  triggerClassName?: string;
+  fields?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  function handleConfirm() {
-    setPending(true);
-    if (formRef.current) {
-      formRef.current.requestSubmit();
-    }
-  }
-
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+        className={triggerClassName}
         aria-label="Delete"
       >
         {children}
@@ -54,16 +51,7 @@ export function ConfirmDelete({
                   setOpen(false);
                 }}
               >
-                {Array.isArray(children)
-                  ? children.map((child, i) => {
-                      if (child && typeof child === "object" && "type" in child && child.type === "input") {
-                        return child;
-                      }
-                      return null;
-                    })
-                  : children && typeof children === "object" && "type" in children && children.type === "input"
-                    ? children
-                    : null}
+                {fields}
                 <Button type="submit" variant="danger" disabled={pending}>
                   {pending ? "Deleting..." : confirmLabel}
                 </Button>

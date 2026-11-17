@@ -23,6 +23,11 @@ enum UserStatus {
   INACTIVE
 }
 
+enum StudentExitReason {
+  DROPOUT
+  PASSOUT
+}
+
 enum AttendanceStatus {
   PRESENT
   ABSENT
@@ -125,6 +130,7 @@ model Student {
   courseId      String?
   admissionDate DateTime   @default(now())
   status        UserStatus @default(ACTIVE)
+  exitReason    StudentExitReason?
 
   user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   course     Course?      @relation(fields: [courseId], references: [id], onDelete: SetNull)

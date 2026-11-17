@@ -66,8 +66,11 @@ export default async function EnquiriesPage() {
                 </div>
               </td>
               <td className="px-4 py-3">
-                <ConfirmDelete action={deleteEnquiry} message={`Delete enquiry from ${e.name}?`}>
-                  <input type="hidden" name="id" value={e.id} />
+                <ConfirmDelete
+                  action={deleteEnquiry}
+                  message={`Delete enquiry from ${e.name}?`}
+                  fields={<input type="hidden" name="id" value={e.id} />}
+                >
                   <Trash2 className="h-4 w-4" />
                 </ConfirmDelete>
               </td>

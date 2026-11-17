@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getExportAuth, csvResponse, pdfResponse, type Cell } from "@/lib/export";
+import { studentStatusLabel } from "@/lib/student-status";
 
 export async function GET(req: NextRequest) {
   const user = await getExportAuth();
@@ -56,7 +57,7 @@ export async function GET(req: NextRequest) {
     s.guardianName ?? "",
     s.guardianPhone ?? "",
     s.gender ?? "",
-    s.user.status,
+    studentStatusLabel(s.user.status, s.exitReason),
   ]);
 
   const subtitle = `${students.length} student${students.length === 1 ? "" : "s"}`;
