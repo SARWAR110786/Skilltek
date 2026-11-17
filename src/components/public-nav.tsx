@@ -14,7 +14,9 @@ const LINKS = [
   { href: "/about", label: "About" },
   { href: "/admissions", label: "Admissions" },
   { href: "/contact", label: "Contact" },
-  { href: "/download", label: "Download App" },
+  // "Download App" is already reachable from the Get App button (desktop and
+  // mobile), so its slot is used for certificate verification.
+  { href: "/verify", label: "Verify Certificate" },
 ];
 
 export function PublicNav() {
@@ -34,7 +36,7 @@ export function PublicNav() {
           />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {LINKS.map((l) => {
             const active = pathname === l.href;
             return (
@@ -55,7 +57,7 @@ export function PublicNav() {
           })}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           <Link
             href="/download"
             className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:border-brand-400 hover:bg-brand-600/20"
@@ -73,7 +75,7 @@ export function PublicNav() {
         </div>
 
         <button
-          className="rounded-md p-2 text-slate-300 hover:bg-white/5 md:hidden"
+          className="rounded-md p-2 text-slate-300 hover:bg-white/5 lg:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -82,7 +84,7 @@ export function PublicNav() {
       </div>
 
       {open && (
-        <div className="border-t border-white/10 bg-slate-950/95 backdrop-blur-xl md:hidden">
+        <div className="border-t border-white/10 bg-slate-950/95 backdrop-blur-xl lg:hidden">
           <nav className="mx-auto flex max-w-6xl flex-col p-4">
             {LINKS.map((l) => (
               <Link
