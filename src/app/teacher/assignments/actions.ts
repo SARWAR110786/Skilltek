@@ -73,7 +73,7 @@ export async function updateAssignment(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const courseId = String(formData.get("courseId") ?? "");
-  const marks = Math.max(0, Number(formData.get("marks") ?? 0) || 0);
+  const marks = Math.floor(Math.max(0, Number(formData.get("marks") ?? 0) || 0));
   const days = readDays(formData.get("days"));
   const courseIds = teacher.courses.map((c) => c.id);
 

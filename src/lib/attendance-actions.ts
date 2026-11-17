@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { parseDateInput } from "@/lib/utils";
+import { parseDateInput, todayStart } from "@/lib/utils";
 
 export async function saveAttendance(formData: FormData) {
   const user = await getSession();
@@ -26,12 +26,11 @@ export async function saveAttendance(formData: FormData) {
     redirect(back);
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    redirect(back);
+  }
   const selected = parseDateInput(dateStr);
-  const d = new Date(selected);
-  d.setHours(0, 0, 0, 0);
-  if (d > today) {
+  if (selected > todayStart()) {
     const target = back;
     const sep = target.includes("?") ? "&" : "?";
     redirect(`${target}${sep}error=future`);

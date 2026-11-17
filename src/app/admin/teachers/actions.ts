@@ -96,24 +96,23 @@ export async function createTeacher(formData: FormData) {
 
   const hashed = await bcrypt.hash(input.password, 10);
 
-  const user = await prisma.user.create({
+  await prisma.user.create({
     data: {
       name: input.name,
       email: input.email,
       password: hashed,
       role: "TEACHER",
       phone: normalizePhone(input.phone) ?? input.phone,
-      teacher: { create: { cnic: normalizeCnic(input.cnic) } },
+      // Creating the teacher with their courses in one nested write keeps it
+      // all-or-nothing.
+      teacher: {
+        create: {
+          cnic: normalizeCnic(input.cnic),
+          courses: { connect: input.courseIds.map((id) => ({ id })) },
+        },
+      },
     },
-    include: { teacher: true },
   });
-
-  if (user.teacher) {
-    await prisma.course.updateMany({
-      where: { id: { in: input.courseIds } },
-      data: { teacherId: user.teacher.id },
-    });
-  }
 
   revalidatePath("/admin/teachers");
   revalidatePath("/admin");
@@ -126,10 +125,22 @@ export async function deleteTeacher(formData: FormData) {
   await requireUser("ADMIN");
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  const teacher = await prisma.teacher.findUnique({ where: { id } });
-  if (teacher) {
-    await prisma.user.delete({ where: { id: teacher.userId } });
+  const teacher = await prisma.teacher.findUnique({
+    where: { id },
+    select: {
+      userId: true,
+      _count: { select: { quizzes: true, assignments: true, bankQuestions: true } },
+    },
+  });
+  if (!teacher) return;
+  // Deleting a teacher cascades to their quizzes (and students' attempts),
+  // assignments (and students' submissions/files) and quiz bank. Refuse
+  // while any of that exists so student records are never lost.
+  const c = teacher._count;
+  if (c.quizzes || c.assignments || c.bankQuestions) {
+    redirect("/admin/teachers?error=inuse");
   }
+  await prisma.user.delete({ where: { id: teacher.userId } });
   revalidatePath("/admin/teachers");
   revalidatePath("/admin");
 }
@@ -160,31 +171,35 @@ export async function updateTeacher(formData: FormData) {
     redirect(`/admin/teachers?edit=${teacherId}&error=email`);
   }
 
-  await prisma.user.update({
-    where: { id: teacher.userId },
-    data: {
-      name: input.name,
-      email: input.email,
-      phone: normalizePhone(input.phone) ?? input.phone,
-      ...(input.password
-        ? { password: await bcrypt.hash(input.password, 10) }
-        : {}),
-    },
-  });
+  const password = input.password
+    ? await bcrypt.hash(input.password, 10)
+    : null;
 
-  await prisma.teacher.update({
-    where: { id: teacherId },
-    data: { cnic: normalizeCnic(input.cnic) },
-  });
-
-  await prisma.course.updateMany({
-    where: { teacherId, id: { notIn: input.courseIds } },
-    data: { teacherId: null },
-  });
-  await prisma.course.updateMany({
-    where: { id: { in: input.courseIds } },
-    data: { teacherId },
-  });
+  // All-or-nothing, so a failure can't leave the teacher half-updated or
+  // their courses unassigned.
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: teacher.userId },
+      data: {
+        name: input.name,
+        email: input.email,
+        phone: normalizePhone(input.phone) ?? input.phone,
+        ...(password ? { password } : {}),
+      },
+    }),
+    prisma.teacher.update({
+      where: { id: teacherId },
+      data: { cnic: normalizeCnic(input.cnic) },
+    }),
+    prisma.course.updateMany({
+      where: { teacherId, id: { notIn: input.courseIds } },
+      data: { teacherId: null },
+    }),
+    prisma.course.updateMany({
+      where: { id: { in: input.courseIds } },
+      data: { teacherId },
+    }),
+  ]);
 
   revalidatePath("/admin/teachers");
   revalidatePath("/admin");

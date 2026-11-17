@@ -36,16 +36,21 @@ export async function submitQuiz(formData: FormData) {
     if (selected && selected === q.question.correctOption) score += q.question.marks;
   }
 
-  await prisma.quizAttempt.create({
-    data: {
-      quizId,
-      studentId: student.id,
-      score: violated ? 0 : score,
-      total,
-      answers,
-      violated,
-    },
-  });
+  try {
+    await prisma.quizAttempt.create({
+      data: {
+        quizId,
+        studentId: student.id,
+        score: violated ? 0 : score,
+        total,
+        answers,
+        violated,
+      },
+    });
+  } catch (error) {
+    // A double-click or second tab submits twice; the first attempt wins.
+    if ((error as { code?: string })?.code !== "P2002") throw error;
+  }
 
   revalidatePath("/student/quizzes");
   redirect(`/student/quizzes/${quizId}?submitted=1`);

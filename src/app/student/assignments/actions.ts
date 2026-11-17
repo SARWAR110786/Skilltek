@@ -32,14 +32,19 @@ export async function submitAssignment(formData: FormData) {
     redirect(`/student/assignments/${assignmentId}`);
   }
 
-  await prisma.assignmentSubmission.create({
-    data: {
-      assignmentId,
-      studentId: student.id,
-      note: note || null,
-      files: files.length ? { create: files } : undefined,
-    },
-  });
+  try {
+    await prisma.assignmentSubmission.create({
+      data: {
+        assignmentId,
+        studentId: student.id,
+        note: note || null,
+        files: files.length ? { create: files } : undefined,
+      },
+    });
+  } catch (error) {
+    // Double submit (two tabs / double-click): keep the first submission.
+    if ((error as { code?: string })?.code !== "P2002") throw error;
+  }
 
   revalidatePath("/student/assignments");
   redirect(`/student/assignments/${assignmentId}?submitted=1`);

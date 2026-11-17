@@ -86,6 +86,8 @@ const ERRORS: Record<string, string> = {
   csvempty: "The CSV has no data rows. Add students below the header row.",
   csvheader: 'The CSV header must include at least "Name" and "Email" columns.',
   csvbig: "Too many rows — import up to 300 students at a time.",
+  inuse:
+    "This student has attendance, fee, quiz or assignment records, so they can't be deleted. Set their status to Dropout or Passout instead — their history is kept.",
 };
 
 export default async function StudentsPage({

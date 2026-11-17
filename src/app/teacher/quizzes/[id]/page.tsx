@@ -93,6 +93,11 @@ export default async function TeacherQuizDetailPage({
       {sp.updated && <Alert tone="success">Quiz updated.</Alert>}
       {sp.error === "required" && <Alert tone="error">Please provide a title and a valid course.</Alert>}
       {sp.error === "noquestions" && <Alert tone="error">Select at least one question.</Alert>}
+      {sp.error === "locked" && (
+        <Alert tone="error">
+          Students have already attempted this quiz, so it can no longer be edited. Create a new quiz instead.
+        </Alert>
+      )}
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <Badge tone={quiz.status === "ASSIGNED" ? "green" : "gray"}>{quiz.status}</Badge>

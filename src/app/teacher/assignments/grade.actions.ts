@@ -15,8 +15,14 @@ export async function gradeSubmission(formData: FormData) {
     include: { assignment: { select: { teacherId: true, marks: true } } },
   });
   if (!submission || submission.assignment.teacherId !== teacher.id) return;
-  const marks = Number(formData.get("marksObtained") ?? "");
-  const marksObtained = isNaN(marks) ? null : Math.max(0, Math.min(submission.assignment.marks || marks, marks));
+  // A blank box means "not graded yet" (Number("") would wrongly be 0), and
+  // marks are whole numbers in the database, so round instead of failing.
+  const raw = String(formData.get("marksObtained") ?? "").trim();
+  const marks = Number(raw);
+  const marksObtained =
+    raw === "" || !Number.isFinite(marks)
+      ? null
+      : Math.max(0, Math.min(submission.assignment.marks || marks, Math.round(marks)));
   await prisma.assignmentSubmission.update({
     where: { id },
     data: { marksObtained },
