@@ -11,12 +11,28 @@ export function formatCurrency(
   return `${symbol}${amount.toLocaleString()}`;
 }
 
+/**
+ * The institute works in Pakistan time. Vercel servers run in UTC, so "today"
+ * must be computed in this zone or it is still yesterday between 00:00 and
+ * 05:00 PKT. Stored dates are NOT changed: an attendance day is still saved
+ * as midnight (server time) of the chosen calendar day, exactly as before.
+ */
+export const APP_TIME_ZONE = "Asia/Karachi";
+
+const YMD = new Intl.DateTimeFormat("en-CA", {
+  timeZone: APP_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
 export function formatDate(
   date: Date | string | null | undefined,
 ): string {
   if (!date) return "-";
   const d = typeof date === "string" ? new Date(date) : date;
   return d.toLocaleDateString("en-GB", {
+    timeZone: APP_TIME_ZONE,
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -27,6 +43,7 @@ export function formatDateTime(date: Date | string | null | undefined): string {
   if (!date) return "-";
   const d = typeof date === "string" ? new Date(date) : date;
   return d.toLocaleString("en-GB", {
+    timeZone: APP_TIME_ZONE,
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -50,17 +67,15 @@ export function initials(name: string): string {
     .toUpperCase();
 }
 
+/** Start of today's Pakistan calendar day, in the same form dates are stored. */
 export function todayStart(): Date {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
+  return parseDateInput(dateInputValue());
 }
 
+/** YYYY-MM-DD of the given instant as a Pakistan calendar date. */
 export function dateInputValue(d: Date = new Date()): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  // en-CA formats as YYYY-MM-DD.
+  return YMD.format(d);
 }
 
 export function parseDateInput(value: string): Date {

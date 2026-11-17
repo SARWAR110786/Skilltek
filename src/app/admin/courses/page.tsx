@@ -42,6 +42,8 @@ async function getData() {
 const ERRORS: Record<string, string> = {
   required: "Please fill in all required fields correctly.",
   title: "Course title already exists.",
+  inuse:
+    "This course still has students, quizzes or assignments, so it can't be deleted. Untick \"Active course\" when editing it to hide it instead.",
 };
 
 export default async function CoursesPage({

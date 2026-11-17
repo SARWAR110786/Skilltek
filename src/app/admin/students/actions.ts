@@ -215,11 +215,27 @@ export async function deleteStudent(formData: FormData) {
   if (!id) return;
   const student = await prisma.student.findUnique({
     where: { id },
-    select: { userId: true },
+    select: {
+      userId: true,
+      _count: {
+        select: {
+          attendance: true,
+          challans: true,
+          quizAttempts: true,
+          assignmentSubmissions: true,
+        },
+      },
+    },
   });
-  if (student) {
-    await prisma.user.delete({ where: { id: student.userId } });
+  if (!student) return;
+  // Deleting a student cascades to their attendance, fee challans, quiz
+  // attempts and submissions. Never destroy that history: students who have
+  // left should be marked Dropout/Passout instead.
+  const c = student._count;
+  if (c.attendance || c.challans || c.quizAttempts || c.assignmentSubmissions) {
+    redirect("/admin/students?error=inuse");
   }
+  await prisma.user.delete({ where: { id: student.userId } });
   revalidatePath("/admin/students");
   revalidatePath("/admin");
   revalidatePath("/admin/attendance");
@@ -251,42 +267,52 @@ export async function updateStudent(formData: FormData) {
     redirect(`/admin/students?error=email&edit=${id}`);
   }
 
-  await prisma.user.update({
-    where: { id: student.userId },
-    data: {
-      name: input.name,
-      email: input.email,
-      phone: normalizePhone(input.phone) ?? input.phone,
-      status: state.status,
-      ...(input.password
-        ? { password: await bcrypt.hash(input.password, 10) }
-        : {}),
-    },
-  });
+  const userData = {
+    name: input.name,
+    email: input.email,
+    phone: normalizePhone(input.phone) ?? input.phone,
+    status: state.status,
+    ...(input.password
+      ? { password: await bcrypt.hash(input.password, 10) }
+      : {}),
+  };
 
   const courseChanged = student.courseId !== input.courseId;
   let newRollNo = courseChanged ? await nextRollNo(input.courseId) : null;
 
   for (let attempt = 1; attempt <= 5; attempt++) {
     try {
-      await prisma.student.update({
-        where: { id },
-        data: {
-          ...(newRollNo ? { admissionNo: newRollNo } : {}),
-          status: state.status,
-          exitReason: state.exitReason,
-          cnic: normalizeCnic(input.cnic),
-          gender: input.gender,
-          address: input.address || null,
-          guardianName: input.guardianName,
-          guardianPhone:
-            normalizePhone(input.guardianPhone) ?? input.guardianPhone,
-          courseId: input.courseId,
-        },
-      });
+      // User + Student are saved together: either both change or neither,
+      // so a failure can't leave a half-updated student.
+      await prisma.$transaction([
+        prisma.user.update({ where: { id: student.userId }, data: userData }),
+        prisma.student.update({
+          where: { id },
+          data: {
+            ...(newRollNo ? { admissionNo: newRollNo } : {}),
+            status: state.status,
+            exitReason: state.exitReason,
+            cnic: normalizeCnic(input.cnic),
+            gender: input.gender,
+            address: input.address || null,
+            guardianName: input.guardianName,
+            guardianPhone:
+              normalizePhone(input.guardianPhone) ?? input.guardianPhone,
+            courseId: input.courseId,
+          },
+        }),
+      ]);
       break;
     } catch (error) {
       if (!isUniqueViolation(error) || attempt === 5) throw error;
+      const emailTaken = await prisma.user.findUnique({
+        where: { email: input.email },
+        select: { id: true },
+      });
+      if (emailTaken && emailTaken.id !== student.userId) {
+        redirect(`/admin/students?error=email&edit=${id}`);
+      }
+      if (!newRollNo) throw error;
       newRollNo = await nextRollNo(input.courseId);
     }
   }

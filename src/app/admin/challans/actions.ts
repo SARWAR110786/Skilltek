@@ -11,8 +11,21 @@ function isUniqueViolation(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { code?: string }).code === "P2002";
 }
 
+// Largest single fee line / late fee accepted (guards against typos like
+// 1e400 = Infinity or an extra row of zeros).
+const MAX_AMOUNT = 10_000_000;
+
+function readAmount(value: FormDataEntryValue | null): number {
+  const n = Number(value ?? 0);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.round(n * 100) / 100;
+}
+
 function backWithMessage(target: string, key: string): string {
-  const base = target.startsWith("/") ? target : "/admin/challans";
+  // Only same-site admin paths, so "//evil.com" can't be used as a redirect.
+  const safe =
+    target.startsWith("/admin/") && !target.startsWith("//") && !target.includes("\\");
+  const base = safe ? target : "/admin/challans";
   const sep = base.includes("?") ? "&" : "?";
   return `${base}${sep}${key}=1`;
 }
@@ -23,22 +36,33 @@ export async function createChallan(formData: FormData) {
   const studentId = String(formData.get("studentId") ?? "");
   const feeMonth = Number(formData.get("feeMonth") ?? 0);
   const feeYear = Number(formData.get("feeYear") ?? 0);
-  const lateFee = Math.max(0, Number(formData.get("lateFee") ?? 0) || 0);
+  const lateFee = readAmount(formData.get("lateFee"));
   const dueDate = String(formData.get("dueDate") ?? "");
 
   const labels = formData.getAll("feeLabel").map((v) => String(v).trim());
-  const amounts = formData.getAll("feeAmount").map((v) => Number(v) || 0);
+  const amounts = formData.getAll("feeAmount").map((v) => readAmount(v));
   const items: { label: string; amount: number }[] = [];
   for (let i = 0; i < Math.max(labels.length, amounts.length); i++) {
     const amount = amounts[i] ?? 0;
     if (amount <= 0) continue;
-    const label = labels[i] || "Fee";
+    const label = (labels[i] || "Fee").slice(0, 80);
     items.push({ label, amount });
   }
   const amount = items.reduce((sum, it) => sum + it.amount, 0);
 
-  const validMonth = feeMonth >= 1 && feeMonth <= 12;
-  if (!studentId || !validMonth || !feeYear || items.length === 0 || !dueDate) {
+  const validMonth = Number.isInteger(feeMonth) && feeMonth >= 1 && feeMonth <= 12;
+  const validYear = Number.isInteger(feeYear) && feeYear >= 2000 && feeYear <= 2100;
+  if (
+    !studentId ||
+    !validMonth ||
+    !validYear ||
+    items.length === 0 ||
+    items.length > 20 ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)
+  ) {
+    redirect("/admin/challans?error=required");
+  }
+  if (lateFee > MAX_AMOUNT || items.some((it) => it.amount > MAX_AMOUNT)) {
     redirect("/admin/challans?error=required");
   }
 
@@ -92,6 +116,10 @@ export async function markChallanPaid(formData: FormData) {
 
   const challan = await prisma.challan.findUnique({ where: { id } });
   if (!challan) return;
+  // Already paid: keep the original paid date/amount instead of overwriting.
+  if (challan.status === "PAID") {
+    redirect(backWithMessage(String(formData.get("back") ?? ""), "paid"));
+  }
 
   await prisma.challan.update({
     where: { id },

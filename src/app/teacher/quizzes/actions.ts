@@ -55,8 +55,14 @@ export async function updateQuiz(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!teacher || !id) redirect("/teacher/quizzes");
 
-  const quiz = await prisma.quiz.findUnique({ where: { id } });
+  const quiz = await prisma.quiz.findUnique({
+    where: { id },
+    include: { _count: { select: { attempts: true } } },
+  });
   if (!quiz || quiz.teacherId !== teacher.id) redirect("/teacher/quizzes?error=notfound");
+  // Once students have attempted a quiz its questions, course and marks are
+  // locked; otherwise saved scores would no longer match the quiz.
+  if (quiz._count.attempts > 0) redirect(`/teacher/quizzes/${id}?error=locked`);
 
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();

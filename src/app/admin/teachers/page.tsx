@@ -62,6 +62,8 @@ const ERRORS: Record<string, string> = {
   phone: "Enter a valid 11-digit phone number, e.g. 0300-1234567.",
   cnic: "Enter a valid 13-digit CNIC in the format XXXXX-XXXXXXX-X, e.g. 41409-1234567-1.",
   course: "Select at least one valid course.",
+  inuse:
+    "This teacher has quizzes, assignments or quiz-bank questions. Deleting them would also delete students' quiz results and submissions, so it was blocked. Reassign their courses to another teacher instead.",
 };
 
 export default async function TeachersPage({

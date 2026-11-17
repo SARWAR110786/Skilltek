@@ -1,4 +1,5 @@
 import type { ChallanStatus } from "@/generated/prisma/client";
+import { todayStart } from "@/lib/utils";
 
 const ONES = [
   "",
@@ -101,9 +102,7 @@ export function isOverdue(challan: {
     typeof challan.dueDate === "string"
       ? new Date(challan.dueDate)
       : challan.dueDate;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return due.getTime() < today.getTime();
+  return due.getTime() < todayStart().getTime();
 }
 
 export function monthLabel(d: Date): string {

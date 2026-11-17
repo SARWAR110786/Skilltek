@@ -112,6 +112,19 @@ export async function deleteCourse(formData: FormData) {
   await requireUser("ADMIN");
   const id = String(formData.get("id") ?? "");
   if (!id) return;
+  const course = await prisma.course.findUnique({
+    where: { id },
+    select: {
+      _count: { select: { students: true, quizzes: true, assignments: true } },
+    },
+  });
+  if (!course) return;
+  // Deleting a course cascades to its quizzes/attempts and assignments/
+  // submissions, and unlinks its students. Refuse while any exist.
+  const c = course._count;
+  if (c.students || c.quizzes || c.assignments) {
+    redirect("/admin/courses?error=inuse");
+  }
   await prisma.course.delete({ where: { id } });
   revalidatePath("/admin/courses");
   revalidatePath("/admin");
