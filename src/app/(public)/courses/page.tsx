@@ -17,7 +17,6 @@ async function getCourses() {
     return await prisma.course.findMany({
       where: { active: true },
       orderBy: { createdAt: "desc" },
-      include: { _count: { select: { students: true } } },
     });
   } catch {
     return [];
@@ -60,7 +59,6 @@ export default async function CoursesPage() {
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" /> {c.durationMonths} months
                     </span>
-                    <span>{c._count.students} students enrolled</span>
                   </div>
                   <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
                     <ProgramInfo
