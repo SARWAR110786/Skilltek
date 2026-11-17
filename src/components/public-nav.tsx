@@ -16,7 +16,7 @@ const LINKS = [
   { href: "/contact", label: "Contact" },
   // "Download App" is already reachable from the Get App button (desktop and
   // mobile), so its slot is used for student/certificate verification.
-  { href: "/verify", label: "Verify Certificate" },
+  { href: "/verify", label: "Verify Status" },
 ];
 
 export function PublicNav() {
