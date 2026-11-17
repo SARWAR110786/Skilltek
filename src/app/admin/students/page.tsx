@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { Download, ShieldCheck, Trash2 } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 import {
@@ -419,18 +419,15 @@ export default async function StudentsPage({
                   >
                     Edit
                   </Link>
-                  {s.exitReason === "PASSOUT" && (
-                    <Link
+                  <Link
                       href={`/verify?roll=${encodeURIComponent(s.admissionNo)}`}
                       target="_blank"
                       rel="noopener"
-                      title="Open the public certificate verification page for this student"
-                      className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-50"
+                      title="Open this student's public verification page"
+                      className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-brand-600"
                     >
-                      <ShieldCheck className="h-3.5 w-3.5" />
                       Verify
                     </Link>
-                  )}
                   <ConfirmDelete
                     action={deleteStudent}
                     message={`Delete ${s.user.name} (${s.admissionNo})? This will remove their login and all records.`}

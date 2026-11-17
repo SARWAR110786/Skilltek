@@ -15,9 +15,12 @@ export function isValidRollFormat(roll: string): boolean {
   return roll.length >= 4 && roll.length <= 40 && ROLL_RE.test(roll);
 }
 
-export type VerifiedCertificate = {
+export type VerifyStatus = "ACTIVE" | "INACTIVE" | "DROPOUT" | "PASSOUT";
+
+export type VerifiedStudent = {
   rollNo: string;
   name: string;
+  status: VerifyStatus;
   course: string | null;
   courseCode: string | null;
   durationMonths: number | null;
@@ -25,30 +28,38 @@ export type VerifiedCertificate = {
 };
 
 /**
- * Public, read-only lookup for certificate verification.
- *
- * Only students marked PASSOUT are ever returned. Active, inactive and
- * dropout students produce the same "not found" result, so the page can't be
- * used to discover who studies here. Only the fields printed on a certificate
- * are selected — never email, phone, CNIC, guardian or address.
+ * Public, read-only lookup by roll number for any student (Active, Inactive,
+ * Dropout or Passout). Only the fields needed to confirm identity and status
+ * are selected; email, phone, CNIC, guardian and address are never read.
  */
-export async function findPassoutCertificate(
+export async function findStudentByRoll(
   rollNo: string,
-): Promise<VerifiedCertificate | null> {
+): Promise<VerifiedStudent | null> {
   const student = await prisma.student.findUnique({
     where: { admissionNo: rollNo },
     select: {
       admissionNo: true,
       exitReason: true,
       admissionDate: true,
-      user: { select: { name: true } },
+      user: { select: { name: true, status: true } },
       course: { select: { title: true, code: true, durationMonths: true } },
     },
   });
-  if (!student || student.exitReason !== "PASSOUT") return null;
+  if (!student) return null;
+  // Same rules as studentStatusLabel(): an exit reason wins, then the
+  // temporary login block, otherwise active.
+  const status: VerifyStatus =
+    student.exitReason === "PASSOUT"
+      ? "PASSOUT"
+      : student.exitReason === "DROPOUT"
+        ? "DROPOUT"
+        : student.user.status === "INACTIVE"
+          ? "INACTIVE"
+          : "ACTIVE";
   return {
     rollNo: student.admissionNo,
     name: student.user.name,
+    status,
     course: student.course?.title ?? null,
     courseCode: student.course?.code ?? null,
     durationMonths: student.course?.durationMonths ?? null,
