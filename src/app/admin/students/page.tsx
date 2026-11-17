@@ -419,12 +419,12 @@ export default async function StudentsPage({
                   >
                     Edit
                   </Link>
-                  {s.exitReason === "PASSOUT" && (
+                  {(
                     <Link
                       href={`/verify?roll=${encodeURIComponent(s.admissionNo)}`}
                       target="_blank"
                       rel="noopener"
-                      title="Open the public certificate verification page for this student"
+                      title="Open this student's public verification page"
                       className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-700 transition-colors hover:bg-emerald-50"
                     >
                       <ShieldCheck className="h-3.5 w-3.5" />

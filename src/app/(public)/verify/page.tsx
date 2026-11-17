@@ -7,27 +7,31 @@ import {
   BookOpen,
   CalendarDays,
   Clock,
+  GraduationCap,
   Hash,
+  PauseCircle,
   Search,
   ShieldAlert,
   ShieldCheck,
   User,
+  UserX,
 } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import {
-  findPassoutCertificate,
+  findStudentByRoll,
   isValidRollFormat,
   normalizeRollInput,
-  type VerifiedCertificate,
+  type VerifiedStudent,
+  type VerifyStatus,
 } from "@/lib/certificate";
 import { rateLimit } from "@/lib/rate-limit";
 import { APP_TIME_ZONE } from "@/lib/utils";
 
 export const metadata = {
-  title: "Verify Certificate · SkillTek",
+  title: "Verify Student / Certificate · SkillTek",
   description:
-    "Check that a SkillTek Institute certificate is genuine using the roll number printed on it.",
+    "Check a SkillTek Institute student's enrolment status or certificate using their roll number.",
 };
 
 // Reads the query string and live data; allow this segment to block.
@@ -39,7 +43,7 @@ type Result =
   | { kind: "limited" }
   | { kind: "error"; roll: string }
   | { kind: "notfound"; roll: string }
-  | { kind: "verified"; cert: VerifiedCertificate };
+  | { kind: "found"; student: VerifiedStudent };
 
 async function lookup(rawRoll: string | undefined): Promise<Result> {
   if (rawRoll === undefined || rawRoll.trim() === "") return { kind: "idle" };
@@ -57,8 +61,8 @@ async function lookup(rawRoll: string | undefined): Promise<Result> {
   if (!rateLimit(`verify:${ip}`, 20, 10 * 60_000).ok) return { kind: "limited" };
 
   try {
-    const cert = await findPassoutCertificate(roll);
-    return cert ? { kind: "verified", cert } : { kind: "notfound", roll };
+    const student = await findStudentByRoll(roll);
+    return student ? { kind: "found", student } : { kind: "notfound", roll };
   } catch (error) {
     console.error("[verify] lookup failed:", error);
     return { kind: "error", roll };
@@ -77,7 +81,7 @@ const STEPS = [
   {
     icon: Hash,
     title: "Find the roll number",
-    text: "It is printed on the certificate, e.g. SK-26-001-05.",
+    text: "It is on the certificate or student card, e.g. SK-26-001-05.",
   },
   {
     icon: Search,
@@ -86,8 +90,8 @@ const STEPS = [
   },
   {
     icon: BadgeCheck,
-    title: "Match the details",
-    text: "The name and course shown must match the certificate.",
+    title: "Check name and status",
+    text: "A completion certificate is genuine only when the status is Passout.",
   },
 ];
 
@@ -99,8 +103,8 @@ export default async function VerifyPage({
   const sp = await searchParams;
   const result = await lookup(typeof sp.roll === "string" ? sp.roll : undefined);
   const defaultRoll =
-    result.kind === "verified"
-      ? result.cert.rollNo
+    result.kind === "found"
+      ? result.student.rollNo
       : "roll" in result
         ? result.roll
         : "";
@@ -108,9 +112,9 @@ export default async function VerifyPage({
   return (
     <div>
       <PageHero
-        eyebrow="Certificate Verification"
-        title="Verify a Certificate"
-        subtitle="Employers, universities and students can confirm that a SkillTek Institute certificate is genuine using the roll number printed on it."
+        eyebrow="Student & Certificate Verification"
+        title="Verify a Student"
+        subtitle="Employers, universities and parents can check any SkillTek Institute student's status (active, inactive, dropout or passout) and confirm completion certificates using the roll number."
       />
 
       <section className="mx-auto max-w-3xl px-4 py-16 lg:py-20">
@@ -125,7 +129,7 @@ export default async function VerifyPage({
                   Enter roll number
                 </h2>
                 <p className="text-sm text-slate-500">
-                  As printed on the certificate
+                  From the certificate or student card
                 </p>
               </div>
             </div>
@@ -163,15 +167,15 @@ export default async function VerifyPage({
         </Reveal>
 
         <div className="mt-8" aria-live="polite">
-          {result.kind === "verified" && <VerifiedCard cert={result.cert} />}
+          {result.kind === "found" && <StudentCard student={result.student} />}
 
           {result.kind === "notfound" && (
             <Notice
               tone="rose"
-              title="No certificate found"
+              title="No student found"
               text={
                 <>
-                  We couldn&apos;t find a completed-course certificate for{" "}
+                  No SkillTek student has the roll number{" "}
                   <span className="font-mono font-semibold text-white">
                     {result.roll}
                   </span>
@@ -233,52 +237,108 @@ export default async function VerifyPage({
   );
 }
 
-function VerifiedCard({ cert }: { cert: VerifiedCertificate }) {
+const STATUS_UI: Record<
+  VerifyStatus,
+  {
+    badge: string;
+    heading: string;
+    text: string;
+    icon: typeof ShieldCheck;
+    statusText: string;
+    card: string;
+    glow: string;
+    iconWrap: string;
+    accent: string;
+  }
+> = {
+  PASSOUT: {
+    badge: "Verified · Passout",
+    heading: "Course completed — certificate genuine",
+    text: "This student completed their course at SkillTek Institute. A completion certificate with this roll number is genuine.",
+    icon: GraduationCap,
+    statusText: "Passout (course completed)",
+    card: "border-emerald-400/30 bg-emerald-500/[0.06]",
+    glow: "bg-emerald-500/20",
+    iconWrap: "bg-emerald-500/15 text-emerald-300 ring-emerald-400/30",
+    accent: "text-emerald-300",
+  },
+  ACTIVE: {
+    badge: "Verified · Active",
+    heading: "Currently enrolled student",
+    text: "This is a current SkillTek Institute student. The course is still in progress, so no completion certificate has been issued yet.",
+    icon: ShieldCheck,
+    statusText: "Active (currently studying)",
+    card: "border-brand-400/30 bg-brand-500/[0.07]",
+    glow: "bg-brand-500/20",
+    iconWrap: "bg-brand-500/15 text-brand-300 ring-brand-400/30",
+    accent: "text-brand-300",
+  },
+  INACTIVE: {
+    badge: "Verified · Inactive",
+    heading: "Enrolled student — temporarily inactive",
+    text: "This student is enrolled at SkillTek Institute but their account is temporarily on hold. No completion certificate has been issued yet.",
+    icon: PauseCircle,
+    statusText: "Inactive (temporarily on hold)",
+    card: "border-amber-400/30 bg-amber-500/[0.06]",
+    glow: "bg-amber-500/20",
+    iconWrap: "bg-amber-500/15 text-amber-300 ring-amber-400/30",
+    accent: "text-amber-300",
+  },
+  DROPOUT: {
+    badge: "Verified · Dropout",
+    heading: "Did not complete the course",
+    text: "This person was enrolled at SkillTek Institute but left before completing the course. No completion certificate was issued — any certificate showing this roll number as completed is not valid.",
+    icon: UserX,
+    statusText: "Dropout (course not completed)",
+    card: "border-rose-400/30 bg-rose-500/[0.06]",
+    glow: "bg-rose-500/20",
+    iconWrap: "bg-rose-500/15 text-rose-300 ring-rose-400/30",
+    accent: "text-rose-300",
+  },
+};
+
+function StudentCard({ student }: { student: VerifiedStudent }) {
+  const ui = STATUS_UI[student.status];
   const rows = [
-    { icon: User, label: "Student name", value: cert.name },
-    { icon: Hash, label: "Roll number", value: cert.rollNo, mono: true },
+    { icon: User, label: "Student name", value: student.name },
+    { icon: Hash, label: "Roll number", value: student.rollNo, mono: true },
     {
       icon: BookOpen,
       label: "Course",
-      value: cert.course
-        ? `${cert.course}${cert.courseCode ? ` (${cert.courseCode})` : ""}`
+      value: student.course
+        ? `${student.course}${student.courseCode ? ` (${student.courseCode})` : ""}`
         : "—",
     },
     {
       icon: Clock,
       label: "Duration",
-      value: cert.durationMonths
-        ? `${cert.durationMonths} month${cert.durationMonths === 1 ? "" : "s"}`
+      value: student.durationMonths
+        ? `${student.durationMonths} month${student.durationMonths === 1 ? "" : "s"}`
         : "—",
     },
-    { icon: CalendarDays, label: "Enrolled", value: monthYear(cert.admissionDate) },
-    { icon: Award, label: "Status", value: "Course completed (Passout)" },
+    { icon: CalendarDays, label: "Enrolled", value: monthYear(student.admissionDate) },
+    { icon: Award, label: "Status", value: ui.statusText },
   ];
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-emerald-400/30 bg-emerald-500/[0.06] shadow-2xl">
-      <div className="pointer-events-none absolute -top-20 right-0 h-48 w-72 rounded-full bg-emerald-500/20 blur-[90px]" />
-      <div className="relative flex flex-col items-start gap-4 border-b border-emerald-400/20 p-6 sm:flex-row sm:items-center sm:p-8">
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30">
-          <ShieldCheck className="h-7 w-7" />
+    <div className={`relative overflow-hidden rounded-2xl border shadow-2xl ${ui.card}`}>
+      <div className={`pointer-events-none absolute -top-20 right-0 h-48 w-72 rounded-full blur-[90px] ${ui.glow}`} />
+      <div className="relative flex flex-col items-start gap-4 border-b border-white/10 p-6 sm:flex-row sm:items-center sm:p-8">
+        <span className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ring-1 ${ui.iconWrap}`}>
+          <ui.icon className="h-7 w-7" />
         </span>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">
-            Verified
+          <p className={`text-xs font-semibold uppercase tracking-widest ${ui.accent}`}>
+            {ui.badge}
           </p>
-          <h3 className="mt-1 text-2xl font-bold text-white">
-            Genuine SkillTek certificate
-          </h3>
-          <p className="mt-1 text-sm text-slate-300">
-            This roll number belongs to a student who completed their course at
-            SkillTek Institute.
-          </p>
+          <h3 className="mt-1 text-2xl font-bold text-white">{ui.heading}</h3>
+          <p className="mt-1 text-sm text-slate-300">{ui.text}</p>
         </div>
       </div>
       <dl className="relative grid gap-px bg-white/5 sm:grid-cols-2">
         {rows.map((r) => (
           <div key={r.label} className="flex items-start gap-3 bg-slate-950/60 p-5">
-            <r.icon className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+            <r.icon className={`mt-0.5 h-4 w-4 shrink-0 ${ui.accent}`} />
             <div className="min-w-0">
               <dt className="text-xs text-slate-400">{r.label}</dt>
               <dd
@@ -295,7 +355,7 @@ function VerifiedCard({ cert }: { cert: VerifiedCertificate }) {
         ))}
       </dl>
       <p className="relative px-6 py-4 text-xs text-slate-400 sm:px-8">
-        Make sure the name and course above match the printed certificate.
+        Make sure the name and roll number above match the document you were given.
       </p>
     </div>
   );
