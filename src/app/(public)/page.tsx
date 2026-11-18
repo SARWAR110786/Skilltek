@@ -327,11 +327,11 @@ export default async function HomePage() {
           </div>
 
           <Reveal delay={150}>
-            <div className="rounded-2xl border border-white/10 bg-white p-6 shadow-2xl sm:p-8">
-              <h3 className="text-lg font-semibold text-slate-900">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-2xl backdrop-blur sm:p-8">
+              <h3 className="text-lg font-semibold text-white">
                 Admission Enquiry
               </h3>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-400">
                 Fill in your details and we will get back to you.
               </p>
               <div className="mt-6">

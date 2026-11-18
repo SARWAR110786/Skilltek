@@ -1,10 +1,51 @@
 "use client";
 
-import { useActionState, useState, type FormEvent } from "react";
+import {
+  useActionState,
+  useState,
+  type FormEvent,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from "react";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
-import { Button, Field, Input, Select, Textarea } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { normalizePhone } from "@/lib/validation";
 import { submitEnquiry, type EnquiryState } from "@/app/(public)/admissions/actions";
+
+// Dark-theme controls for the public site. The shared Input/Select/Field in
+// components/ui are white and stay that way for the admin panel.
+const CONTROL =
+  "w-full rounded-lg border border-white/15 bg-slate-950/60 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30";
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-medium text-slate-300">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+  return <input className={cn(CONTROL, className)} {...props} />;
+}
+
+function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea className={cn(CONTROL, className)} {...props} />;
+}
+
+function Select({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select
+      className={cn(CONTROL, "cursor-pointer [&>option]:bg-slate-900 [&>option]:text-white", className)}
+      {...props}
+    >
+      {children}
+    </select>
+  );
+}
 
 export function EnquiryForm({
   courses,
@@ -57,10 +98,10 @@ export function EnquiryForm({
 
   if (state.ok) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center">
-        <CheckCircle2 className="h-10 w-10 text-emerald-600" />
-        <p className="font-semibold text-emerald-800">Thank you!</p>
-        <p className="text-sm text-emerald-700">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-emerald-400/30 bg-emerald-500/[0.08] p-8 text-center">
+        <CheckCircle2 className="h-10 w-10 text-emerald-300" />
+        <p className="font-semibold text-white">Thank you!</p>
+        <p className="text-sm text-slate-300">
           Your enquiry has been received. Our team will contact you soon.
         </p>
       </div>
@@ -70,7 +111,7 @@ export function EnquiryForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {state.error && (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+        <div className="rounded-lg border border-rose-400/30 bg-rose-500/[0.08] px-3 py-2 text-sm text-rose-200">
           {state.error}
         </div>
       )}
@@ -92,7 +133,7 @@ export function EnquiryForm({
             aria-describedby={phoneError ? "phone-error" : undefined}
           />
           {phoneError && (
-            <span id="phone-error" className="mt-1 block text-xs text-rose-600">
+            <span id="phone-error" className="mt-1 block text-xs text-rose-300">
               {phoneError}
             </span>
           )}
@@ -141,7 +182,11 @@ export function EnquiryForm({
           placeholder="Tell us how we can help…"
         />
       </Field>
-      <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+      <button
+        type="submit"
+        disabled={pending}
+        className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+      >
         {pending ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" /> Sending…
@@ -151,7 +196,7 @@ export function EnquiryForm({
             <Send className="h-4 w-4" /> Submit Enquiry
           </>
         )}
-      </Button>
+      </button>
     </form>
   );
 }
