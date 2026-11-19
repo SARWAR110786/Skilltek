@@ -18,6 +18,7 @@ import {
   Menu,
   MessageSquare,
   Settings,
+  Trophy,
   Users,
   Wallet,
   X,
@@ -38,6 +39,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   quizbank: Library,
   assignments: ClipboardList,
   finance: Wallet,
+  performance: Trophy,
 };
 
 export type NavItem = {

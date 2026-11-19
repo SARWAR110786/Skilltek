@@ -18,11 +18,15 @@ export function ReportFilter({
   year,
   month,
   years,
+  basePath = "/admin/reports",
+  showViewToggle = true,
 }: {
   view: "year" | "month";
   year: number;
   month: number;
   years: number[];
+  basePath?: string;
+  showViewToggle?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -30,15 +34,16 @@ export function ReportFilter({
   function go(next: { view?: "year" | "month"; year?: number; month?: number }) {
     const v = next.view ?? view;
     const qs = new URLSearchParams({
-      view: v,
       year: String(next.year ?? year),
       month: String(next.month ?? month),
     });
-    startTransition(() => router.push(`/admin/reports?${qs}`));
+    if (showViewToggle) qs.set("view", v);
+    startTransition(() => router.push(`${basePath}?${qs}`));
   }
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", pending && "opacity-60")}>
+      {showViewToggle && (
       <div className="flex rounded-lg border border-slate-200 bg-white p-0.5">
         {(["month", "year"] as const).map((v) => (
           <button
@@ -54,7 +59,8 @@ export function ReportFilter({
           </button>
         ))}
       </div>
-      {view === "month" && (
+      )}
+      {(view === "month" || !showViewToggle) && (
         <Select
           aria-label="Month"
           value={String(month)}

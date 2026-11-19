@@ -365,6 +365,18 @@ model AssignmentFile {
   @@index([submissionId])
 }
 
+// ------------------------- TOP STUDENTS (singleton) -------------------------
+// The top students shown on the public website. Only one month is live at a
+// time: publishing a new month overwrites this row.
+model TopStudentsPublication {
+  id          String   @id @default("current")
+  month       Int
+  year        Int
+  students    Json
+  publishedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 // ------------------------- SETTINGS (singleton) -------------------------
 
 model Setting {

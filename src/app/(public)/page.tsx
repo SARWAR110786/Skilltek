@@ -8,13 +8,16 @@ import { ProgramInfo } from "@/components/program-info";
 import { Typewriter } from "@/components/typewriter";
 import { EnquiryForm } from "@/app/(public)/admissions/EnquiryForm";
 import { SERVICES } from "@/lib/services";
+import { TopStudents } from "@/components/top-students";
+import { MONTHS } from "@/lib/challan";
+import { parsePublished } from "@/lib/performance";
 
 export const instant = false;
 
 async function getData() {
   try {
     await connection();
-    const [courses, studentCount, courseCount] = await Promise.all([
+    const [courses, studentCount, courseCount, topStudents] = await Promise.all([
       prisma.course.findMany({
         where: { active: true },
         orderBy: { createdAt: "desc" },
@@ -22,10 +25,13 @@ async function getData() {
       }),
       prisma.student.count(),
       prisma.course.count(),
+      prisma.topStudentsPublication
+        .findUnique({ where: { id: "current" } })
+        .catch(() => null),
     ]);
-    return { courses, studentCount, courseCount };
+    return { courses, studentCount, courseCount, topStudents };
   } catch {
-    return { courses: [], studentCount: 0, courseCount: 0 };
+    return { courses: [], studentCount: 0, courseCount: 0, topStudents: null };
   }
 }
 
@@ -73,7 +79,7 @@ const ADMISSION_CONTACT = [
 ];
 
 export default async function HomePage() {
-  const { courses } = await getData();
+  const { courses, topStudents } = await getData();
 
   return (
     <div className="relative">
@@ -136,6 +142,14 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ========================== TOP STUDENTS ========================== */}
+      {topStudents && (
+        <TopStudents
+          students={parsePublished(topStudents.students)}
+          period={`${MONTHS[topStudents.month - 1] ?? ""} ${topStudents.year}`}
+        />
+      )}
 
       {/* ============================= FEATURES =========================== */}
       <section className="relative mx-auto max-w-6xl px-4 py-20">
