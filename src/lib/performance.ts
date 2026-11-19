@@ -3,21 +3,31 @@ import { monthKey, monthKeyOf } from "@/lib/finance";
 import { dateInputValue } from "@/lib/utils";
 
 /**
- * Monthly student performance.
+ * Monthly student performance (each course ranked separately).
  *
- * For each active student, three parts are scored 0-100 for the month:
- *  - Quizzes:     marks earned / marks possible on every quiz of the student's
- *                 course that was taken that month (a quiz a classmate took but
- *                 this student skipped counts as 0).
- *  - Assignments: marks earned / marks possible on every graded assignment of
- *                 the course that month (missing = 0; submitted but not yet
- *                 graded is left out so it doesn't count against the student).
+ * Four parts, each scored 0-100 for the month:
+ *  - Quizzes:     marks earned / marks possible on the course's quizzes of the
+ *                 month. A quiz belongs to the month of its FIRST attempt, so it
+ *                 is never split across two months. Skipped quiz = 0.
+ *  - Assignments: marks earned / marks possible on the course's assignments of
+ *                 the month (month of the due date, or of creation if there is
+ *                 none). Only assignments the teacher has started grading count.
+ *                 Not submitted = 0; submitted but not graded yet = left out.
+ *  - Assessments: offline tests (paper, verbal, practical …) dated in the month
+ *                 that have marks entered. Absent / Not submitted = 0; a student
+ *                 left blank on the marks sheet is left out.
  *  - Attendance:  days present / days attendance was taken for the course.
  *
+ * Everything before the student's admission date is ignored, so a student who
+ * joins mid-month is not penalised for earlier days or tests. If the course had
+ * any quiz / assignment / assessment that month, a student needs at least one
+ * of them counted to be ranked (attendance alone is not enough).
+ *
  * Overall = weighted average of the parts that were held for the course that
- * month (weights below), so a month without quizzes doesn't pull anyone down.
+ * month (weights below). A part that was not held is left out and the other
+ * parts' weights grow to fill 100.
  */
-export const WEIGHTS = { quiz: 40, assignment: 30, attendance: 30 } as const;
+export const WEIGHTS = { quiz: 25, assignment: 25, assessment: 30, attendance: 20 } as const;
 
 export type PerformanceRow = {
   studentId: string;
@@ -26,11 +36,13 @@ export type PerformanceRow = {
   avatarUrl: string | null;
   courseId: string;
   courseTitle: string | null;
-  quiz: number | null; // % or null when no quiz that month
+  quiz: number | null; // % or null when nothing counted that month
   assignment: number | null;
+  assessment: number | null;
   attendance: number | null;
   quizCount: number;
   assignmentCount: number;
+  assessmentCount: number;
   attendanceDays: number;
   overall: number;
 };
@@ -46,35 +58,52 @@ export async function monthlyPerformance(year: number, month: number): Promise<P
     lt: new Date(Date.UTC(year, month, 1) + 86400000),
   };
   const inMonth = (d: Date) => monthKeyOf(d) === key;
+  const day = (d: Date) => dateInputValue(d); // YYYY-MM-DD in Pakistan time
 
-  const [students, attempts, submissions, attendance] = await Promise.all([
+  const [students, quizzes, assignments, assessments, attendance] = await Promise.all([
     prisma.student.findMany({
       where: { status: "ACTIVE", exitReason: null, courseId: { not: null } },
       select: {
         id: true,
         admissionNo: true,
+        admissionDate: true,
         courseId: true,
         user: { select: { name: true, avatarUrl: true, status: true } },
         course: { select: { title: true } },
       },
     }),
-    prisma.quizAttempt.findMany({
-      where: { submittedAt: window },
+    // Quizzes with an attempt in (or around) the month, with ALL their attempts.
+    prisma.quiz.findMany({
+      where: { attempts: { some: { submittedAt: window } } },
       select: {
-        studentId: true,
-        score: true,
-        total: true,
-        submittedAt: true,
-        quiz: { select: { id: true, courseId: true, totalMarks: true } },
+        id: true,
+        courseId: true,
+        totalMarks: true,
+        attempts: { select: { studentId: true, score: true, total: true, submittedAt: true } },
       },
     }),
-    prisma.assignmentSubmission.findMany({
-      where: { submittedAt: window },
+    prisma.assignment.findMany({
+      where: {
+        marks: { gt: 0 },
+        OR: [{ dueDate: window }, { dueDate: null, createdAt: window }],
+      },
       select: {
-        studentId: true,
-        marksObtained: true,
-        submittedAt: true,
-        assignment: { select: { id: true, courseId: true, marks: true } },
+        id: true,
+        courseId: true,
+        marks: true,
+        dueDate: true,
+        createdAt: true,
+        submissions: { select: { studentId: true, marksObtained: true } },
+      },
+    }),
+    prisma.assessment.findMany({
+      where: { date: window, totalMarks: { gt: 0 } },
+      select: {
+        id: true,
+        courseId: true,
+        totalMarks: true,
+        date: true,
+        marks: { select: { studentId: true, status: true, marks: true } },
       },
     }),
     prisma.attendance.findMany({
@@ -85,35 +114,60 @@ export async function monthlyPerformance(year: number, month: number): Promise<P
 
   const courseOf = new Map(students.map((s) => [s.id, s.courseId as string]));
 
-  // ---- Quizzes held per course this month, and each student's score ----
-  const quizTotals = new Map<string, Map<string, number>>(); // course -> quiz -> total
-  const quizScore = new Map<string, Map<string, number>>(); // student -> quiz -> score
-  for (const a of attempts) {
-    if (!inMonth(a.submittedAt)) continue;
-    const total = a.total > 0 ? a.total : a.quiz.totalMarks;
+  // ---- Quizzes of the month per course (month of the first attempt) ----
+  type QuizHeld = { id: string; day: string; total: number; scores: Map<string, number> };
+  const quizByCourse = new Map<string, QuizHeld[]>();
+  for (const q of quizzes) {
+    if (q.attempts.length === 0) continue;
+    const first = q.attempts.reduce((a, b) => (a.submittedAt <= b.submittedAt ? a : b));
+    if (!inMonth(first.submittedAt)) continue;
+    const total = Math.max(q.totalMarks, ...q.attempts.map((a) => a.total));
     if (total <= 0) continue;
-    const course = a.quiz.courseId;
-    const qs = quizTotals.get(course) ?? new Map<string, number>();
-    qs.set(a.quiz.id, Math.max(qs.get(a.quiz.id) ?? 0, total));
-    quizTotals.set(course, qs);
-    const mine = quizScore.get(a.studentId) ?? new Map<string, number>();
-    mine.set(a.quiz.id, a.score);
-    quizScore.set(a.studentId, mine);
+    const list = quizByCourse.get(q.courseId) ?? [];
+    list.push({
+      id: q.id,
+      day: day(first.submittedAt),
+      total,
+      scores: new Map(q.attempts.map((a) => [a.studentId, a.score])),
+    });
+    quizByCourse.set(q.courseId, list);
   }
 
-  // ---- Graded assignments per course this month ----
-  const asgMarks = new Map<string, Map<string, number>>(); // course -> assignment -> marks
-  const asgScore = new Map<string, Map<string, number | null>>(); // student -> assignment -> obtained
-  for (const s of submissions) {
-    if (!inMonth(s.submittedAt) || s.assignment.marks <= 0) continue;
-    const mine = asgScore.get(s.studentId) ?? new Map<string, number | null>();
-    mine.set(s.assignment.id, s.marksObtained);
-    asgScore.set(s.studentId, mine);
-    if (s.marksObtained == null) continue;
-    const course = s.assignment.courseId;
-    const m = asgMarks.get(course) ?? new Map<string, number>();
-    m.set(s.assignment.id, s.assignment.marks);
-    asgMarks.set(course, m);
+  // ---- Assignments of the month per course (graded ones only) ----
+  type AsgHeld = { id: string; day: string; marks: number; subs: Map<string, number | null> };
+  const asgByCourse = new Map<string, AsgHeld[]>();
+  for (const a of assignments) {
+    const when = a.dueDate ?? a.createdAt;
+    if (!inMonth(when)) continue;
+    if (!a.submissions.some((s) => s.marksObtained != null)) continue; // grading not started
+    const list = asgByCourse.get(a.courseId) ?? [];
+    list.push({
+      id: a.id,
+      day: day(when),
+      marks: a.marks,
+      subs: new Map(a.submissions.map((s) => [s.studentId, s.marksObtained])),
+    });
+    asgByCourse.set(a.courseId, list);
+  }
+
+  // ---- Offline assessments of the month per course (with marks entered) ----
+  type AssHeld = {
+    id: string;
+    day: string;
+    total: number;
+    marks: Map<string, { status: string; marks: number | null }>;
+  };
+  const assByCourse = new Map<string, AssHeld[]>();
+  for (const a of assessments) {
+    if (!inMonth(a.date) || a.marks.length === 0) continue;
+    const list = assByCourse.get(a.courseId) ?? [];
+    list.push({
+      id: a.id,
+      day: day(a.date),
+      total: a.totalMarks,
+      marks: new Map(a.marks.map((m) => [m.studentId, { status: m.status, marks: m.marks }])),
+    });
+    assByCourse.set(a.courseId, list);
   }
 
   // ---- Attendance days per course this month ----
@@ -123,13 +177,13 @@ export async function monthlyPerformance(year: number, month: number): Promise<P
     if (!inMonth(r.date)) continue;
     const course = courseOf.get(r.studentId);
     if (!course) continue;
-    const day = dateInputValue(r.date);
+    const d = day(r.date);
     const days = courseDays.get(course) ?? new Set<string>();
-    days.add(day);
+    days.add(d);
     courseDays.set(course, days);
     if (r.status === "PRESENT") {
       const p = present.get(r.studentId) ?? new Set<string>();
-      p.add(day);
+      p.add(d);
       present.set(r.studentId, p);
     }
   }
@@ -138,58 +192,75 @@ export async function monthlyPerformance(year: number, month: number): Promise<P
   for (const s of students) {
     if (s.user.status !== "ACTIVE") continue;
     const course = s.courseId as string;
+    const joined = day(s.admissionDate);
 
-    // Quizzes
+    // Quizzes (skipped = 0)
     let qEarned = 0;
     let qPossible = 0;
-    const quizzes = quizTotals.get(course);
-    if (quizzes) {
-      const mine = quizScore.get(s.id);
-      for (const [quizId, total] of quizzes) {
-        qPossible += total;
-        qEarned += Math.min(total, mine?.get(quizId) ?? 0);
-      }
+    let qCount = 0;
+    for (const q of quizByCourse.get(course) ?? []) {
+      const score = q.scores.get(s.id);
+      if (score === undefined && q.day < joined) continue; // before the student joined
+      qPossible += q.total;
+      qEarned += Math.max(0, Math.min(q.total, score ?? 0));
+      qCount += 1;
     }
 
-    // Assignments
+    // Assignments (not submitted = 0, waiting for a grade = left out)
     let aEarned = 0;
     let aPossible = 0;
     let aCount = 0;
-    const asgs = asgMarks.get(course);
-    if (asgs) {
-      const mine = asgScore.get(s.id);
-      for (const [asgId, marks] of asgs) {
-        const got = mine?.get(asgId);
-        if (got === null) continue; // submitted, waiting for a grade
-        aPossible += marks;
-        aEarned += Math.min(marks, got ?? 0);
-        aCount += 1;
-      }
+    for (const a of asgByCourse.get(course) ?? []) {
+      const has = a.subs.has(s.id);
+      const got = a.subs.get(s.id);
+      if (has && got == null) continue; // submitted, not graded yet
+      if (!has && a.day < joined) continue;
+      aPossible += a.marks;
+      aEarned += Math.max(0, Math.min(a.marks, got ?? 0));
+      aCount += 1;
     }
 
-    // Attendance
-    const days = courseDays.get(course)?.size ?? 0;
-    const presentDays = present.get(s.id)?.size ?? 0;
+    // Assessments (absent / not submitted = 0, blank row = left out)
+    let tEarned = 0;
+    let tPossible = 0;
+    let tCount = 0;
+    for (const t of assByCourse.get(course) ?? []) {
+      const m = t.marks.get(s.id);
+      if (!m) continue;
+      tPossible += t.total;
+      tEarned += m.status === "MARKED" ? Math.max(0, Math.min(t.total, m.marks ?? 0)) : 0;
+      tCount += 1;
+    }
 
-    const quiz = pct(qEarned, qPossible);
-    const assignment = pct(aEarned, aPossible);
-    const att = pct(presentDays, days);
+    // Attendance (only days since the student joined)
+    const days = Array.from(courseDays.get(course) ?? []).filter((d) => d >= joined);
+    const mine = present.get(s.id);
+    const presentDays = days.filter((d) => mine?.has(d)).length;
+
+    const parts = {
+      quiz: pct(qEarned, qPossible),
+      assignment: pct(aEarned, aPossible),
+      assessment: pct(tEarned, tPossible),
+      attendance: pct(presentDays, days.length),
+    };
 
     let weighted = 0;
     let weightSum = 0;
-    if (quiz != null) {
-      weighted += quiz * WEIGHTS.quiz;
-      weightSum += WEIGHTS.quiz;
+    for (const k of ["quiz", "assignment", "assessment", "attendance"] as const) {
+      const v = parts[k];
+      if (v == null) continue;
+      weighted += v * WEIGHTS[k];
+      weightSum += WEIGHTS[k];
     }
-    if (assignment != null) {
-      weighted += assignment * WEIGHTS.assignment;
-      weightSum += WEIGHTS.assignment;
-    }
-    if (att != null) {
-      weighted += att * WEIGHTS.attendance;
-      weightSum += WEIGHTS.attendance;
-    }
-    if (weightSum === 0) continue; // nothing happened for this course this month
+    if (weightSum === 0) continue; // nothing counted for this student this month
+    // When the course had tests that month, attendance alone isn't enough to be
+    // ranked (e.g. someone who joined on the last days of the month).
+    const courseHadTests =
+      (quizByCourse.get(course)?.length ?? 0) +
+        (asgByCourse.get(course)?.length ?? 0) +
+        (assByCourse.get(course)?.length ?? 0) >
+      0;
+    if (courseHadTests && qCount + aCount + tCount === 0) continue;
 
     rows.push({
       studentId: s.id,
@@ -198,23 +269,20 @@ export async function monthlyPerformance(year: number, month: number): Promise<P
       avatarUrl: s.user.avatarUrl,
       courseId: course,
       courseTitle: s.course?.title ?? null,
-      quiz,
-      assignment,
-      attendance: att,
-      quizCount: quizzes?.size ?? 0,
+      ...parts,
+      quizCount: qCount,
       assignmentCount: aCount,
-      attendanceDays: days,
+      assessmentCount: tCount,
+      attendanceDays: days.length,
       overall: Math.round((weighted / weightSum) * 10) / 10,
     });
   }
 
-  // Best overall first; ties go to more activity, then alphabetical.
+  // Best overall first; ties go to more activity counted, then alphabetical.
+  const activity = (r: PerformanceRow) =>
+    r.quizCount + r.assignmentCount + r.assessmentCount + r.attendanceDays;
   rows.sort(
-    (a, b) =>
-      b.overall - a.overall ||
-      b.quizCount + b.assignmentCount + b.attendanceDays -
-        (a.quizCount + a.assignmentCount + a.attendanceDays) ||
-      a.name.localeCompare(b.name),
+    (a, b) => b.overall - a.overall || activity(b) - activity(a) || a.name.localeCompare(b.name),
   );
   return rows;
 }
@@ -245,6 +313,7 @@ export type PublishedStudent = {
   overall: number;
   quiz: number | null;
   assignment: number | null;
+  assessment: number | null;
   attendance: number | null;
 };
 
@@ -273,6 +342,7 @@ function parseStudents(value: unknown): PublishedStudent[] {
       overall: Number(v.overall) || 0,
       quiz: v.quiz == null ? null : Number(v.quiz),
       assignment: v.assignment == null ? null : Number(v.assignment),
+      assessment: v.assessment == null ? null : Number(v.assessment),
       attendance: v.attendance == null ? null : Number(v.attendance),
     }))
     .filter((s) => s.name);

@@ -44,7 +44,7 @@ function CourseTable({
         title={`${title} — Top 10`}
         subtitle={`${label} · ${rows.length} student${rows.length === 1 ? "" : "s"} ranked · the first ${PUBLISH_COUNT} are published`}
       />
-      <Table head={["Rank", "Student", "Quizzes", "Assignments", "Attendance", "Overall"]}>
+      <Table head={["Rank", "Student", "Quizzes", "Assignments", "Assessments", "Attendance", "Overall"]}>
         {top.map((r, i) => (
           <tr key={r.studentId} className={cn("hover:bg-slate-50", i === 0 && "bg-amber-50/60")}>
             <td className="px-4 py-3">
@@ -73,6 +73,9 @@ function CourseTable({
             </td>
             <td className="px-4 py-3">
               <Part value={r.assignment} hint={`${r.assignmentCount} graded`} />
+            </td>
+            <td className="px-4 py-3">
+              <Part value={r.assessment} hint={`${r.assessmentCount} test${r.assessmentCount === 1 ? "" : "s"}`} />
             </td>
             <td className="px-4 py-3">
               <Part value={r.attendance} hint={`${r.attendanceDays} days`} />
@@ -131,7 +134,7 @@ export default async function PerformancePage({
     <div>
       <PageHeader
         title="Student Performance"
-        subtitle={`Top 10 students of each course in ${label}, by quizzes, assignments and attendance`}
+        subtitle={`Top 10 students of each course in ${label}, by quizzes, assignments, assessments and attendance`}
         action={
           <ReportFilter
             view="month"
@@ -156,7 +159,7 @@ export default async function PerformancePage({
           {courseName ? `${courseName} removed from the website.` : "All courses removed from the website."}
         </Alert>}
       {sp.error === "empty" && (
-        <Alert tone="error">There is no quiz, assignment or attendance data for {label} yet.</Alert>
+        <Alert tone="error">There is no quiz, assignment, assessment or attendance data for {label} yet.</Alert>
       )}
 
       <Card className="mb-6">
@@ -243,7 +246,7 @@ export default async function PerformancePage({
       {groups.length === 0 && (
         <Card>
           <p className="px-5 py-10 text-center text-sm text-slate-400">
-            No quizzes, graded assignments or attendance found
+            No quizzes, graded assignments, assessments or attendance found
             {courseName ? ` for ${courseName}` : ""} in {label}.
           </p>
         </Card>
@@ -254,12 +257,25 @@ export default async function PerformancePage({
         ))}
       </div>
 
-      <p className="mt-3 text-xs text-slate-400">
-        Overall score (out of 100) = Quizzes {WEIGHTS.quiz}% + Assignments {WEIGHTS.assignment}% +
-        Attendance {WEIGHTS.attendance}%. If a part wasn&apos;t held for a course that month it is
-        left out and the others count more. A quiz or graded assignment the student missed counts
-        as 0. Each course is ranked separately and only active students are ranked. With a course selected, Publish and Remove only change that course. With "All courses", Publish replaces every course with the chosen month.
-      </p>
+      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-xs leading-relaxed text-slate-500">
+        <p className="mb-1 font-semibold text-slate-700">How the overall score (out of 100) is calculated</p>
+        <p>
+          Quizzes {WEIGHTS.quiz}% + Assignments {WEIGHTS.assignment}% + Assessments{" "}
+          {WEIGHTS.assessment}% + Attendance {WEIGHTS.attendance}%. Each course is ranked separately;
+          only active students are ranked.
+        </p>
+        <ul className="mt-1 list-disc space-y-0.5 pl-4">
+          <li>A part that wasn&apos;t held for the course that month is left out and the others count more.</li>
+          <li>A skipped quiz, an assignment not submitted, or Absent / Not submitted in an assessment counts as 0.</li>
+          <li>A submitted assignment waiting for a grade, or a student left blank on an assessment sheet, is left out.</li>
+          <li>A quiz belongs to the month of its first attempt; an assignment to the month of its due date.</li>
+          <li>Anything before a student&apos;s admission date is ignored. If the course had any quiz, assignment or assessment that month, a student needs at least one of them to be ranked.</li>
+        </ul>
+        <p className="mt-1">
+          With a course selected, Publish and Remove only change that course. With &quot;All courses&quot;,
+          Publish replaces every course with the chosen month.
+        </p>
+      </div>
     </div>
   );
 }

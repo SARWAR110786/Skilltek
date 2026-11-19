@@ -11,6 +11,7 @@ function Parts({ s }: { s: PublishedStudent }) {
   const parts = [
     ["Quizzes", s.quiz],
     ["Assignments", s.assignment],
+    ["Assessments", s.assessment],
     ["Attendance", s.attendance],
   ] as const;
   return (
@@ -48,7 +49,8 @@ export function TopStudents({ courses }: { courses: WebsiteCourse[] }) {
             Our students of the month
           </h2>
           <p className="mt-4 text-slate-400">
-            The best students of every course, ranked on quizzes, assignments and attendance.
+            The best students of every course, ranked on quizzes, assignments, assessments and
+            attendance.
             Congratulations to this month&apos;s achievers!
           </p>
         </div>

@@ -70,6 +70,7 @@ export async function StudentTopRank({
                 <span className="font-semibold text-slate-900">{me.overall} / 100</span>
                 {me.quiz != null && <> · Quizzes {me.quiz}%</>}
                 {me.assignment != null && <> · Assignments {me.assignment}%</>}
+                {me.assessment != null && <> · Assessments {me.assessment}%</>}
                 {me.attendance != null && <> · Attendance {me.attendance}%</>}
               </p>
               <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-brand-700">

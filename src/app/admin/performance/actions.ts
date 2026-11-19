@@ -71,6 +71,7 @@ export async function publishTopStudents(formData: FormData) {
         overall: r.overall,
         quiz: r.quiz,
         assignment: r.assignment,
+        assessment: r.assessment,
         attendance: r.attendance,
       })),
     }));
