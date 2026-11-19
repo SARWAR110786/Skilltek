@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { plainText } from "@/lib/rich-text";
+import { formatDate } from "@/lib/utils";
 import { connection } from "next/server";
 import { ArrowRight, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -53,7 +55,7 @@ export default async function CoursesPage() {
                     {c.title}
                   </h3>
                   <p className="mt-1 line-clamp-3 min-h-[4.5rem] flex-1 text-sm leading-6 text-slate-400">
-                    {c.description ?? "Comprehensive training program."}
+                    {plainText(c.description ?? "") || "Comprehensive training program."}
                   </p>
                   <div className="mt-4 flex items-center gap-4 text-xs text-slate-400">
                     <span className="flex items-center gap-1">
@@ -66,6 +68,8 @@ export default async function CoursesPage() {
                       description={c.description ?? "Comprehensive training program."}
                       durationMonths={c.durationMonths}
                       code={c.code}
+                      startLabel={c.startDate ? formatDate(c.startDate) : null}
+                      endLabel={c.endDate ? formatDate(c.endDate) : null}
                     />
                     <Link
                       href="/admissions"

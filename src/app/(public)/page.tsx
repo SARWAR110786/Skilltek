@@ -11,6 +11,8 @@ import { SERVICES } from "@/lib/services";
 import { TopStudents } from "@/components/top-students";
 import { MONTHS } from "@/lib/challan";
 import { parsePublished } from "@/lib/performance";
+import { plainText } from "@/lib/rich-text";
+import { formatDate } from "@/lib/utils";
 
 export const instant = false;
 
@@ -228,7 +230,7 @@ export default async function HomePage() {
                       {c.title}
                     </h3>
                     <p className="mt-2 line-clamp-2 min-h-[3rem] flex-1 text-sm leading-6 text-slate-400">
-                      {c.description ?? "Comprehensive training program."}
+                      {plainText(c.description ?? "") || "Comprehensive training program."}
                     </p>
                     <div className="mt-5 border-t border-white/10 pt-4 text-xs text-slate-400">
                       <span className="flex items-center gap-1.5">
@@ -242,6 +244,8 @@ export default async function HomePage() {
                         description={c.description ?? "Comprehensive training program."}
                         durationMonths={c.durationMonths}
                         code={c.code}
+                        startLabel={c.startDate ? formatDate(c.startDate) : null}
+                        endLabel={c.endDate ? formatDate(c.endDate) : null}
                       />
                       <Link
                         href="/admissions"
