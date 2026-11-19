@@ -121,9 +121,10 @@ export default async function PerformancePage({
   ]);
   const course = courseList.some((c) => c.id === sp.course) ? (sp.course as string) : "";
   const groups = groupByCourse(rows).filter((g) => !course || g.courseId === course);
-  const liveLabel = live ? `${MONTHS[live.month - 1]} ${live.year}` : null;
-  const liveCourses = live ? parsePublished(live.students).length : 0;
-  const isLiveMonth = live?.month === month && live?.year === year;
+  const published = live
+    ? parsePublished(live.students, { month: live.month, year: live.year })
+    : [];
+  const liveForCourse = course ? published.find((c) => c.courseId === course) : undefined;
   const courseName = courseList.find((c) => c.id === course)?.title;
 
   return (
@@ -147,10 +148,13 @@ export default async function PerformancePage({
 
       {sp.published === "1" && (
         <Alert tone="success">
-          Top {PUBLISH_COUNT} students of every course for {label} are now live on the website.
+          Top {PUBLISH_COUNT} students of {courseName ?? "every course"} for {label} are now live
+          on the website.
         </Alert>
       )}
-      {sp.removed === "1" && <Alert tone="success">Top students removed from the website.</Alert>}
+      {sp.removed === "1" && <Alert tone="success">
+          {courseName ? `${courseName} removed from the website.` : "All courses removed from the website."}
+        </Alert>}
       {sp.error === "empty" && (
         <Alert tone="error">There is no quiz, assignment or attendance data for {label} yet.</Alert>
       )}
@@ -158,46 +162,77 @@ export default async function PerformancePage({
       <Card className="mb-6">
         <div className="flex flex-wrap items-center justify-between gap-4 p-5">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
               <Globe className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-slate-800">
-                {liveLabel ? (
-                  <>
-                    On the website now: <span className="text-brand-700">{liveLabel}</span>{" "}
-                    <span className="font-normal text-slate-500">
-                      ({liveCourses} course{liveCourses === 1 ? "" : "s"})
-                    </span>
-                  </>
-                ) : (
-                  "Nothing is published on the website"
-                )}
-              </p>
-              <p className="text-xs text-slate-500">
-                {live
-                  ? `Published ${formatDateTime(live.publishedAt)}. Publishing another month replaces it.`
-                  : `Publish to show the top ${PUBLISH_COUNT} students of each course on the home page.`}
-              </p>
+              {course ? (
+                <>
+                  <p className="text-sm font-semibold text-slate-800">
+                    {courseName}:{" "}
+                    {liveForCourse ? (
+                      <>
+                        on the website now ·{" "}
+                        <span className="text-brand-700">
+                          {MONTHS[liveForCourse.month - 1]} {liveForCourse.year}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-slate-500">not published</span>
+                    )}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Publishing here only changes {courseName}. Other courses stay as they are.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-slate-800">
+                    {published.length === 0
+                      ? "Nothing is published on the website"
+                      : `${published.length} course${published.length === 1 ? "" : "s"} on the website`}
+                  </p>
+                  {published.length > 0 ? (
+                    <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                      {published.map((c) => (
+                        <li key={c.courseId ?? c.courseTitle}>
+                          {c.courseTitle} ·{" "}
+                          <span className="font-medium text-brand-700">
+                            {MONTHS[c.month - 1]} {c.year}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-slate-500">
+                      Pick a course to publish it alone, or publish every course at once.
+                    </p>
+                  )}
+                </>
+              )}
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {live && (
+            {(course ? liveForCourse : published.length > 0) && (
               <form action={unpublishTopStudents}>
                 <input type="hidden" name="year" value={year} />
                 <input type="hidden" name="month" value={month} />
+                <input type="hidden" name="course" value={course} />
                 <Button type="submit" variant="secondary">
-                  Remove from website
+                  {course ? "Remove this course from website" : "Remove all from website"}
                 </Button>
               </form>
             )}
             <form action={publishTopStudents}>
               <input type="hidden" name="year" value={year} />
               <input type="hidden" name="month" value={month} />
-              <Button type="submit" disabled={rows.length === 0}>
+              <input type="hidden" name="course" value={course} />
+              <Button type="submit" disabled={groups.length === 0}>
                 <Trophy className="h-4 w-4" />
-                {isLiveMonth
-                  ? `Update ${label} on website`
+                {course
+                  ? liveForCourse?.month === month && liveForCourse.year === year
+                    ? `Update ${label} on website`
+                    : `Publish top ${PUBLISH_COUNT} · ${label}`
                   : `Publish top ${PUBLISH_COUNT} of every course · ${label}`}
               </Button>
             </form>
@@ -223,7 +258,7 @@ export default async function PerformancePage({
         Overall score (out of 100) = Quizzes {WEIGHTS.quiz}% + Assignments {WEIGHTS.assignment}% +
         Attendance {WEIGHTS.attendance}%. If a part wasn&apos;t held for a course that month it is
         left out and the others count more. A quiz or graded assignment the student missed counts
-        as 0. Each course is ranked separately and only active students are ranked. Publishing puts the top 5 of every course on the website.
+        as 0. Each course is ranked separately and only active students are ranked. With a course selected, Publish and Remove only change that course. With "All courses", Publish replaces every course with the chosen month.
       </p>
     </div>
   );

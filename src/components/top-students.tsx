@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { Award, Crown, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { PublishedCourse, PublishedStudent } from "@/lib/performance";
+import type { PublishedStudent } from "@/lib/performance";
+
+export type WebsiteCourse = { courseTitle: string; period: string; students: PublishedStudent[] };
 
 function Parts({ s }: { s: PublishedStudent }) {
   const parts = [
@@ -28,7 +30,7 @@ function Parts({ s }: { s: PublishedStudent }) {
 }
 
 /** Public "Top Performers of the Month" section: one tab per course, #1 highlighted. */
-export function TopStudents({ courses, period }: { courses: PublishedCourse[]; period: string }) {
+export function TopStudents({ courses }: { courses: WebsiteCourse[] }) {
   const [active, setActive] = useState(0);
   if (courses.length === 0) return null;
   const current = courses[Math.min(active, courses.length - 1)];
@@ -40,7 +42,7 @@ export function TopStudents({ courses, period }: { courses: PublishedCourse[]; p
       <div className="relative mx-auto max-w-6xl px-4 py-20">
         <div className="max-w-2xl">
           <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-amber-400">
-            <Trophy className="h-4 w-4" /> Top Performers · {period}
+            <Trophy className="h-4 w-4" /> Top Performers · {current.period}
           </p>
           <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
             Our students of the month

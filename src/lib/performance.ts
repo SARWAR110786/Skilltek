@@ -248,7 +248,15 @@ export type PublishedStudent = {
   attendance: number | null;
 };
 
-export type PublishedCourse = { courseId?: string; courseTitle: string; students: PublishedStudent[] };
+export type PublishedCourse = {
+  courseId?: string;
+  courseTitle: string;
+  /** Month/year this course's list belongs to (each course is published on its own). */
+  month: number;
+  year: number;
+  publishedAt?: string;
+  students: PublishedStudent[];
+};
 
 export const PUBLISH_COUNT = 5;
 
@@ -271,10 +279,14 @@ function parseStudents(value: unknown): PublishedStudent[] {
 }
 
 /**
- * Published data is { courses: [{ courseTitle, students }] }. An older flat
- * list of students is still understood (grouped by course).
+ * Published data is { courses: [{ courseId, courseTitle, month, year, students }] }.
+ * Older shapes (no month per course, or a flat list of students) are still
+ * understood; `fallback` is the row's own month/year.
  */
-export function parsePublished(value: unknown): PublishedCourse[] {
+export function parsePublished(
+  value: unknown,
+  fallback: { month: number; year: number },
+): PublishedCourse[] {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     const courses = (value as { courses?: unknown }).courses;
     if (Array.isArray(courses)) {
@@ -283,6 +295,9 @@ export function parsePublished(value: unknown): PublishedCourse[] {
         .map((c) => ({
           courseId: c.courseId ? String(c.courseId) : undefined,
           courseTitle: String(c.courseTitle ?? "Course"),
+          month: Number(c.month) || fallback.month,
+          year: Number(c.year) || fallback.year,
+          publishedAt: c.publishedAt ? String(c.publishedAt) : undefined,
           students: parseStudents(c.students).slice(0, PUBLISH_COUNT),
         }))
         .filter((c) => c.students.length > 0);
@@ -296,6 +311,8 @@ export function parsePublished(value: unknown): PublishedCourse[] {
   }
   return Array.from(map.entries()).map(([courseTitle, students]) => ({
     courseTitle,
+    month: fallback.month,
+    year: fallback.year,
     students: students.slice(0, PUBLISH_COUNT).map((st, i) => ({ ...st, rank: i + 1 })),
   }));
 }

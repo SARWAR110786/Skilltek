@@ -24,7 +24,7 @@ export async function StudentTopRank({
   const live = await prisma.topStudentsPublication.findUnique({ where: { id: "current" } });
   if (!live) return null;
 
-  const courses = parsePublished(live.students);
+  const courses = parsePublished(live.students, { month: live.month, year: live.year });
   const mine =
     courses.find((c) => c.courseId === courseId) ??
     (courseTitle ? courses.find((c) => !c.courseId && c.courseTitle === courseTitle) : undefined);
@@ -34,7 +34,7 @@ export async function StudentTopRank({
   const me = mine.students.find((s) =>
     s.studentId ? s.studentId === studentId : s.name === studentName,
   );
-  const period = `${MONTHS[live.month - 1] ?? ""} ${live.year}`;
+  const period = `${MONTHS[mine.month - 1] ?? ""} ${mine.year}`;
 
   return (
     <div className="mb-6 space-y-4">
