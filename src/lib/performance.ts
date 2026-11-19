@@ -236,6 +236,8 @@ export function groupByCourse(rows: PerformanceRow[]) {
 
 /** What is stored when the top students are published to the website. */
 export type PublishedStudent = {
+  /** Kept so the student portal can recognise the student; never sent to the public page. */
+  studentId?: string;
   rank: number;
   name: string;
   courseTitle: string | null;
@@ -246,7 +248,7 @@ export type PublishedStudent = {
   attendance: number | null;
 };
 
-export type PublishedCourse = { courseTitle: string; students: PublishedStudent[] };
+export type PublishedCourse = { courseId?: string; courseTitle: string; students: PublishedStudent[] };
 
 export const PUBLISH_COUNT = 5;
 
@@ -255,6 +257,7 @@ function parseStudents(value: unknown): PublishedStudent[] {
   return value
     .filter((v): v is Record<string, unknown> => !!v && typeof v === "object")
     .map((v, i) => ({
+      studentId: v.studentId ? String(v.studentId) : undefined,
       rank: Number(v.rank) || i + 1,
       name: String(v.name ?? ""),
       courseTitle: v.courseTitle ? String(v.courseTitle) : null,
@@ -278,6 +281,7 @@ export function parsePublished(value: unknown): PublishedCourse[] {
       return courses
         .filter((c): c is Record<string, unknown> => !!c && typeof c === "object")
         .map((c) => ({
+          courseId: c.courseId ? String(c.courseId) : undefined,
           courseTitle: String(c.courseTitle ?? "Course"),
           students: parseStudents(c.students).slice(0, PUBLISH_COUNT),
         }))

@@ -23,8 +23,10 @@ export async function publishTopStudents(formData: FormData) {
   // Re-calculated on the server so the published list always matches the data.
   const rows = await monthlyPerformance(year, month);
   const courses: PublishedCourse[] = groupByCourse(rows).map((g) => ({
+    courseId: g.courseId,
     courseTitle: g.courseTitle,
     students: g.rows.slice(0, PUBLISH_COUNT).map((r, i) => ({
+      studentId: r.studentId,
       rank: i + 1,
       name: r.name,
       courseTitle: r.courseTitle,

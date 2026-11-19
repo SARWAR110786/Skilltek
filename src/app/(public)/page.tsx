@@ -146,7 +146,11 @@ export default async function HomePage() {
       {/* ========================== TOP STUDENTS ========================== */}
       {topStudents && (
         <TopStudents
-          courses={parsePublished(topStudents.students)}
+          // Strip internal ids before they reach the public page.
+          courses={parsePublished(topStudents.students).map((c) => ({
+            courseTitle: c.courseTitle,
+            students: c.students.map(({ studentId: _id, ...rest }) => rest),
+          }))}
           period={`${MONTHS[topStudents.month - 1] ?? ""} ${topStudents.year}`}
         />
       )}
