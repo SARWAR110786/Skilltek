@@ -48,7 +48,8 @@ function inline(text: string): ReactNode[] {
 type Block =
   | { kind: "h"; text: string }
   | { kind: "p"; lines: string[] }
-  | { kind: "ul" | "ol"; items: string[] };
+  | { kind: "ul"; items: string[] }
+  | { kind: "ol"; items: string[] };
 
 /** Renders a description with headings, paragraphs and lists. */
 export function RichText({ text, className }: { text: string; className?: string }) {
@@ -96,7 +97,7 @@ export function RichText({ text, className }: { text: string; className?: string
             </List>
           );
         }
-        if (b.lines.length === 0) return null;
+        if (b.kind !== "p" || b.lines.length === 0) return null;
         return (
           <p key={i} className="mb-3 last:mb-0">
             {b.lines.map((l, j) => (
