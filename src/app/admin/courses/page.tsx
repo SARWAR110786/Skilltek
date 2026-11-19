@@ -19,6 +19,7 @@ import { DownloadForm } from "@/components/download-form";
 import { ConfirmDelete } from "@/components/confirm-delete";
 import { createCourse, deleteCourse, updateCourse } from "./actions";
 import { dateInputValue, formatDate } from "@/lib/utils";
+import { CourseDates } from "@/components/course-dates";
 
 export const instant = false;
 
@@ -43,7 +44,7 @@ async function getData() {
 const ERRORS: Record<string, string> = {
   required: "Please fill in all required fields correctly.",
   title: "Course title already exists.",
-  dates: "Please check the dates: the end date can't be before the start date.",
+  dates: "Please pick a start and an end date (the end can't be before the start, and a course can be at most 60 months).",
   inuse:
     "This course still has students, quizzes, assignments or assessments, so it can't be deleted. Untick \"Active course\" when editing it to hide it instead.",
 };
@@ -98,30 +99,11 @@ export default async function CoursesPage({
                 ))}
               </Select>
             </Field>
-            <Field label="Duration (months)" required>
-              <Input
-                name="durationMonths"
-                type="number"
-                min={1}
-                max={60}
-                defaultValue={editing.durationMonths}
-                required
-              />
-            </Field>
-            <Field label="Start date">
-              <Input
-                name="startDate"
-                type="date"
-                defaultValue={editing.startDate ? dateInputValue(editing.startDate) : ""}
-              />
-            </Field>
-            <Field label="End date">
-              <Input
-                name="endDate"
-                type="date"
-                defaultValue={editing.endDate ? dateInputValue(editing.endDate) : ""}
-              />
-            </Field>
+            <CourseDates
+              defaultStart={editing.startDate ? dateInputValue(editing.startDate) : ""}
+              defaultEnd={editing.endDate ? dateInputValue(editing.endDate) : ""}
+              fallbackMonths={editing.durationMonths}
+            />
             <div className="md:col-span-2">
               <Field label="Description" required>
                 <textarea
@@ -158,15 +140,8 @@ export default async function CoursesPage({
             <Field label="Title" required>
               <Input name="title" required minLength={2} maxLength={80} />
             </Field>
-            <Field label="Duration (months)" required>
-              <Input name="durationMonths" type="number" min={1} max={60} defaultValue={3} required />
-            </Field>
-            <Field label="Start date">
-              <Input name="startDate" type="date" />
-            </Field>
-            <Field label="End date">
-              <Input name="endDate" type="date" />
-            </Field>
+            <div className="hidden md:block" />
+            <CourseDates />
             <div className="md:col-span-2">
               <Field label="Description" required>
                 <textarea
