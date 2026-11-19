@@ -24,6 +24,7 @@ export type PerformanceRow = {
   name: string;
   admissionNo: string;
   avatarUrl: string | null;
+  courseId: string;
   courseTitle: string | null;
   quiz: number | null; // % or null when no quiz that month
   assignment: number | null;
@@ -195,6 +196,7 @@ export async function monthlyPerformance(year: number, month: number): Promise<P
       name: s.user.name,
       admissionNo: s.admissionNo,
       avatarUrl: s.user.avatarUrl,
+      courseId: course,
       courseTitle: s.course?.title ?? null,
       quiz,
       assignment,
@@ -217,6 +219,21 @@ export async function monthlyPerformance(year: number, month: number): Promise<P
   return rows;
 }
 
+/** Ranked rows split per course (each list keeps the overall ranking order). */
+export function groupByCourse(rows: PerformanceRow[]) {
+  const map = new Map<string, { courseId: string; courseTitle: string; rows: PerformanceRow[] }>();
+  for (const r of rows) {
+    const g = map.get(r.courseId) ?? {
+      courseId: r.courseId,
+      courseTitle: r.courseTitle ?? "Course",
+      rows: [],
+    };
+    g.rows.push(r);
+    map.set(r.courseId, g);
+  }
+  return Array.from(map.values()).sort((a, b) => a.courseTitle.localeCompare(b.courseTitle));
+}
+
 /** What is stored when the top students are published to the website. */
 export type PublishedStudent = {
   rank: number;
@@ -229,9 +246,11 @@ export type PublishedStudent = {
   attendance: number | null;
 };
 
+export type PublishedCourse = { courseTitle: string; students: PublishedStudent[] };
+
 export const PUBLISH_COUNT = 5;
 
-export function parsePublished(value: unknown): PublishedStudent[] {
+function parseStudents(value: unknown): PublishedStudent[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter((v): v is Record<string, unknown> => !!v && typeof v === "object")
@@ -245,6 +264,34 @@ export function parsePublished(value: unknown): PublishedStudent[] {
       assignment: v.assignment == null ? null : Number(v.assignment),
       attendance: v.attendance == null ? null : Number(v.attendance),
     }))
-    .filter((s) => s.name)
-    .slice(0, PUBLISH_COUNT);
+    .filter((s) => s.name);
+}
+
+/**
+ * Published data is { courses: [{ courseTitle, students }] }. An older flat
+ * list of students is still understood (grouped by course).
+ */
+export function parsePublished(value: unknown): PublishedCourse[] {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const courses = (value as { courses?: unknown }).courses;
+    if (Array.isArray(courses)) {
+      return courses
+        .filter((c): c is Record<string, unknown> => !!c && typeof c === "object")
+        .map((c) => ({
+          courseTitle: String(c.courseTitle ?? "Course"),
+          students: parseStudents(c.students).slice(0, PUBLISH_COUNT),
+        }))
+        .filter((c) => c.students.length > 0);
+    }
+  }
+  const flat = parseStudents(value);
+  const map = new Map<string, PublishedStudent[]>();
+  for (const st of flat) {
+    const key = st.courseTitle ?? "Course";
+    map.set(key, [...(map.get(key) ?? []), st]);
+  }
+  return Array.from(map.entries()).map(([courseTitle, students]) => ({
+    courseTitle,
+    students: students.slice(0, PUBLISH_COUNT).map((st, i) => ({ ...st, rank: i + 1 })),
+  }));
 }

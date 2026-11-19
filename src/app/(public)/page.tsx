@@ -146,7 +146,7 @@ export default async function HomePage() {
       {/* ========================== TOP STUDENTS ========================== */}
       {topStudents && (
         <TopStudents
-          students={parsePublished(topStudents.students)}
+          courses={parsePublished(topStudents.students)}
           period={`${MONTHS[topStudents.month - 1] ?? ""} ${topStudents.year}`}
         />
       )}

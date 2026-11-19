@@ -20,6 +20,8 @@ export function ReportFilter({
   years,
   basePath = "/admin/reports",
   showViewToggle = true,
+  courses,
+  course = "",
 }: {
   view: "year" | "month";
   year: number;
@@ -27,22 +29,47 @@ export function ReportFilter({
   years: number[];
   basePath?: string;
   showViewToggle?: boolean;
+  /** Optional course picker ("" = all courses). */
+  courses?: { id: string; title: string }[];
+  course?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
-  function go(next: { view?: "year" | "month"; year?: number; month?: number }) {
+  function go(next: {
+    view?: "year" | "month";
+    year?: number;
+    month?: number;
+    course?: string;
+  }) {
     const v = next.view ?? view;
     const qs = new URLSearchParams({
       year: String(next.year ?? year),
       month: String(next.month ?? month),
     });
     if (showViewToggle) qs.set("view", v);
+    const c = next.course ?? course;
+    if (courses && c) qs.set("course", c);
     startTransition(() => router.push(`${basePath}?${qs}`));
   }
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", pending && "opacity-60")}>
+      {courses && (
+        <Select
+          aria-label="Course"
+          value={course}
+          onChange={(e) => go({ course: e.target.value })}
+          className="!w-auto !py-1.5 text-xs"
+        >
+          <option value="">All courses</option>
+          {courses.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.title}
+            </option>
+          ))}
+        </Select>
+      )}
       {showViewToggle && (
       <div className="flex rounded-lg border border-slate-200 bg-white p-0.5">
         {(["month", "year"] as const).map((v) => (

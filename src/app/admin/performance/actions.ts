@@ -7,11 +7,12 @@ import { requireUser } from "@/lib/guard";
 import { readMonth, readYear } from "@/lib/finance";
 import {
   PUBLISH_COUNT,
+  groupByCourse,
   monthlyPerformance,
-  type PublishedStudent,
+  type PublishedCourse,
 } from "@/lib/performance";
 
-/** Put this month's top students on the website (replaces any earlier month). */
+/** Put this month's top 5 of every course on the website (replaces any earlier month). */
 export async function publishTopStudents(formData: FormData) {
   await requireUser("ADMIN");
 
@@ -21,24 +22,28 @@ export async function publishTopStudents(formData: FormData) {
 
   // Re-calculated on the server so the published list always matches the data.
   const rows = await monthlyPerformance(year, month);
-  const top: PublishedStudent[] = rows.slice(0, PUBLISH_COUNT).map((r, i) => ({
-    rank: i + 1,
-    name: r.name,
-    courseTitle: r.courseTitle,
-    avatarUrl: r.avatarUrl,
-    overall: r.overall,
-    quiz: r.quiz,
-    assignment: r.assignment,
-    attendance: r.attendance,
+  const courses: PublishedCourse[] = groupByCourse(rows).map((g) => ({
+    courseTitle: g.courseTitle,
+    students: g.rows.slice(0, PUBLISH_COUNT).map((r, i) => ({
+      rank: i + 1,
+      name: r.name,
+      courseTitle: r.courseTitle,
+      avatarUrl: r.avatarUrl,
+      overall: r.overall,
+      quiz: r.quiz,
+      assignment: r.assignment,
+      attendance: r.attendance,
+    })),
   }));
-  if (top.length === 0) {
+  if (courses.length === 0) {
     redirect(`/admin/performance?year=${year}&month=${month}&error=empty`);
   }
+  const students = { courses };
 
   await prisma.topStudentsPublication.upsert({
     where: { id: "current" },
-    create: { id: "current", year, month, students: top, publishedAt: new Date() },
-    update: { year, month, students: top, publishedAt: new Date() },
+    create: { id: "current", year, month, students, publishedAt: new Date() },
+    update: { year, month, students, publishedAt: new Date() },
   });
 
   revalidatePath("/");
