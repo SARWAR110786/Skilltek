@@ -8,6 +8,7 @@ import {
   Bell,
   BookOpen,
   CalendarCheck,
+  ClipboardCheck,
   ClipboardList,
   FileText,
   GraduationCap,
@@ -40,6 +41,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   assignments: ClipboardList,
   finance: Wallet,
   performance: Trophy,
+  assessment: ClipboardCheck,
 };
 
 export type NavItem = {

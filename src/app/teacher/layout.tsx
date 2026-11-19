@@ -8,6 +8,7 @@ const NAV: NavItem[] = [
   { href: "/teacher/courses", label: "My Courses", icon: "courses" },
   { href: "/teacher/quizzes", label: "Quizzes", icon: "quiz" },
   { href: "/teacher/assignments", label: "Assignments", icon: "assignments" },
+  { href: "/teacher/assessments", label: "Assessments", icon: "assessment" },
   { href: "/teacher/quiz-bank", label: "Quiz Bank", icon: "quizbank" },
 ];
 
