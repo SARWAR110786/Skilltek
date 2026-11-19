@@ -1,32 +1,6 @@
 import { Award, Crown, Trophy } from "lucide-react";
 import { Reveal } from "@/components/reveal";
-import { initials } from "@/lib/utils";
 import type { PublishedStudent } from "@/lib/performance";
-
-function Avatar({ s, size }: { s: PublishedStudent; size: "lg" | "sm" }) {
-  const box = size === "lg" ? "h-24 w-24 text-2xl" : "h-14 w-14 text-base";
-  if (s.avatarUrl) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={s.avatarUrl}
-        alt={s.name}
-        className={`${box} shrink-0 rounded-full object-cover ring-2 ring-white/20`}
-      />
-    );
-  }
-  return (
-    <span
-      className={`${box} flex shrink-0 items-center justify-center rounded-full font-bold ${
-        size === "lg"
-          ? "bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950"
-          : "bg-white/10 text-white"
-      }`}
-    >
-      {initials(s.name)}
-    </span>
-  );
-}
 
 function Parts({ s }: { s: PublishedStudent }) {
   const parts = [
@@ -86,11 +60,7 @@ export function TopStudents({
                 <Crown className="h-3.5 w-3.5" /> #1 Student of the Month
               </span>
               <div className="mt-8 flex flex-col items-center text-center">
-                <div className="relative">
-                  <Avatar s={champion} size="lg" />
-                  <Crown className="absolute -top-6 left-1/2 h-8 w-8 -translate-x-1/2 text-amber-400" />
-                </div>
-                <h3 className="mt-5 text-2xl font-bold text-white">{champion.name}</h3>
+                <h3 className="text-3xl font-bold text-white">{champion.name}</h3>
                 {champion.courseTitle && (
                   <p className="mt-1 text-sm text-amber-200/80">{champion.courseTitle}</p>
                 )}
@@ -114,7 +84,6 @@ export function TopStudents({
               <Reveal key={`${s.rank}-${s.name}`} delay={(i + 1) * 90} className="h-full">
                 <div className="flex h-full flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-colors hover:border-brand-500/40">
                   <div className="flex items-center gap-4">
-                    <Avatar s={s} size="sm" />
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-1.5 text-xs font-semibold text-brand-300">
                         <Award className="h-3.5 w-3.5" /> Rank #{s.rank}
