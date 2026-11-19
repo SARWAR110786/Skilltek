@@ -28,6 +28,7 @@ import { StudentsAutoSearch } from "@/components/students-auto-search";
 import { createChallan, deleteChallan, markChallanPaid } from "./actions";
 import { FeeItems } from "@/components/fee-items";
 import { FinanceTabs } from "@/components/finance-tabs";
+import { ChallanStudentPicker } from "@/components/challan-student-picker";
 
 async function getData() {
   await connection();
@@ -75,7 +76,7 @@ function groupByPeriod(challans: ChallanRow[]) {
 }
 
 const ERRORS: Record<string, string> = {
-  required: "Student, month, year, at least one fee and due date are required.",
+  required: "Select a course and at least one student, plus month, year, at least one fee and due date.",
   student: "The selected student was not found.",
   inactive: "Dropout or passout students cannot be issued new challans.",
   number: "Could not generate a challan number. Please try again.",
@@ -87,6 +88,7 @@ export default async function ChallansPage({
   searchParams: Promise<{
     error?: string;
     created?: string;
+    skipped?: string;
     paid?: string;
     deleted?: string;
     q?: string;
@@ -97,6 +99,8 @@ export default async function ChallansPage({
   const { challans, students, courses } = await getData();
   const sp = await searchParams;
   const error = sp.error ? ERRORS[sp.error] : null;
+  const createdCount = Math.max(0, Math.floor(Number(sp.created) || 0));
+  const skippedCount = Math.max(0, Math.floor(Number(sp.skipped) || 0));
   const query = (sp.q ?? "").trim();
   const search = query.toLowerCase();
 
@@ -200,7 +204,15 @@ export default async function ChallansPage({
       />
 
       {error && <Alert tone="error">{error}</Alert>}
-      {sp.created === "1" && <Alert tone="success">Challan created successfully.</Alert>}
+      {createdCount > 0 && (
+        <Alert tone="success">
+          {createdCount === 1
+            ? "Challan created successfully."
+            : `${createdCount} challans created successfully.`}
+          {skippedCount > 0 &&
+            ` ${skippedCount} dropout/passout student${skippedCount === 1 ? " was" : "s were"} skipped.`}
+        </Alert>
+      )}
       {sp.paid === "1" && <Alert tone="success">Payment recorded — challan marked as paid.</Alert>}
       {sp.deleted === "1" && <Alert tone="success">Challan deleted successfully.</Alert>}
 
@@ -229,20 +241,31 @@ export default async function ChallansPage({
       <Card className="mb-6">
         <CardHeader
           title="Issue New Challan"
-          subtitle="Create a fee voucher for a student"
+          subtitle="Create fee vouchers for one student or a whole course at once"
         />
         <form action={createChallan} className="grid gap-4 p-5 md:grid-cols-2">
           <div className="md:col-span-2">
-            <Field label="Student">
-              <Select name="studentId" defaultValue="" required>
-                <option value="">Select student</option>
-                {students.filter((s) => s.exitReason === null).map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.user.name} ({s.admissionNo}){s.course ? ` — ${s.course.title}` : ""}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+            {/* Not a <Field>: that wraps a <label>, which would hijack checkbox clicks. */}
+            <div>
+              <span className="mb-1 block text-sm font-medium text-slate-700">
+                Course &amp; students
+              </span>
+              <ChallanStudentPicker
+                courses={courses.map((c) => ({ id: c.id, title: c.title }))}
+                students={students
+                  .filter((s) => s.exitReason === null)
+                  .map((s) => ({
+                    id: s.id,
+                    name: s.user.name,
+                    admissionNo: s.admissionNo,
+                    courseId: s.courseId,
+                  }))}
+              />
+              <span className="mt-1 block text-xs text-slate-400">
+                Pick a course, then tick the students to bill (all are ticked by default). One
+                challan is created for each ticked student.
+              </span>
+            </div>
           </div>
           <Field label="Month">
             <Select name="feeMonth" defaultValue={String(now.getMonth() + 1)} required>
@@ -287,7 +310,7 @@ export default async function ChallansPage({
             />
           </Field>
           <div className="flex items-end md:col-span-2 md:justify-end">
-            <Button type="submit">Create Challan</Button>
+            <Button type="submit">Generate Challans</Button>
           </div>
         </form>
       </Card>
