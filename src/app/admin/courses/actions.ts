@@ -5,6 +5,20 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/guard";
 import { nextNumericCourseCode } from "@/lib/course-code";
+import { parseDateInput } from "@/lib/utils";
+
+/** Optional start / end dates; end must not be before start. */
+function readDates(formData: FormData): { startDate: Date | null; endDate: Date | null } | null {
+  const ok = (v: string) => v === "" || /^\d{4}-\d{2}-\d{2}$/.test(v);
+  const start = String(formData.get("startDate") ?? "").trim();
+  const end = String(formData.get("endDate") ?? "").trim();
+  if (!ok(start) || !ok(end)) return null;
+  if (start && end && end < start) return null;
+  return {
+    startDate: start ? parseDateInput(start) : null,
+    endDate: end ? parseDateInput(end) : null,
+  };
+}
 
 async function nextCourseCode(): Promise<string> {
   const courses = await prisma.course.findMany({ select: { code: true } });
@@ -40,6 +54,8 @@ export async function createCourse(formData: FormData) {
   if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 60) {
     redirect("/admin/courses?error=required");
   }
+  const dates = readDates(formData);
+  if (!dates) redirect("/admin/courses?error=dates");
   if (await titleExists(title)) {
     redirect("/admin/courses?error=title");
   }
@@ -52,6 +68,7 @@ export async function createCourse(formData: FormData) {
       code,
       description,
       durationMonths: Math.trunc(durationMonths),
+      ...dates,
     },
   });
   revalidatePath("/admin/courses");
@@ -78,6 +95,8 @@ export async function updateCourse(formData: FormData) {
   if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 60) {
     redirect("/admin/courses?error=required");
   }
+  const dates = readDates(formData);
+  if (!dates) redirect(`/admin/courses?edit=${id}&error=dates`);
   if (await titleExists(title, id)) {
     redirect("/admin/courses?error=title");
   }
@@ -97,6 +116,7 @@ export async function updateCourse(formData: FormData) {
       code,
       description,
       durationMonths: Math.trunc(durationMonths),
+      ...dates,
       teacherId: String(formData.get("teacherId") ?? "").trim() || null,
       active: formData.get("active") != null,
     },
@@ -115,14 +135,14 @@ export async function deleteCourse(formData: FormData) {
   const course = await prisma.course.findUnique({
     where: { id },
     select: {
-      _count: { select: { students: true, quizzes: true, assignments: true } },
+      _count: { select: { students: true, quizzes: true, assignments: true, assessments: true } },
     },
   });
   if (!course) return;
   // Deleting a course cascades to its quizzes/attempts and assignments/
   // submissions, and unlinks its students. Refuse while any exist.
   const c = course._count;
-  if (c.students || c.quizzes || c.assignments) {
+  if (c.students || c.quizzes || c.assignments || c.assessments) {
     redirect("/admin/courses?error=inuse");
   }
   await prisma.course.delete({ where: { id } });

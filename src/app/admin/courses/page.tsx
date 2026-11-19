@@ -18,6 +18,7 @@ import {
 import { DownloadForm } from "@/components/download-form";
 import { ConfirmDelete } from "@/components/confirm-delete";
 import { createCourse, deleteCourse, updateCourse } from "./actions";
+import { dateInputValue, formatDate } from "@/lib/utils";
 
 export const instant = false;
 
@@ -42,8 +43,9 @@ async function getData() {
 const ERRORS: Record<string, string> = {
   required: "Please fill in all required fields correctly.",
   title: "Course title already exists.",
+  dates: "Please check the dates: the end date can't be before the start date.",
   inuse:
-    "This course still has students, quizzes or assignments, so it can't be deleted. Untick \"Active course\" when editing it to hide it instead.",
+    "This course still has students, quizzes, assignments or assessments, so it can't be deleted. Untick \"Active course\" when editing it to hide it instead.",
 };
 
 export default async function CoursesPage({
@@ -106,6 +108,20 @@ export default async function CoursesPage({
                 required
               />
             </Field>
+            <Field label="Start date">
+              <Input
+                name="startDate"
+                type="date"
+                defaultValue={editing.startDate ? dateInputValue(editing.startDate) : ""}
+              />
+            </Field>
+            <Field label="End date">
+              <Input
+                name="endDate"
+                type="date"
+                defaultValue={editing.endDate ? dateInputValue(editing.endDate) : ""}
+              />
+            </Field>
             <div className="md:col-span-2">
               <Field label="Description" required>
                 <textarea
@@ -145,6 +161,12 @@ export default async function CoursesPage({
             <Field label="Duration (months)" required>
               <Input name="durationMonths" type="number" min={1} max={60} defaultValue={3} required />
             </Field>
+            <Field label="Start date">
+              <Input name="startDate" type="date" />
+            </Field>
+            <Field label="End date">
+              <Input name="endDate" type="date" />
+            </Field>
             <div className="md:col-span-2">
               <Field label="Description" required>
                 <textarea
@@ -180,7 +202,14 @@ export default async function CoursesPage({
                 <p className="text-xs font-mono text-slate-500">Code: {c.code ?? "—"}</p>
                 <p className="line-clamp-1 text-xs text-slate-400">{c.description ?? "—"}</p>
               </td>
-              <td className="px-4 py-3 text-slate-600">{c.durationMonths} mo</td>
+              <td className="px-4 py-3 text-slate-600">
+                <p>{c.durationMonths} mo</p>
+                {(c.startDate || c.endDate) && (
+                  <p className="whitespace-nowrap text-xs text-slate-400">
+                    {c.startDate ? formatDate(c.startDate) : "?"} – {c.endDate ? formatDate(c.endDate) : "?"}
+                  </p>
+                )}
+              </td>
               <td className="px-4 py-3 text-slate-600">{c.teacher?.user.name ?? "—"}</td>
               <td className="px-4 py-3"><Badge tone="brand">{c._count.students}</Badge></td>
               <td className="px-4 py-3">
