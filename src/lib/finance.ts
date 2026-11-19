@@ -187,3 +187,60 @@ export function readMonth(value: string | null | undefined): number | null {
   const n = Number(value);
   return Number.isInteger(n) && n >= 1 && n <= 12 ? n : null;
 }
+
+/** First year shown in finance filters. */
+export const FIRST_FINANCE_YEAR = 2026;
+
+/** 2026, 2027, … up to at least 2030 (and always next year). */
+export function financeYears(extra?: number): number[] {
+  const nowYear = Number(dateInputValue().slice(0, 4));
+  const last = Math.max(2030, nowYear + 1, extra ?? 0);
+  const first = Math.min(FIRST_FINANCE_YEAR, extra ?? FIRST_FINANCE_YEAR);
+  const out: number[] = [];
+  for (let y = first; y <= last; y++) out.push(y);
+  return out;
+}
+
+/** Line-by-line money in and out for one month. */
+export async function buildMonthDetail(year: number, month: number) {
+  const key = monthKey(year, month);
+  const window = {
+    gte: new Date(Date.UTC(year, month - 1, 1) - 86400000),
+    lt: new Date(Date.UTC(year, month, 1) + 86400000),
+  };
+  const [paid, expenses] = await Promise.all([
+    prisma.challan.findMany({
+      where: {
+        paidAmount: { gt: 0 },
+        OR: [{ paidDate: window }, { paidDate: null, updatedAt: window }],
+      },
+      select: {
+        id: true,
+        challanNo: true,
+        title: true,
+        paidAmount: true,
+        paidDate: true,
+        updatedAt: true,
+        paymentMethod: true,
+        student: {
+          select: {
+            admissionNo: true,
+            user: { select: { name: true } },
+            course: { select: { title: true } },
+          },
+        },
+      },
+    }),
+    prisma.expense.findMany({ where: { date: window } }),
+  ]);
+
+  const payments = paid
+    .map((c) => ({ ...c, receivedOn: c.paidDate ?? c.updatedAt }))
+    .filter((c) => monthKeyOf(c.receivedOn) === key)
+    .sort((a, b) => a.receivedOn.getTime() - b.receivedOn.getTime());
+  const spent = expenses
+    .filter((e) => monthKeyOf(e.date) === key)
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  return { payments, expenses: spent };
+}

@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { Button, Card, CardHeader, PageHeader, Select, StatCard, Table } from "@/components/ui";
+import { Badge, Card, CardHeader, PageHeader, StatCard, Table } from "@/components/ui";
 import { BarsChart } from "@/components/charts";
 import { FinanceTabs } from "@/components/finance-tabs";
-import { cn, dateInputValue, formatCurrency } from "@/lib/utils";
-import { buildFinanceReport, readMonth, readYear } from "@/lib/finance";
+import { ReportFilter } from "@/components/report-filter";
+import { cn, dateInputValue, formatCurrency, formatDate } from "@/lib/utils";
+import {
+  buildFinanceReport,
+  buildMonthDetail,
+  financeYears,
+  readMonth,
+  readYear,
+} from "@/lib/finance";
 
 function Money({ value, tone }: { value: number; tone?: "green" | "red" | "net" }) {
   const color =
@@ -23,7 +30,7 @@ function Money({ value, tone }: { value: number; tone?: "green" | "red" | "net" 
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string; month?: string }>;
+  searchParams: Promise<{ view?: string; year?: string; month?: string }>;
 }) {
   await connection();
   const sp = await searchParams;
@@ -32,12 +39,17 @@ export default async function ReportsPage({
   const year = readYear(sp.year);
   const month = readMonth(sp.month) ?? (year === nowYear ? Number(today.slice(5, 7)) : 12);
 
-  const report = await buildFinanceReport(year);
+  const view: "year" | "month" = sp.view === "year" ? "year" : "month";
+
+  const [report, detail] = await Promise.all([
+    buildFinanceReport(year),
+    view === "month" ? buildMonthDetail(year, month) : null,
+  ]);
   const selected = report.months[month - 1];
   const categories = Array.from(report.expensesByCategory.get(selected.key)?.entries() ?? []).sort(
     (a, b) => b[1] - a[1],
   );
-  const years = Array.from(new Set([nowYear - 2, nowYear - 1, nowYear, year])).sort();
+  const years = financeYears(year);
 
   const chartData = report.months.map((m) => ({
     month: m.short,
@@ -45,41 +57,182 @@ export default async function ReportsPage({
     Expenses: m.expenses,
   }));
 
+  const exportQs = `view=${view}&year=${year}&month=${month}`;
+  const exportLinks = (
+    <>
+      <a
+        href={`/api/export/finance-report?${exportQs}&format=csv`}
+        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-brand-600"
+      >
+        Export CSV
+      </a>
+      <a
+        href={`/api/export/finance-report?${exportQs}&format=pdf`}
+        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-brand-600"
+      >
+        Export PDF
+      </a>
+    </>
+  );
+  const header = (
+    <PageHeader
+      title={view === "month" ? "Monthly Finance Report" : "Yearly Finance Report"}
+      subtitle={
+        view === "month"
+          ? `Fees received vs. expenses in ${selected.label} ${year}`
+          : `Fees received vs. expenses for every month of ${year}`
+      }
+      action={
+        <div className="flex flex-wrap items-center gap-2">
+          <ReportFilter view={view} year={year} month={month} years={years} />
+          {exportLinks}
+        </div>
+      }
+    />
+  );
+
+  if (view === "month" && detail) {
+    return (
+      <div>
+        <FinanceTabs active="reports" />
+        {header}
+
+        <div className="mb-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="Fees Collected"
+            value={formatCurrency(selected.collected)}
+            hint={`${selected.paidCount} payment${selected.paidCount === 1 ? "" : "s"} received`}
+            tone="green"
+          />
+          <StatCard
+            label="Expenses"
+            value={formatCurrency(selected.expenses)}
+            hint={`${selected.expenseCount} entr${selected.expenseCount === 1 ? "y" : "ies"}`}
+            tone="red"
+          />
+          <StatCard
+            label={selected.net < 0 ? "Net Loss" : "Net Profit"}
+            value={formatCurrency(selected.net)}
+            hint="Collected minus expenses"
+            tone={selected.net < 0 ? "red" : "brand"}
+          />
+          <StatCard
+            label="Still Outstanding"
+            value={formatCurrency(selected.outstanding)}
+            hint={`Billed ${formatCurrency(selected.billed)} on ${selected.challanCount} challan${selected.challanCount === 1 ? "" : "s"}`}
+            tone="amber"
+          />
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-2">
+          <Card>
+            <CardHeader
+              title="Fees Received"
+              subtitle={`${detail.payments.length} payment${detail.payments.length === 1 ? "" : "s"} · ${formatCurrency(selected.collected)}`}
+            />
+            <Table head={["Date", "Student", "Challan", "Amount"]}>
+              {detail.payments.map((c) => (
+                <tr key={c.id} className="hover:bg-slate-50">
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+                    {formatDate(c.receivedOn)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-slate-800">{c.student.user.name}</p>
+                    <p className="text-xs text-slate-400">
+                      {c.student.admissionNo}
+                      {c.student.course ? ` · ${c.student.course.title}` : ""}
+                    </p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="font-mono text-xs text-slate-600">{c.challanNo}</p>
+                    {c.paymentMethod && (
+                      <p className="text-xs text-slate-400">{c.paymentMethod}</p>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 font-medium">
+                    <Money value={c.paidAmount} tone="green" />
+                  </td>
+                </tr>
+              ))}
+              {detail.payments.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-slate-400">
+                    No fee payments received in {selected.label} {year}.
+                  </td>
+                </tr>
+              )}
+            </Table>
+          </Card>
+
+          <Card>
+            <CardHeader
+              title="Expenses"
+              subtitle={`${detail.expenses.length} entr${detail.expenses.length === 1 ? "y" : "ies"} · ${formatCurrency(selected.expenses)}`}
+              action={
+                <Link
+                  href={`/admin/expenses?year=${year}&month=${month}`}
+                  className="text-xs font-medium text-brand-600 hover:text-brand-700"
+                >
+                  Add / manage →
+                </Link>
+              }
+            />
+            <Table head={["Date", "Expense", "Category", "Amount"]}>
+              {detail.expenses.map((e) => (
+                <tr key={e.id} className="hover:bg-slate-50">
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-600">
+                    {formatDate(e.date)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-slate-800">{e.title}</p>
+                    {e.paymentMethod && (
+                      <p className="text-xs text-slate-400">{e.paymentMethod}</p>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge tone="gray">{e.category}</Badge>
+                  </td>
+                  <td className="px-4 py-3 font-medium">
+                    <Money value={e.amount} tone="red" />
+                  </td>
+                </tr>
+              ))}
+              {detail.expenses.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-10 text-center text-sm text-slate-400">
+                    No expenses recorded in {selected.label} {year}.
+                  </td>
+                </tr>
+              )}
+            </Table>
+            {categories.length > 0 && (
+              <div className="border-t border-slate-100 p-5">
+                <h4 className="mb-3 text-sm font-semibold text-slate-700">By category</h4>
+                <ul className="space-y-2 text-sm">
+                  {categories.map(([name, amount]) => (
+                    <li key={name} className="flex justify-between">
+                      <span className="text-slate-600">{name}</span>
+                      <Money value={amount} tone="red" />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        <p className="mt-3 text-xs text-slate-400">
+          Fees received = money recorded as paid during this month. Outstanding = unpaid amount on
+          challans issued for {selected.label} {year}. Net = received − expenses.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <FinanceTabs active="reports" />
-      <PageHeader
-        title="Monthly Finance Report"
-        subtitle={`Fees received vs. expenses for every month of ${year}`}
-        action={
-          <div className="flex flex-wrap items-center gap-2">
-            <form method="get" className="flex items-center gap-2">
-              <Select name="year" defaultValue={String(year)} className="!w-auto !py-1.5 text-xs">
-                {years.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </Select>
-              <Button type="submit" size="sm" variant="secondary">
-                Show
-              </Button>
-            </form>
-            <a
-              href={`/api/export/finance-report?year=${year}&format=csv`}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-brand-600"
-            >
-              Export CSV
-            </a>
-            <a
-              href={`/api/export/finance-report?year=${year}&format=pdf`}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-brand-600"
-            >
-              Export PDF
-            </a>
-          </div>
-        }
-      />
+      {header}
 
       <div className="mb-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -126,7 +279,7 @@ export default async function ReportsPage({
         <Card className="xl:col-span-2">
           <CardHeader
             title={`All Months — ${year}`}
-            subtitle="Click a month to see its details"
+            subtitle="Click a month to open its monthly report"
           />
           <Table
             head={["Month", "Fees Billed", "Collected", "Outstanding", "Expenses", "Net"]}
@@ -138,9 +291,8 @@ export default async function ReportsPage({
               >
                 <td className="px-4 py-3">
                   <Link
-                    href={`/admin/reports?year=${year}&month=${m.month}`}
+                    href={`/admin/reports?view=month&year=${year}&month=${m.month}`}
                     className="font-medium text-slate-800 hover:text-brand-600"
-                    scroll={false}
                   >
                     {m.label}
                   </Link>

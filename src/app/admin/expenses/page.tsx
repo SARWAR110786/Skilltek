@@ -22,6 +22,7 @@ import { dateInputValue, formatCurrency, formatDate } from "@/lib/utils";
 import {
   EXPENSE_CATEGORIES,
   PAYMENT_METHODS,
+  financeYears,
   monthKey,
   monthKeyOf,
   readMonth,
@@ -77,10 +78,7 @@ export default async function ExpensesPage({
   const top = categoryRows[0];
 
   const periodLabel = month ? `${MONTHS[month - 1]} ${year}` : `Year ${year}`;
-  const nowYear = Number(today.slice(0, 4));
-  const years = Array.from(
-    new Set([nowYear - 2, nowYear - 1, nowYear, nowYear + 1, year]),
-  ).sort();
+  const years = financeYears(year);
 
   const qs = new URLSearchParams();
   qs.set("year", String(year));
@@ -296,7 +294,7 @@ export default async function ExpensesPage({
           </div>
           <div className="border-t border-slate-100 px-5 py-3 text-right">
             <Link
-              href={`/admin/reports?year=${year}${month ? `&month=${month}` : ""}`}
+              href={`/admin/reports?${month ? `view=month&month=${month}` : "view=year"}&year=${year}`}
               className="text-xs font-medium text-brand-600 hover:text-brand-700"
             >
               See monthly report →
