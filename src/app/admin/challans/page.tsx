@@ -27,6 +27,7 @@ import { ConfirmDelete } from "@/components/confirm-delete";
 import { StudentsAutoSearch } from "@/components/students-auto-search";
 import { createChallan, deleteChallan, markChallanPaid } from "./actions";
 import { FeeItems } from "@/components/fee-items";
+import { FinanceTabs } from "@/components/finance-tabs";
 
 async function getData() {
   await connection();
@@ -188,6 +189,7 @@ export default async function ChallansPage({
 
   return (
     <div>
+      <FinanceTabs active="challans" />
       <PageHeader
         title="Fee Challans"
         subtitle={

@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Settings,
   Users,
+  Wallet,
   X,
 } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
@@ -36,9 +37,16 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   quiz: ListChecks,
   quizbank: Library,
   assignments: ClipboardList,
+  finance: Wallet,
 };
 
-export type NavItem = { href: string; label: string; icon: string };
+export type NavItem = {
+  href: string;
+  label: string;
+  icon: string;
+  /** Extra path prefixes that should also highlight this item. */
+  match?: string[];
+};
 
 export function DashboardShell({
   user,
@@ -68,8 +76,9 @@ export function DashboardShell({
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {nav.map((item) => {
           const Icon = ICONS[item.icon] ?? LayoutDashboard;
-          const active =
-            pathname === item.href || pathname.startsWith(item.href + "/");
+          const active = [item.href, ...(item.match ?? [])].some(
+            (p) => pathname === p || pathname.startsWith(p + "/"),
+          );
           return (
             <Link
               key={item.href}

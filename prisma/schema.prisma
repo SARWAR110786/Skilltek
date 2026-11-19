@@ -166,6 +166,23 @@ model Challan {
   @@index([dueDate])
 }
 
+// One outgoing payment of the institute (rent, salaries, bills, ...).
+// Used with paid challans to build the monthly finance report.
+model Expense {
+  id            String   @id @default(cuid())
+  title         String
+  category      String
+  amount        Float
+  date          DateTime
+  paymentMethod String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([date])
+  @@index([category])
+}
+
 model Attendance {
   id         String           @id @default(cuid())
   studentId  String

@@ -9,7 +9,12 @@ const NAV: NavItem[] = [
   { href: "/admin/attendance", label: "Attendance", icon: "attendance" },
   { href: "/admin/quizzes", label: "Quizzes", icon: "quiz" },
   { href: "/admin/assignments", label: "Assignments", icon: "assignments" },
-  { href: "/admin/challans", label: "Challans", icon: "challans" },
+  {
+    href: "/admin/challans",
+    label: "Finance",
+    icon: "finance",
+    match: ["/admin/challans", "/admin/expenses", "/admin/reports"],
+  },
   { href: "/admin/notices", label: "Notices", icon: "notices" },
   { href: "/admin/enquiries", label: "Enquiries", icon: "enquiries" },
   { href: "/admin/settings", label: "Settings", icon: "settings" },
