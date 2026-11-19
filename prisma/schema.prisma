@@ -62,6 +62,12 @@ enum AssignStatus {
   ASSIGNED
 }
 
+enum AssessmentMarkStatus {
+  MARKED
+  ABSENT
+  NOT_SUBMITTED
+}
+
 // ------------------------- CORE USERS -------------------------
 
 model User {
@@ -90,6 +96,8 @@ model Course {
   code           String?  @unique
   description    String?
   durationMonths Int      @default(3)
+  startDate      DateTime?
+  endDate        DateTime?
   active         Boolean  @default(true)
   teacherId      String?
   createdAt      DateTime @default(now())
@@ -100,6 +108,7 @@ model Course {
   bankQuestions QuizBankQuestion[]
   quizzes       Quiz[]
   assignments   Assignment[]
+  assessments   Assessment[]
 }
 
 model Teacher {
@@ -138,6 +147,7 @@ model Student {
   challans   Challan[]
   quizAttempts QuizAttempt[]
   assignmentSubmissions AssignmentSubmission[]
+  assessmentMarks       AssessmentMark[]
 }
 
 model Challan {
@@ -164,6 +174,23 @@ model Challan {
   @@index([studentId])
   @@index([status])
   @@index([dueDate])
+}
+
+// One outgoing payment of the institute (rent, salaries, bills, ...).
+// Used with paid challans to build the monthly finance report.
+model Expense {
+  id            String   @id @default(cuid())
+  title         String
+  category      String
+  amount        Float
+  date          DateTime
+  paymentMethod String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([date])
+  @@index([category])
 }
 
 model Attendance {
@@ -346,6 +373,57 @@ model AssignmentFile {
   submission AssignmentSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
 
   @@index([submissionId])
+}
+
+// ----------------------- ASSESSMENTS (offline) -----------------------
+// A paper / verbal / practical test taken in class. Admin or the course
+// teacher enters the marks; students only view them.
+model Assessment {
+  id          String   @id @default(cuid())
+  title       String
+  type        String
+  description String?
+  courseId    String
+  totalMarks  Float
+  date        DateTime
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  course Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  marks  AssessmentMark[]
+
+  @@index([courseId])
+  @@index([date])
+}
+
+model AssessmentMark {
+  id           String               @id @default(cuid())
+  assessmentId String
+  studentId    String
+  status       AssessmentMarkStatus @default(MARKED)
+  marks        Float?
+  remarks      String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, studentId])
+  @@index([studentId])
+}
+
+// ------------------------- TOP STUDENTS (singleton) -------------------------
+// The top students shown on the public website. Only one month is live at a
+// time: publishing a new month overwrites this row.
+model TopStudentsPublication {
+  id          String   @id @default("current")
+  month       Int
+  year        Int
+  students    Json
+  publishedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // ------------------------- SETTINGS (singleton) -------------------------

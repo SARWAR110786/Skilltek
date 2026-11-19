@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getExportAuth, csvResponse, pdfResponse, type Cell } from "@/lib/export";
+import { formatDate } from "@/lib/utils";
 
 export async function GET(req: NextRequest) {
   const user = await getExportAuth();
@@ -27,10 +28,12 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const headers = ["Title", "Duration (months)", "Teacher", "Students", "Active"];
+  const headers = ["Title", "Duration (months)", "Start Date", "End Date", "Teacher", "Students", "Active"];
   const rows: Cell[][] = courses.map((c) => [
     c.title,
     c.durationMonths,
+    c.startDate ? formatDate(c.startDate) : "",
+    c.endDate ? formatDate(c.endDate) : "",
     c.teacher?.user.name ?? "—",
     c._count.students,
     c.active ? "Yes" : "No",

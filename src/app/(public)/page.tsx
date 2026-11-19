@@ -8,13 +8,18 @@ import { ProgramInfo } from "@/components/program-info";
 import { Typewriter } from "@/components/typewriter";
 import { EnquiryForm } from "@/app/(public)/admissions/EnquiryForm";
 import { SERVICES } from "@/lib/services";
+import { TopStudents } from "@/components/top-students";
+import { MONTHS } from "@/lib/challan";
+import { parsePublished } from "@/lib/performance";
+import { plainText } from "@/lib/rich-text";
+import { formatDate } from "@/lib/utils";
 
 export const instant = false;
 
 async function getData() {
   try {
     await connection();
-    const [courses, studentCount, courseCount] = await Promise.all([
+    const [courses, studentCount, courseCount, topStudents] = await Promise.all([
       prisma.course.findMany({
         where: { active: true },
         orderBy: { createdAt: "desc" },
@@ -22,10 +27,13 @@ async function getData() {
       }),
       prisma.student.count(),
       prisma.course.count(),
+      prisma.topStudentsPublication
+        .findUnique({ where: { id: "current" } })
+        .catch(() => null),
     ]);
-    return { courses, studentCount, courseCount };
+    return { courses, studentCount, courseCount, topStudents };
   } catch {
-    return { courses: [], studentCount: 0, courseCount: 0 };
+    return { courses: [], studentCount: 0, courseCount: 0, topStudents: null };
   }
 }
 
@@ -73,7 +81,7 @@ const ADMISSION_CONTACT = [
 ];
 
 export default async function HomePage() {
-  const { courses } = await getData();
+  const { courses, topStudents } = await getData();
 
   return (
     <div className="relative">
@@ -136,6 +144,21 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ========================== TOP STUDENTS ========================== */}
+      {topStudents && (
+        <TopStudents
+          // Strip internal ids before they reach the public page.
+          courses={parsePublished(topStudents.students, {
+            month: topStudents.month,
+            year: topStudents.year,
+          }).map((c) => ({
+            courseTitle: c.courseTitle,
+            period: `${MONTHS[c.month - 1] ?? ""} ${c.year}`,
+            students: c.students.map(({ studentId: _id, ...rest }) => rest),
+          }))}
+        />
+      )}
 
       {/* ============================= FEATURES =========================== */}
       <section className="relative mx-auto max-w-6xl px-4 py-20">
@@ -207,7 +230,7 @@ export default async function HomePage() {
                       {c.title}
                     </h3>
                     <p className="mt-2 line-clamp-2 min-h-[3rem] flex-1 text-sm leading-6 text-slate-400">
-                      {c.description ?? "Comprehensive training program."}
+                      {plainText(c.description ?? "") || "Comprehensive training program."}
                     </p>
                     <div className="mt-5 border-t border-white/10 pt-4 text-xs text-slate-400">
                       <span className="flex items-center gap-1.5">
@@ -221,6 +244,8 @@ export default async function HomePage() {
                         description={c.description ?? "Comprehensive training program."}
                         durationMonths={c.durationMonths}
                         code={c.code}
+                        startLabel={c.startDate ? formatDate(c.startDate) : null}
+                        endLabel={c.endDate ? formatDate(c.endDate) : null}
                       />
                       <Link
                         href="/admissions"

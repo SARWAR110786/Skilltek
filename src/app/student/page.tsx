@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser, getStudentProfile } from "@/lib/guard";
 import { Card, CardHeader, PageHeader, StatCard } from "@/components/ui";
 import { formatDate, formatDateTime, percent } from "@/lib/utils";
+import { StudentTopRank } from "@/components/student-top-rank";
 
 async function getNotices() {
   await connection();
@@ -41,6 +42,13 @@ export default async function StudentDashboard() {
       <PageHeader
         title={`Hello, ${user.name.split(" ")[0]}`}
         subtitle={`${student.admissionNo} · ${student.course?.title ?? "No course assigned"}`}
+      />
+
+      <StudentTopRank
+        studentId={student.id}
+        studentName={user.name}
+        courseId={student.courseId}
+        courseTitle={student.course?.title ?? null}
       />
 
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">

@@ -30,10 +30,20 @@ function backWithMessage(target: string, key: string): string {
   return `${base}${sep}${key}=1`;
 }
 
+// Most challans generated in one go (one whole course at a time).
+const MAX_BATCH = 500;
+
 export async function createChallan(formData: FormData) {
   await requireUser("ADMIN");
 
-  const studentId = String(formData.get("studentId") ?? "");
+  // Several students can be ticked at once; "studentId" is the old single field.
+  const studentIds = Array.from(
+    new Set(
+      [...formData.getAll("studentIds"), ...formData.getAll("studentId")]
+        .map((v) => String(v).trim())
+        .filter(Boolean),
+    ),
+  );
   const feeMonth = Number(formData.get("feeMonth") ?? 0);
   const feeYear = Number(formData.get("feeYear") ?? 0);
   const lateFee = readAmount(formData.get("lateFee"));
@@ -53,7 +63,8 @@ export async function createChallan(formData: FormData) {
   const validMonth = Number.isInteger(feeMonth) && feeMonth >= 1 && feeMonth <= 12;
   const validYear = Number.isInteger(feeYear) && feeYear >= 2000 && feeYear <= 2100;
   if (
-    !studentId ||
+    studentIds.length === 0 ||
+    studentIds.length > MAX_BATCH ||
     !validMonth ||
     !validYear ||
     items.length === 0 ||
@@ -66,46 +77,61 @@ export async function createChallan(formData: FormData) {
     redirect("/admin/challans?error=required");
   }
 
-  const student = await prisma.student.findUnique({ where: { id: studentId } });
-  if (!student) {
+  const found = await prisma.student.findMany({
+    where: { id: { in: studentIds } },
+    select: { id: true, exitReason: true },
+  });
+  if (found.length === 0) {
     redirect("/admin/challans?error=student");
   }
-  if (student.exitReason === "DROPOUT" || student.exitReason === "PASSOUT") {
+  // Dropout / passout students never get new challans; skip them.
+  const eligible = found.filter(
+    (s) => s.exitReason !== "DROPOUT" && s.exitReason !== "PASSOUT",
+  );
+  if (eligible.length === 0) {
     redirect("/admin/challans?error=inactive");
   }
+  const skipped = studentIds.length - eligible.length;
 
   const title = `${items.map((it) => it.label).join(", ")} - ${monthName(feeMonth - 1)} ${feeYear}`;
+  const due = parseDateInput(dueDate);
 
-  let created = false;
-  for (let attempt = 0; attempt < 3 && !created; attempt++) {
-    const challanNo = await nextChallanNo();
+  let created = 0;
+  for (let attempt = 0; attempt < 3 && created === 0; attempt++) {
+    // Reserve a run of sequential numbers starting from the next free one.
+    const first = await nextChallanNo();
+    const prefix = first.slice(0, first.lastIndexOf("-") + 1);
+    const start = Number(first.slice(prefix.length));
     try {
-      await prisma.challan.create({
-        data: {
-          challanNo,
-          studentId,
+      const result = await prisma.challan.createMany({
+        data: eligible.map((s, i) => ({
+          challanNo: `${prefix}${String(start + i).padStart(4, "0")}`,
+          studentId: s.id,
           title,
           feeMonth,
           feeYear,
           amount,
           items,
           lateFee,
-          dueDate: parseDateInput(dueDate),
-        },
+          dueDate: due,
+        })),
       });
-      created = true;
+      created = result.count;
     } catch (e) {
+      // Someone else took one of the numbers meanwhile: nothing was saved
+      // (createMany is a single statement), so try again with fresh numbers.
       if (!isUniqueViolation(e)) throw e;
     }
   }
 
-  if (!created) {
+  if (created === 0) {
     redirect("/admin/challans?error=number");
   }
 
   revalidatePath("/admin/challans");
   revalidatePath("/student/challans");
-  redirect("/admin/challans?created=1");
+  revalidatePath("/admin/reports");
+  redirect(`/admin/challans?created=${created}${skipped ? `&skipped=${skipped}` : ""}`);
 }
 
 export async function markChallanPaid(formData: FormData) {

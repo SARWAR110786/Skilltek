@@ -5,6 +5,22 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/guard";
 import { nextNumericCourseCode } from "@/lib/course-code";
+import { parseDateInput } from "@/lib/utils";
+import { MAX_COURSE_MONTHS, courseMonths } from "@/lib/course-duration";
+
+/**
+ * Start and end dates (both required). The duration in months is worked out
+ * from them, so it always matches what the form showed.
+ */
+function readDates(
+  formData: FormData,
+): { startDate: Date; endDate: Date; durationMonths: number } | null {
+  const start = String(formData.get("startDate") ?? "").trim();
+  const end = String(formData.get("endDate") ?? "").trim();
+  const months = courseMonths(start, end);
+  if (months == null || months > MAX_COURSE_MONTHS) return null;
+  return { startDate: parseDateInput(start), endDate: parseDateInput(end), durationMonths: months };
+}
 
 async function nextCourseCode(): Promise<string> {
   const courses = await prisma.course.findMany({ select: { code: true } });
@@ -29,7 +45,6 @@ export async function createCourse(formData: FormData) {
     .trim()
     .replace(/\s+/g, " ");
   const description = String(formData.get("description") ?? "").trim();
-  const durationMonths = Number(formData.get("durationMonths") ?? NaN);
 
   if (!title || title.length < 2 || title.length > 80) {
     redirect("/admin/courses?error=required");
@@ -37,9 +52,8 @@ export async function createCourse(formData: FormData) {
   if (!description || description.length < 5) {
     redirect("/admin/courses?error=required");
   }
-  if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 60) {
-    redirect("/admin/courses?error=required");
-  }
+  const dates = readDates(formData);
+  if (!dates) redirect("/admin/courses?error=dates");
   if (await titleExists(title)) {
     redirect("/admin/courses?error=title");
   }
@@ -51,7 +65,7 @@ export async function createCourse(formData: FormData) {
       title,
       code,
       description,
-      durationMonths: Math.trunc(durationMonths),
+      ...dates,
     },
   });
   revalidatePath("/admin/courses");
@@ -67,7 +81,6 @@ export async function updateCourse(formData: FormData) {
     .trim()
     .replace(/\s+/g, " ");
   const description = String(formData.get("description") ?? "").trim();
-  const durationMonths = Number(formData.get("durationMonths") ?? NaN);
 
   if (!id || !title || title.length < 2 || title.length > 80) {
     redirect("/admin/courses?error=required");
@@ -75,9 +88,8 @@ export async function updateCourse(formData: FormData) {
   if (!description || description.length < 5) {
     redirect("/admin/courses?error=required");
   }
-  if (!Number.isFinite(durationMonths) || durationMonths < 1 || durationMonths > 60) {
-    redirect("/admin/courses?error=required");
-  }
+  const dates = readDates(formData);
+  if (!dates) redirect(`/admin/courses?edit=${id}&error=dates`);
   if (await titleExists(title, id)) {
     redirect("/admin/courses?error=title");
   }
@@ -96,7 +108,7 @@ export async function updateCourse(formData: FormData) {
       title,
       code,
       description,
-      durationMonths: Math.trunc(durationMonths),
+      ...dates,
       teacherId: String(formData.get("teacherId") ?? "").trim() || null,
       active: formData.get("active") != null,
     },
@@ -115,14 +127,14 @@ export async function deleteCourse(formData: FormData) {
   const course = await prisma.course.findUnique({
     where: { id },
     select: {
-      _count: { select: { students: true, quizzes: true, assignments: true } },
+      _count: { select: { students: true, quizzes: true, assignments: true, assessments: true } },
     },
   });
   if (!course) return;
   // Deleting a course cascades to its quizzes/attempts and assignments/
   // submissions, and unlinks its students. Refuse while any exist.
   const c = course._count;
-  if (c.students || c.quizzes || c.assignments) {
+  if (c.students || c.quizzes || c.assignments || c.assessments) {
     redirect("/admin/courses?error=inuse");
   }
   await prisma.course.delete({ where: { id } });
