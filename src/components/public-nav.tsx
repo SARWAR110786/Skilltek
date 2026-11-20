@@ -13,6 +13,7 @@ const LINKS = [
   { href: "/services", label: "Services" },
   { href: "/about", label: "About" },
   { href: "/admissions", label: "Admissions" },
+  { href: "/notices", label: "Notices" },
   { href: "/contact", label: "Contact" },
   // "Download App" is already reachable from the Get App button (desktop and
   // mobile), so its slot is used for student/certificate verification.

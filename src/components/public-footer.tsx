@@ -42,6 +42,7 @@ export function PublicFooter() {
               { href: "/courses", label: "Programs" },
               { href: "/services", label: "Tech Solutions" },
               { href: "/admissions", label: "Admissions" },
+              { href: "/notices", label: "Notices" },
               { href: "/about", label: "About Us" },
               { href: "/contact", label: "Contact" },
               { href: "/download", label: "Download App" },

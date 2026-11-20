@@ -18,7 +18,7 @@ import { formatDateTime } from "@/lib/utils";
 import { ConfirmDelete } from "@/components/confirm-delete";
 import { createNotice, deleteNotice } from "./actions";
 
-const AUDIENCE = { ALL: "Everyone", STUDENTS: "Students", TEACHERS: "Teachers" } as const;
+const AUDIENCE = { ALL: "Everyone · Website", STUDENTS: "Students", TEACHERS: "Teachers" } as const;
 
 async function getData() {
   await connection();
@@ -46,7 +46,10 @@ export default async function NoticesPage({
         <Alert tone="error">The title can be up to 150 characters and the message up to 5,000.</Alert>
       )}
       {sp.created === "1" && (
-        <Alert tone="success">Notice published. It now shows in the selected portal(s).</Alert>
+        <Alert tone="success">
+          Notice published. It now shows in the selected portal(s); &quot;Everyone&quot; notices also show on
+          the website.
+        </Alert>
       )}
       {sp.deleted === "1" && <Alert tone="success">Notice deleted.</Alert>}
 
@@ -56,7 +59,7 @@ export default async function NoticesPage({
           <Field label="Title"><Input name="title" required maxLength={150} /></Field>
           <Field label="Audience">
             <Select name="target" defaultValue="ALL">
-              <option value="ALL">Everyone</option>
+              <option value="ALL">Everyone (also shown on the website)</option>
               <option value="STUDENTS">All Students</option>
               <option value="TEACHERS">All Teachers</option>
             </Select>

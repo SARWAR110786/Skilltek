@@ -9,6 +9,7 @@ import { Typewriter } from "@/components/typewriter";
 import { EnquiryForm } from "@/app/(public)/admissions/EnquiryForm";
 import { SERVICES } from "@/lib/services";
 import { TopStudents } from "@/components/top-students";
+import { NoticesSection, getPublicNotices } from "@/components/public-notices";
 import { MONTHS } from "@/lib/challan";
 import { parsePublished } from "@/lib/performance";
 import { plainText } from "@/lib/rich-text";
@@ -81,7 +82,7 @@ const ADMISSION_CONTACT = [
 ];
 
 export default async function HomePage() {
-  const { courses, topStudents } = await getData();
+  const [{ courses, topStudents }, notices] = await Promise.all([getData(), getPublicNotices(3)]);
 
   return (
     <div className="relative">
@@ -144,6 +145,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ========================== ANNOUNCEMENTS ========================= */}
+      <NoticesSection notices={notices} />
 
       {/* ========================== TOP STUDENTS ========================== */}
       {topStudents && (

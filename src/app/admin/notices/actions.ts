@@ -29,6 +29,8 @@ export async function createNotice(formData: FormData) {
   });
   revalidatePath("/admin/notices");
   revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/notices");
   revalidatePath("/student");
   revalidatePath("/student/notices");
   revalidatePath("/teacher");
@@ -43,6 +45,8 @@ export async function deleteNotice(formData: FormData) {
   await prisma.notice.deleteMany({ where: { id } });
   revalidatePath("/admin/notices");
   revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/notices");
   revalidatePath("/student");
   revalidatePath("/student/notices");
   revalidatePath("/teacher");
