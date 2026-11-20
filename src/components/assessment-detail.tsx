@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { Download, Trash2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import type { SessionUser } from "@/lib/auth";
 import {
@@ -93,7 +93,11 @@ export async function AssessmentDetail({
       {sp.created === "1" && (
         <Alert tone="success">Assessment created. Enter the marks below and click Save marks.</Alert>
       )}
-      {sp.saved === "1" && <Alert tone="success">Marks saved. Students can now see their results.</Alert>}
+      {sp.saved === "1" && (
+        <Alert tone="success">
+          Marks saved. Students can now see their results. The CSV / PDF download includes the saved marks.
+        </Alert>
+      )}
       {sp.updated === "1" && <Alert tone="success">Assessment details updated.</Alert>}
 
       <div className="mb-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -111,6 +115,22 @@ export async function AssessmentDetail({
         <CardHeader
           title="Marks Sheet"
           subtitle="Type the marks, or choose Absent / Not submitted. Leave a row empty to skip that student."
+          action={
+            <div className="flex shrink-0 gap-2">
+              <a
+                href={`/api/export/assessment/${assessment.id}?format=csv`}
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-brand-600"
+              >
+                <Download className="h-3.5 w-3.5" /> CSV
+              </a>
+              <a
+                href={`/api/export/assessment/${assessment.id}?format=pdf`}
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-brand-600"
+              >
+                <Download className="h-3.5 w-3.5" /> PDF
+              </a>
+            </div>
+          }
         />
         {students.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-slate-400">
