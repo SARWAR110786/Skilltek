@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/guard";
-import { Card, CardHeader, PageHeader, Badge } from "@/components/ui";
+import { Card, CardHeader, PageHeader, Badge, Table } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
 import { CHALLAN_STATUS_META } from "@/lib/challan";
 
@@ -42,17 +42,7 @@ export default async function StudentChallansPage() {
 
       <Card>
         <CardHeader title="Your Challans" />
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-                <th className="px-4 py-3">Particulars</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+        <Table head={["Particulars", "Amount", "Status", "Actions"]}>
               {challans.map((c) => {
                 const meta = CHALLAN_STATUS_META[c.status];
                 return (
@@ -84,9 +74,7 @@ export default async function StudentChallansPage() {
                   </td>
                 </tr>
               )}
-            </tbody>
-          </table>
-        </div>
+        </Table>
       </Card>
     </div>
   );

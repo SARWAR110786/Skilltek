@@ -6,6 +6,7 @@ import type {
   TextareaHTMLAttributes,
 } from "react";
 import { cn } from "@/lib/utils";
+import { SortableTable } from "@/components/sortable-table";
 
 export function Card({
   children,
@@ -300,6 +301,7 @@ export function EmptyState({
   );
 }
 
+/** Shared table; every column heading sorts ascending / descending. */
 export function Table({
   head,
   children,
@@ -307,20 +309,5 @@ export function Table({
   head: ReactNode[];
   children: ReactNode;
 }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-            {head.map((h, i) => (
-              <th key={i} className="px-4 py-3 font-medium">
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">{children}</tbody>
-      </table>
-    </div>
-  );
+  return <SortableTable head={head}>{children}</SortableTable>;
 }

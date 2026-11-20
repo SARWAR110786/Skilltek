@@ -314,7 +314,7 @@ export default async function ReportsPage({
                 </td>
               </tr>
             ))}
-            <tr className="border-t-2 border-slate-200 bg-slate-50 font-semibold">
+            <tr data-pin="bottom" className="border-t-2 border-slate-200 bg-slate-50 font-semibold">
               <td className="px-4 py-3 text-slate-800">Total</td>
               <td className="px-4 py-3">
                 <Money value={report.totals.billed} />
