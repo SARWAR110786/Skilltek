@@ -27,7 +27,7 @@ export default async function StudentNoticesPage() {
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-slate-800">{n.title}</h3>
                   {n.pinned && <Badge tone="amber">Pinned</Badge>}
-                  <Badge tone="brand">{n.target}</Badge>
+                  <Badge tone="brand">{n.target === "ALL" ? "Everyone" : "Students"}</Badge>
                 </div>
                 <p className="mt-1 whitespace-pre-line text-sm text-slate-600">{n.body}</p>
               </div>

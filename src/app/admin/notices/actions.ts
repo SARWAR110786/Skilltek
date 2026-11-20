@@ -8,11 +8,13 @@ import { requireUser } from "@/lib/guard";
 export async function createNotice(formData: FormData) {
   const admin = await requireUser("ADMIN");
   const title = String(formData.get("title") ?? "").trim();
-  const body = String(formData.get("body") ?? "").trim();
+  // The form's field is "message" ("body" kept for older forms).
+  const body = String(formData.get("message") ?? formData.get("body") ?? "").trim();
   const target = String(formData.get("target") ?? "ALL");
   const pinned = formData.get("pinned") === "on";
 
   if (!title || !body) redirect("/admin/notices?error=required");
+  if (title.length > 150 || body.length > 5000) redirect("/admin/notices?error=long");
 
   await prisma.notice.create({
     data: {
@@ -27,13 +29,23 @@ export async function createNotice(formData: FormData) {
   });
   revalidatePath("/admin/notices");
   revalidatePath("/admin");
+  revalidatePath("/student");
+  revalidatePath("/student/notices");
+  revalidatePath("/teacher");
+  revalidatePath("/teacher/notices");
+  redirect("/admin/notices?created=1");
 }
 
 export async function deleteNotice(formData: FormData) {
   await requireUser("ADMIN");
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await prisma.notice.delete({ where: { id } });
+  await prisma.notice.deleteMany({ where: { id } });
   revalidatePath("/admin/notices");
   revalidatePath("/admin");
+  revalidatePath("/student");
+  revalidatePath("/student/notices");
+  revalidatePath("/teacher");
+  revalidatePath("/teacher/notices");
+  redirect("/admin/notices?deleted=1");
 }

@@ -10,6 +10,7 @@ const NAV: NavItem[] = [
   { href: "/teacher/assignments", label: "Assignments", icon: "assignments" },
   { href: "/teacher/assessments", label: "Assessments", icon: "assessment" },
   { href: "/teacher/quiz-bank", label: "Quiz Bank", icon: "quizbank" },
+  { href: "/teacher/notices", label: "Notices", icon: "notices" },
 ];
 
 export default async function TeacherLayout({
