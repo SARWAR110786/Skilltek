@@ -30,8 +30,39 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Scrollbars: thin and invisible until the area is hovered, so lists,
+   tables and popups don't show heavy grey bars. Scrolling still works. */
 * {
   scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+*:hover {
+  scrollbar-color: rgb(148 163 184 / 0.45) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+}
+*:hover::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 0.45);
+}
+
+/* Strips that scroll sideways (tabs) or the sidebar: no bar at all. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar:hover {
+  scrollbar-color: transparent transparent;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* ------------------------------------------------------------------ */

@@ -77,7 +77,7 @@ export function DashboardShell({
             className="h-12 w-auto object-contain"
           />
       </div>
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+      <nav className="no-scrollbar flex-1 space-y-1 overflow-y-auto p-3">
         {nav.map((item) => {
           const Icon = ICONS[item.icon] ?? LayoutDashboard;
           const active = [item.href, ...(item.match ?? [])].some(

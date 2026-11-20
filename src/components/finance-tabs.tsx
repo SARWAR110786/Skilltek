@@ -10,7 +10,7 @@ const TABS = [
 
 export function FinanceTabs({ active }: { active: (typeof TABS)[number]["key"] }) {
   return (
-    <nav className="mb-6 flex gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+    <nav className="no-scrollbar mb-6 flex gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
       {TABS.map((t) => {
         const Icon = t.icon;
         return (

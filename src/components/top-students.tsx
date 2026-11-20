@@ -57,7 +57,7 @@ export function TopStudents({ courses }: { courses: WebsiteCourse[] }) {
 
         {/* ---------- Course tabs ---------- */}
         {courses.length > 1 && (
-          <div role="tablist" aria-label="Courses" className="mt-8 flex gap-2 overflow-x-auto pb-1">
+          <div role="tablist" aria-label="Courses" className="no-scrollbar mt-8 flex gap-2 overflow-x-auto pb-1">
             {courses.map((c, i) => (
               <button
                 key={c.courseTitle}
