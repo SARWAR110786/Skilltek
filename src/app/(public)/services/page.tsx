@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Clock, Handshake, LifeBuoy, Lock, MessageSquare, Rocket, ClipboardList, Hammer } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { SERVICES } from "@/lib/services";
@@ -11,6 +11,20 @@ const POINTS = [
   "Free consultation & project scoping",
   "Clear quotes with defined timelines",
   "Ongoing support after delivery",
+];
+
+const PROMISES = [
+  { icon: Lock, title: "Your privacy, protected", text: "We never publish a client's name, logo or project details without written permission." },
+  { icon: Handshake, title: "Clear quote, no surprises", text: "You get a written scope and price before any work starts." },
+  { icon: Clock, title: "On-time delivery", text: "Agreed milestones and regular progress updates throughout the project." },
+  { icon: LifeBuoy, title: "Support after launch", text: "We stay with you after delivery for fixes, changes and guidance." },
+];
+
+const STEPS = [
+  { icon: MessageSquare, title: "Discuss", text: "Free consultation to understand your business and goals." },
+  { icon: ClipboardList, title: "Plan & quote", text: "A clear scope, timeline and price." },
+  { icon: Hammer, title: "Build", text: "We design and develop with regular check-ins." },
+  { icon: Rocket, title: "Launch & support", text: "Go live, then ongoing help as you grow." },
 ];
 
 export default function ServicesPage() {
@@ -42,6 +56,53 @@ export default function ServicesPage() {
         <p className="mt-10 text-center text-slate-400">
           …and more. Tell us what you need and we&apos;ll help you build it.
         </p>
+      </section>
+
+      <section className="border-t border-white/10">
+        <div className="mx-auto max-w-6xl px-4 py-16 lg:py-20">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-widest text-brand-400">
+              Why clients trust us
+            </p>
+            <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
+              Confidential work, clear results
+            </h2>
+            <p className="mt-4 leading-relaxed text-slate-400">
+              Many of our clients prefer to keep their projects private — and we
+              respect that. Here is what every client can count on.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {PROMISES.map((p, i) => (
+              <Reveal key={p.title} delay={i * 80} className="h-full">
+                <div className="flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-500/15 text-brand-300">
+                    <p.icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-4 font-semibold text-white">{p.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-400">{p.text}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <h3 className="mt-16 text-xl font-bold text-white">How we work</h3>
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map((s, i) => (
+              <Reveal key={s.title} delay={i * 80} className="h-full">
+                <div className="relative h-full rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+                  <span className="absolute right-5 top-5 text-3xl font-extrabold text-white/10">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <s.icon className="h-6 w-6 text-brand-400" />
+                  <p className="mt-4 font-semibold text-white">{s.title}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{s.text}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section
