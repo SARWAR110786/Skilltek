@@ -8,6 +8,7 @@ type Network = "facebook" | "linkedin" | "instagram";
  */
 export const SOCIAL_LINKS: { network: Network; label: string; href: string }[] = [
   { network: "facebook", label: "Facebook", href: "https://www.facebook.com/TheSkillTek" },
+  { network: "instagram", label: "Instagram", href: "https://www.instagram.com/theskilltek/" },
 ];
 
 const PATHS: Record<Network, string> = {
