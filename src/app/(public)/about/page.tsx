@@ -85,6 +85,7 @@ const LEADERS: Member[] = [
     name: "Mushtaque Ahmed",
     role: "Chief Operating & Finance Officer",
     short: "COFO",
+    image: "/team/mushtaque-ahmed.jpg",
     icon: Coins,
     responsibilities: [
       "Financial management & accounting",
