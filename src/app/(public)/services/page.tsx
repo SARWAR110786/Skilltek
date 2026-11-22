@@ -3,6 +3,7 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { SERVICES } from "@/lib/services";
 import { EnquiryForm } from "@/app/(public)/admissions/EnquiryForm";
+import { SocialButtons } from "@/components/social-links";
 
 export const metadata = { title: "Tech Solutions · SkillTek" };
 
@@ -69,6 +70,14 @@ export default function ServicesPage() {
                   </p>
                 </Reveal>
               ))}
+            </div>
+
+            <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+              <p className="text-sm font-semibold text-white">See our latest work</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Follow our page for recent projects, client results and updates.
+              </p>
+              <SocialButtons className="mt-4" />
             </div>
           </div>
 

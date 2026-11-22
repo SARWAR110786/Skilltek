@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { SocialIcons } from "@/components/social-links";
 
 const YEAR = new Date().getFullYear();
 
@@ -33,6 +34,7 @@ export function PublicFooter() {
               Placement Support
             </span>
           </div>
+          <SocialIcons className="mt-6" />
         </div>
 
         <div>
