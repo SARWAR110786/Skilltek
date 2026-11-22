@@ -30,17 +30,26 @@ export async function submitEnquiry(
   ) {
     return { error: "Some fields are too long. Please shorten them and try again." };
   }
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  // Everything is required except the message.
+  if (!name) return { error: "Please enter your full name." };
+  if (!phone) return { error: "Please enter your phone number." };
+  // Digits only, 11 of them (e.g. 03001234567).
+  const normalizedPhone = /^\d{11}$/.test(phone) ? normalizePhone(phone) : null;
+  if (!normalizedPhone) {
+    return { error: "Please enter an 11-digit phone number using numbers only, e.g. 03001234567." };
+  }
+  if (!email) return { error: "Please enter your email address." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: "Please enter a valid email address." };
   }
-
-  if (!name || (!email && !phone)) {
-    return { error: "Please provide your name and a contact (email or phone)." };
+  if (service === "Other" && !serviceOther) {
+    return { error: "Please tell us which service you need." };
   }
-
-  const normalizedPhone = phone ? normalizePhone(phone) : null;
-  if (phone && !normalizedPhone) {
-    return { error: "Please enter a valid phone number." };
+  // Admission form: a program must be chosen (when any are open).
+  // Services form: a service must be chosen.
+  if (!serviceValue && !courseId) {
+    const anyOpen = await prisma.course.count({ where: { active: true } });
+    if (anyOpen > 0) return { error: "Please select the course you want to apply for." };
   }
 
   const store = await headers();

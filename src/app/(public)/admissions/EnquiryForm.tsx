@@ -19,10 +19,24 @@ import { submitEnquiry, type EnquiryState } from "@/app/(public)/admissions/acti
 const CONTROL =
   "w-full rounded-lg border border-white/15 bg-slate-950/60 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30";
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({
+  label,
+  children,
+  required,
+  optional,
+}: {
+  label: string;
+  children: ReactNode;
+  required?: boolean;
+  optional?: boolean;
+}) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-slate-300">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-slate-300">
+        {label}
+        {required && <span className="ml-0.5 text-rose-400" aria-hidden="true">*</span>}
+        {optional && <span className="ml-1 text-xs font-normal text-slate-500">(optional)</span>}
+      </span>
       {children}
     </label>
   );
@@ -67,15 +81,17 @@ export function EnquiryForm({
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
   function validatePhone(value: string): string | null {
-    if (!value.trim()) return null;
+    if (!value.trim()) return "Please enter your phone number";
     return normalizePhone(value)
       ? null
-      : "Please enter a valid phone number";
+      : "Please enter an 11-digit phone number, e.g. 03001234567";
   }
 
   function handlePhoneChange(value: string) {
-    setPhone(value);
-    if (phoneError && !validatePhone(value)) setPhoneError(null);
+    // Digits only: letters and symbols are dropped as they are typed or pasted.
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    setPhone(digits);
+    if (phoneError && !validatePhone(digits)) setPhoneError(null);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -118,19 +134,23 @@ export function EnquiryForm({
         </div>
       )}
       <div className={compact ? "space-y-4" : "grid gap-4 sm:grid-cols-2"}>
-        <Field label="Full name">
-          <Input name="name" placeholder="Your name" required />
+        <Field label="Full name" required>
+          <Input name="name" placeholder="Your name" required maxLength={120} />
         </Field>
-        <Field label="Phone">
+        <Field label="Phone" required>
           <Input
             name="phone"
             type="tel"
-            inputMode="tel"
+            inputMode="numeric"
+            autoComplete="tel"
+            pattern="[0-9]{11}"
+            title="11-digit phone number, e.g. 03001234567"
+            required
             value={phone}
             onChange={(event) => handlePhoneChange(event.target.value)}
             onBlur={(event) => setPhoneError(validatePhone(event.target.value))}
-            placeholder="0300-1234567"
-            maxLength={20}
+            placeholder="03001234567"
+            maxLength={11}
             aria-invalid={phoneError ? true : undefined}
             aria-describedby={phoneError ? "phone-error" : undefined}
           />
@@ -140,15 +160,16 @@ export function EnquiryForm({
             </span>
           )}
         </Field>
-        <Field label="Email">
-          <Input name="email" type="email" placeholder="you@email.com" />
+        <Field label="Email" required>
+          <Input name="email" type="email" placeholder="you@email.com" required maxLength={254} />
         </Field>
         {options && (
-          <Field label="Service of interest">
+          <Field label="Service of interest" required>
             <Select
               name="service"
               value={service}
               onChange={(e) => setService(e.target.value)}
+              required
             >
               <option value="">Select a service</option>
               {options.map((s) => (
@@ -160,13 +181,13 @@ export function EnquiryForm({
           </Field>
         )}
         {service === "Other" && (
-          <Field label="Please specify">
-            <Input name="serviceOther" placeholder="Which service do you need?" />
+          <Field label="Please specify" required>
+            <Input name="serviceOther" placeholder="Which service do you need?" required maxLength={120} />
           </Field>
         )}
         {showCourse && (
-          <Field label="Interested course">
-            <Select name="courseId" defaultValue="">
+          <Field label="Interested course" required={courses.length > 0}>
+            <Select name="courseId" defaultValue="" required={courses.length > 0}>
               <option value="">Select a course</option>
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -177,9 +198,10 @@ export function EnquiryForm({
           </Field>
         )}
       </div>
-      <Field label="Message">
+      <Field label="Message" optional>
         <Textarea
           name="message"
+          maxLength={3000}
           rows={compact ? 3 : 4}
           placeholder="Tell us how we can help…"
         />
