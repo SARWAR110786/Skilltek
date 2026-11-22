@@ -181,6 +181,37 @@ function TeamCard({ m }: { m: Member }) {
   );
 }
 
+/** Full-width card (photo left, details right) so a lone member fills the row. */
+function WideCard({ m }: { m: Member }) {
+  return (
+    <article className="group grid overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-colors hover:border-brand-500/40 sm:grid-cols-[220px_1fr] lg:grid-cols-[260px_1fr]">
+      <Photo m={m} className="aspect-[4/5] sm:aspect-auto sm:h-full sm:min-h-[240px]" />
+      <div className="flex flex-col justify-center p-5 sm:p-6 lg:p-8">
+        <h3 className="text-xl font-bold text-white">{m.name}</h3>
+        <p className="mt-1 text-sm font-medium text-slate-300">
+          {m.role}
+          {m.short && <span className="text-brand-400"> ({m.short})</span>}
+        </p>
+        {m.responsibilities.length > 0 && (
+          <>
+            <p className="mt-5 text-xs font-semibold uppercase tracking-widest text-brand-400">
+              Key responsibilities
+            </p>
+            <ul className="mt-3 grid gap-x-8 gap-y-2 text-sm text-slate-400 md:grid-cols-2">
+              {m.responsibilities.map((r) => (
+                <li key={r} className="flex gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+    </article>
+  );
+}
+
 export default function AboutPage() {
   return (
     <div>
@@ -248,15 +279,11 @@ export default function AboutPage() {
             ))}
           </div>
 
-          {/* ---------- Members ---------- */}
-          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {MEMBERS.map((m, i) => (
-              <Reveal
-                key={m.name}
-                delay={i * 90}
-                className={`h-full ${MEMBERS.length === 1 ? "sm:col-start-1 sm:col-span-2 lg:col-start-2 lg:col-span-2 sm:mx-auto sm:w-1/2 lg:w-1/2" : ""}`}
-              >
-                <TeamCard m={m} />
+          {/* ---------- Members: wide cards spanning the row ---------- */}
+          <div className="mt-5 space-y-5">
+            {MEMBERS.map((m) => (
+              <Reveal key={m.name}>
+                <WideCard m={m} />
               </Reveal>
             ))}
           </div>
