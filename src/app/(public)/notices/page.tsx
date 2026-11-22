@@ -1,22 +1,6 @@
-import { connection } from "next/server";
-import { PageHero } from "@/components/page-hero";
-import { NoticesList, getPublicNotices } from "@/components/public-notices";
+import { permanentRedirect } from "next/navigation";
 
-export const metadata = { title: "Notices · SkillTek" };
-
-export default async function NoticesPage() {
-  await connection();
-  const notices = await getPublicNotices();
-  return (
-    <div>
-      <PageHero
-        eyebrow="Announcements"
-        title="Notices"
-        subtitle="News and announcements from SkillTek Institute."
-      />
-      <section className="mx-auto max-w-6xl px-4 py-16 lg:py-20">
-        <NoticesList notices={notices} />
-      </section>
-    </div>
-  );
+// Notices are for students and teachers in their portals only.
+export default function NoticesPage() {
+  permanentRedirect("/");
 }

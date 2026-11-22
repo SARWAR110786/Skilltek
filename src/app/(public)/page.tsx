@@ -6,10 +6,8 @@ import { ChatWidget } from "@/components/chat-widget";
 import { Reveal } from "@/components/reveal";
 import { ProgramInfo } from "@/components/program-info";
 import { Typewriter } from "@/components/typewriter";
-import { EnquiryForm } from "@/app/(public)/admissions/EnquiryForm";
 import { SERVICES } from "@/lib/services";
 import { TopStudents } from "@/components/top-students";
-import { NoticesSection, getPublicNotices } from "@/components/public-notices";
 import { MONTHS } from "@/lib/challan";
 import { parsePublished } from "@/lib/performance";
 import { plainText } from "@/lib/rich-text";
@@ -82,7 +80,7 @@ const ADMISSION_CONTACT = [
 ];
 
 export default async function HomePage() {
-  const [{ courses, topStudents }, notices] = await Promise.all([getData(), getPublicNotices(3)]);
+  const { courses, topStudents } = await getData();
 
   return (
     <div className="relative">
@@ -145,9 +143,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ========================== ANNOUNCEMENTS ========================= */}
-      <NoticesSection notices={notices} />
 
       {/* ========================== TOP STUDENTS ========================== */}
       {topStudents && (
@@ -335,8 +330,8 @@ export default async function HomePage() {
               Start your application today
             </h2>
             <p className="mt-4 max-w-lg text-slate-400">
-              Submit an enquiry and our admissions team will guide you through
-              program selection, eligibility and enrollment.
+              Fill the admission form and our admissions team will guide you
+              through program selection, eligibility and enrollment.
             </p>
 
             <div className="mt-8 space-y-4">
@@ -357,17 +352,18 @@ export default async function HomePage() {
 
           <Reveal delay={150}>
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 shadow-2xl backdrop-blur sm:p-8">
-              <h3 className="text-lg font-semibold text-white">
-                Admission Enquiry
-              </h3>
-              <p className="mt-1 text-sm text-slate-400">
-                Fill in your details and we will get back to you.
+              <h3 className="text-lg font-semibold text-white">Admission Form</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                Apply online in a few minutes: choose your program, leave your details and our
+                admissions team will contact you to complete enrollment.
               </p>
-              <div className="mt-6">
-                <EnquiryForm
-                  courses={courses.map((c) => ({ id: c.id, title: c.title }))}
-                />
-              </div>
+              <Link
+                href="/admissions#apply"
+                className="group mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-500"
+              >
+                Fill the Admission Form
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
             </div>
           </Reveal>
         </div>

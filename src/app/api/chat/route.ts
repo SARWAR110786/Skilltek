@@ -39,7 +39,7 @@ function fallbackReply(userText: string, context: string): string {
     return "Yes! Beyond education, SkillTek offers tech solutions — website development, digital marketing, AI automation, business automation, mobile apps and branding. Please visit our Services page and submit a request; our team will get back to you.";
   if (t.includes("hello") || t.includes("hi") || t.includes("hey"))
     return "Hello! How can I help you with SkillTek today?";
-  return "Thanks for your message! For detailed help, please contact us via the Contact page or apply online through Admissions.";
+  return "Thanks for your message! For detailed help, please apply online through the Admission Form on our Admissions page, or call 0312 2098894.";
 }
 
 export async function POST(req: Request) {

@@ -60,8 +60,13 @@ async function getStats() {
     prisma.student.count({ where: { exitReason: null } }),
     prisma.teacher.count(),
     prisma.course.count({ where: { active: true } }),
-    prisma.enquiry.count({ where: { status: "NEW" } }),
-    prisma.enquiry.findMany({ orderBy: { createdAt: "desc" }, take: 5, include: { course: true } }),
+    prisma.enquiry.count({ where: { status: "NEW", service: null } }),
+    prisma.enquiry.findMany({
+      where: { service: null },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: { course: true },
+    }),
     prisma.notice.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
   ]);
 
@@ -282,7 +287,7 @@ export default async function AdminDashboard() {
               { label: "Students", value: s.studentCount, icon: Users, href: "/admin/students" },
               { label: "Teachers", value: s.teacherCount, icon: GraduationCap, href: "/admin/teachers" },
               { label: "Active courses", value: s.courseCount, icon: BookOpen, href: "/admin/courses" },
-              { label: "New enquiries", value: s.enquiryCount, icon: MessageSquare, href: "/admin/enquiries" },
+              { label: "New admissions", value: s.enquiryCount, icon: MessageSquare, href: "/admin/enquiries" },
             ].map(({ label, value, icon: Icon, href }) => (
               <Link
                 key={label}
@@ -299,12 +304,12 @@ export default async function AdminDashboard() {
 
         <Card className="lg:col-span-2">
           <CardHeader
-            title="Recent Enquiries"
+            title="Recent Admission Forms"
             action={<Link href="/admin/enquiries" className="text-xs font-medium text-brand-600">View all</Link>}
           />
           <div className="divide-y divide-slate-100">
             {s.recentEnquiries.length === 0 && (
-              <p className="p-5 text-sm text-slate-400">No enquiries yet.</p>
+              <p className="p-5 text-sm text-slate-400">No admission forms yet.</p>
             )}
             {s.recentEnquiries.map((e) => (
               <div key={e.id} className="flex items-center justify-between px-5 py-3">

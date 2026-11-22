@@ -102,7 +102,9 @@ export function EnquiryForm({
         <CheckCircle2 className="h-10 w-10 text-emerald-300" />
         <p className="font-semibold text-white">Thank you!</p>
         <p className="text-sm text-slate-300">
-          Your enquiry has been received. Our team will contact you soon.
+          {serviceOptions?.length
+            ? "Your request has been received. Our team will contact you soon."
+            : "Your admission form has been received. Our admissions team will contact you soon."}
         </p>
       </div>
     );
@@ -193,7 +195,7 @@ export function EnquiryForm({
           </>
         ) : (
           <>
-            <Send className="h-4 w-4" /> Submit Enquiry
+            <Send className="h-4 w-4" /> {serviceOptions?.length ? "Send Request" : "Submit Admission Form"}
           </>
         )}
       </button>

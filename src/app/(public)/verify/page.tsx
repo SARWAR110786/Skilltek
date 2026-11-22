@@ -144,7 +144,7 @@ export default async function VerifyPage({
               <span className="font-mono font-semibold text-white">{result.roll}</span>.
               Check it and try again, or{" "}
               <Link
-                href="/contact"
+                href="/admissions#contact"
                 className="font-medium text-brand-300 underline-offset-4 hover:underline"
               >
                 contact us
