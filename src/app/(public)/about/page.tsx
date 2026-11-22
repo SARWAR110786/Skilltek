@@ -98,7 +98,19 @@ const LEADERS: Member[] = [
 ];
 
 const MEMBERS: Member[] = [
-  { name: "Sajid Ali", role: "Executive Member", icon: UserRound, responsibilities: [] },
+  {
+    name: "Sajid Ali",
+    role: "Executive Member",
+    image: "/team/sajid-ali.jpg",
+    icon: UserRound,
+    responsibilities: [
+      "Support day-to-day institute operations",
+      "Student coordination & admissions support",
+      "Front desk, communication & follow-ups",
+      "Assist with events, workshops & campaigns",
+      "Help maintain records & reports",
+    ],
+  },
 ];
 
 const VALUES = [
@@ -126,6 +138,46 @@ function Photo({ m, className }: { m: Member; className: string }) {
         </div>
       )}
     </div>
+  );
+}
+
+function TeamCard({ m }: { m: Member }) {
+  return (
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-colors hover:border-brand-500/40">
+      <Photo m={m} className="aspect-[4/5]" />
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className="text-lg font-bold text-white">{m.name}</h3>
+        <p className="mt-1 text-sm font-medium text-slate-300">
+          {m.role}
+          {m.short && <span className="text-brand-400"> ({m.short})</span>}
+        </p>
+        {m.responsibilities.length > 0 && (
+          <>
+            <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-brand-400">
+              Key responsibilities
+            </p>
+            <ul className="mt-2 flex-1 space-y-1.5 text-sm text-slate-400">
+              {m.responsibilities.map((r) => (
+                <li key={r} className="flex gap-2">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {m.linkedin && (
+          <a
+            href={m.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-brand-300 hover:text-brand-200"
+          >
+            LinkedIn <ArrowUpRight className="h-4 w-4" />
+          </a>
+        )}
+      </div>
+    </article>
   );
 }
 
@@ -191,52 +243,20 @@ export default function AboutPage() {
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {LEADERS.map((m, i) => (
               <Reveal key={m.name} delay={i * 90} className="h-full">
-                <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-colors hover:border-brand-500/40">
-                  <Photo m={m} className="aspect-[4/5]" />
-                  <div className="flex flex-1 flex-col p-5">
-                    <h3 className="text-lg font-bold text-white">{m.name}</h3>
-                    <p className="mt-1 text-sm font-medium text-slate-300">
-                      {m.role}
-                      {m.short && <span className="text-brand-400"> ({m.short})</span>}
-                    </p>
-                    <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-brand-400">
-                      Key responsibilities
-                    </p>
-                    <ul className="mt-2 flex-1 space-y-1.5 text-sm text-slate-400">
-                      {m.responsibilities.map((r) => (
-                        <li key={r} className="flex gap-2">
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
-                          <span>{r}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    {m.linkedin && (
-                      <a
-                        href={m.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-brand-300 hover:text-brand-200"
-                      >
-                        LinkedIn <ArrowUpRight className="h-4 w-4" />
-                      </a>
-                    )}
-                  </div>
-                </article>
+                <TeamCard m={m} />
               </Reveal>
             ))}
           </div>
 
           {/* ---------- Members ---------- */}
-          <div className="mt-6 flex flex-wrap justify-center gap-5">
-            {MEMBERS.map((m) => (
-              <Reveal key={m.name} className="w-full sm:w-auto">
-                <article className="group flex items-center gap-4 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-3 pr-6 transition-colors hover:border-brand-500/40 sm:min-w-[300px]">
-                  <Photo m={m} className="h-20 w-20 shrink-0 rounded-xl" />
-                  <div>
-                    <h3 className="text-base font-bold text-white">{m.name}</h3>
-                    <p className="text-sm text-slate-400">{m.role}</p>
-                  </div>
-                </article>
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {MEMBERS.map((m, i) => (
+              <Reveal
+                key={m.name}
+                delay={i * 90}
+                className={`h-full ${MEMBERS.length === 1 ? "sm:col-start-1 sm:col-span-2 lg:col-start-2 lg:col-span-2 sm:mx-auto sm:w-1/2 lg:w-1/2" : ""}`}
+              >
+                <TeamCard m={m} />
               </Reveal>
             ))}
           </div>
