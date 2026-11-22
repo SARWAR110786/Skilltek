@@ -106,7 +106,6 @@ const MEMBERS: Member[] = [
     responsibilities: [
       "Support day-to-day institute operations",
       "Student coordination & admissions support",
-      "Front desk, communication & follow-ups",
       "Assist with events, workshops & campaigns",
       "Help maintain records & reports",
     ],
