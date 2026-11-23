@@ -5,7 +5,12 @@ import { SERVICES } from "@/lib/services";
 import { EnquiryForm } from "@/app/(public)/admissions/EnquiryForm";
 import { SocialButtons } from "@/components/social-links";
 
-export const metadata = { title: "Tech Solutions · SkillTek" };
+export const metadata = {
+  title: "Website Development, Digital Marketing & AI Automation · SkillTek",
+  description:
+    "SkillTek Media Solutions builds websites, mobile apps and AI automation and runs digital marketing and branding for businesses in Thatta and across Pakistan.",
+  alternates: { canonical: "/services" },
+};
 
 const POINTS = [
   "Free consultation & project scoping",

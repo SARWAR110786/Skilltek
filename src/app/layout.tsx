@@ -25,7 +25,7 @@ const SITE_DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "SkillTek Institute",
+  title: "SkillTek Institute & Media Solutions · IT & AI Courses in Thatta",
   description: SITE_DESCRIPTION,
   // Link previews on WhatsApp, Facebook, LinkedIn, X and others.
   openGraph: {

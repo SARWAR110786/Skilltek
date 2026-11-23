@@ -5,7 +5,12 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { EnquiryForm } from "./EnquiryForm";
 
-export const metadata = { title: "Admissions · SkillTek" };
+export const metadata = {
+  title: "Admissions Open · SkillTek Institute Thatta",
+  description:
+    "Apply online for IT and AI courses at SkillTek Institute, Thatta. Fill the admission form in a minute and our team will call you. Visit us on Doctor Street, Thatta.",
+  alternates: { canonical: "/admissions" },
+};
 
 // Reads live data through connection(); allow this segment to block.
 export const instant = false;

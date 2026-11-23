@@ -17,7 +17,12 @@ import {
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 
-export const metadata = { title: "About · SkillTek" };
+export const metadata = {
+  title: "About SkillTek Institute & Media Solutions · Thatta",
+  description:
+    "Meet the team behind SkillTek Institute & Media Solutions in Thatta — practical IT education, a digital student portal and tech services for businesses.",
+  alternates: { canonical: "/about" },
+};
 
 const PILLARS = [
   { title: "Our Mission", text: "Deliver practical, affordable and modern education." },

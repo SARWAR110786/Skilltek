@@ -8,7 +8,12 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
 import { ProgramInfo } from "@/components/program-info";
 
-export const metadata = { title: "Courses · SkillTek" };
+export const metadata = {
+  title: "IT & AI Courses in Thatta · SkillTek Institute",
+  description:
+    "Computer and IT courses in Thatta: Certificate in Information Technology (day and night batch) and Agentic AI & Automation. See duration, details and apply online.",
+  alternates: { canonical: "/courses" },
+};
 
 // Reads live data through connection(); allow this segment to block.
 export const instant = false;

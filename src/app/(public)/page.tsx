@@ -13,6 +13,8 @@ import { parsePublished } from "@/lib/performance";
 import { plainText } from "@/lib/rich-text";
 import { formatDate } from "@/lib/utils";
 
+export const metadata = { alternates: { canonical: "/" } };
+
 export const instant = false;
 
 async function getData() {
