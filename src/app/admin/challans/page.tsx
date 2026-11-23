@@ -28,7 +28,6 @@ import { StudentsAutoSearch } from "@/components/students-auto-search";
 import { createChallan, deleteChallan, markChallanPaid } from "./actions";
 import { FeeItems } from "@/components/fee-items";
 import { FinanceTabs } from "@/components/finance-tabs";
-import { DownloadForm } from "@/components/download-form";
 import { ChallanStudentPicker } from "@/components/challan-student-picker";
 
 async function getData() {
@@ -262,39 +261,6 @@ export default async function ChallansPage({
           tone="red"
         />
       </div>
-
-      <Card className="mb-6">
-        <CardHeader title="Download" subtitle="Export fee challans — all courses or one course" />
-        <div className="p-5">
-          <DownloadForm
-            action="/api/export/challans"
-            fields={[
-              {
-                kind: "select",
-                name: "course",
-                label: "Course",
-                defaultValue: course,
-                options: [
-                  { value: "", label: "All courses" },
-                  ...courses.map((c) => ({ value: c.id, label: c.title })),
-                ],
-              },
-              {
-                kind: "select",
-                name: "status",
-                label: "Status",
-                defaultValue: "",
-                options: [
-                  { value: "", label: "All" },
-                  { value: "UNPAID", label: "Unpaid" },
-                  { value: "PARTIAL", label: "Partially paid" },
-                  { value: "PAID", label: "Paid" },
-                ],
-              },
-            ]}
-          />
-        </div>
-      </Card>
 
       <Card className="mb-6">
         <CardHeader
