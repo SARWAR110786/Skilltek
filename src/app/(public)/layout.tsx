@@ -1,6 +1,7 @@
 import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { CursorGlow } from "@/components/cursor-glow";
+import { StructuredData } from "@/components/structured-data";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,6 +10,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         aria-hidden="true"
         className="grid-lines grid-drift grid-page pointer-events-none fixed inset-0 opacity-50"
       />
+      <StructuredData />
       <CursorGlow />
       <PublicNav />
       <div className="relative flex flex-1 flex-col">
