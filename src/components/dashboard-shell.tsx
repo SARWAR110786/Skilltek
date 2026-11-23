@@ -80,8 +80,12 @@ export function DashboardShell({
       <nav className="no-scrollbar flex-1 space-y-1 overflow-y-auto p-3">
         {nav.map((item) => {
           const Icon = ICONS[item.icon] ?? LayoutDashboard;
+          // A portal's root link ("/admin", "/teacher", "/student") is only
+          // active on that exact page; deeper links also match their sub-pages.
           const active = [item.href, ...(item.match ?? [])].some(
-            (p) => pathname === p || pathname.startsWith(p + "/"),
+            (p) =>
+              pathname === p ||
+              (p.split("/").length > 2 && pathname.startsWith(p + "/")),
           );
           return (
             <Link
