@@ -23,7 +23,9 @@ export function CourseFilterSelect({
     else params.delete("course");
     params.delete("edit");
     const qs = params.toString();
-    startTransition(() => router.replace(qs ? `${pathname}?${qs}` : pathname));
+    startTransition(() =>
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false }),
+    );
   }
 
   return (
