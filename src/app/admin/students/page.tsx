@@ -18,6 +18,7 @@ import {
 import { DownloadForm } from "@/components/download-form";
 import { NumericInput } from "@/components/numeric-input";
 import { StudentsAutoSearch } from "@/components/students-auto-search";
+import { CourseFilterSelect } from "@/components/course-filter-select";
 import { ConfirmDelete } from "@/components/confirm-delete";
 import {
   STUDENT_STATUS_ACTIVE,
@@ -396,10 +397,16 @@ export default async function StudentsPage({
         <CardHeader
           title={activeCourse ? `Students in ${activeCourse.title}` : "All Students"}
           action={
-            <StudentsAutoSearch
-              defaultValue={query}
-              courseFilter={courseFilter || undefined}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <CourseFilterSelect
+                courses={courses.map((c) => ({ id: c.id, title: c.title }))}
+                value={courseFilter}
+              />
+              <StudentsAutoSearch
+                defaultValue={query}
+                courseFilter={courseFilter || undefined}
+              />
+            </div>
           }
         />
         <Table head={["Student", "Roll No", "Course", "Teacher", "Guardian", "Status", "Actions"]}>
