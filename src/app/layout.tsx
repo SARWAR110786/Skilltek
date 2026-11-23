@@ -18,10 +18,38 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://theskilltek.com";
+const SITE_TITLE = "SkillTek Institute & Media Solutions";
+const SITE_DESCRIPTION =
+  "IT & AI courses in Thatta. Apply online, verify a student's status and access the student portal — plus websites, digital marketing and AI automation for businesses.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "SkillTek Institute",
-  description:
-    "SkillTek Institute — Empowering Skills, Shaping Futures. Courses, admissions, results and student portal.",
+  description: SITE_DESCRIPTION,
+  // Link previews on WhatsApp, Facebook, LinkedIn, X and others.
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "SkillTek",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    locale: "en_PK",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "SkillTek Institute — Learn today, lead tomorrow. Admissions open.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ["/og-image.jpg"],
+  },
   applicationName: "SkillTek",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
