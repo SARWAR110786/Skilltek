@@ -18,18 +18,13 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   poweredByHeader: false,
   experimental: {
+    // Shared hosting (Hostinger) limits child processes: build in one process.
+    webpackBuildWorker: false,
+    cpus: 1,
     serverActions: {
       // Assignment uploads are capped at 4 MB in src/lib/uploads.ts; leave a
       // little headroom for the other form fields. Vercel's hard cap is 4.5 MB.
       bodySizeLimit: "4.5mb",
-    },
-  },
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
     },
   },
   async headers() {
