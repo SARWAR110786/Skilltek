@@ -60,8 +60,16 @@ export async function GET(req: NextRequest) {
     studentStatusLabel(s.user.status, s.exitReason),
   ]);
 
-  const subtitle = `${students.length} student${students.length === 1 ? "" : "s"}`;
+  const courseTitle = courseParam
+    ? (await prisma.course.findUnique({ where: { id: courseParam }, select: { title: true } }))?.title ?? ""
+    : "";
+  const subtitle = `${courseTitle || "All courses"} · ${students.length} student${students.length === 1 ? "" : "s"}`;
+  const fileName = courseTitle ? `students-${slug(courseTitle)}` : "students";
   return format === "pdf"
-    ? pdfResponse("students", { title: "Students", subtitle, headers, rows })
-    : csvResponse("students", [headers, ...rows]);
+    ? pdfResponse(fileName, { title: "Students", subtitle, headers, rows })
+    : csvResponse(fileName, [headers, ...rows]);
+}
+
+function slug(text: string) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
 }

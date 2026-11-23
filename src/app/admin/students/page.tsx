@@ -345,11 +345,22 @@ export default async function StudentsPage({
       )}
 
       <Card className="mb-6">
-        <CardHeader title="Download" subtitle="Export the student list" />
+        <CardHeader title="Download" subtitle="Export the student list — all courses or one course" />
         <div className="p-5">
           <DownloadForm
             action="/api/export/students"
-            fields={courseFilter ? [{ kind: "hidden", name: "course", value: courseFilter }] : []}
+            fields={[
+              {
+                kind: "select",
+                name: "course",
+                label: "Course",
+                defaultValue: courseFilter,
+                options: [
+                  { value: "", label: "All courses" },
+                  ...courses.map((c) => ({ value: c.id, label: c.title })),
+                ],
+              },
+            ]}
           />
         </div>
       </Card>

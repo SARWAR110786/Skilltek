@@ -68,13 +68,27 @@ export async function GET(req: Request) {
     c.notes ?? "",
   ]);
 
+  const courseTitle = courseId
+    ? (await prisma.course.findUnique({ where: { id: courseId }, select: { title: true } }))?.title ?? ""
+    : "";
+  const statusLabel = status && STATUSES.includes(status as any)
+    ? CHALLAN_STATUS_META[status as (typeof STATUSES)[number]].label
+    : "";
+  const fileName = ["challans", courseTitle && slug(courseTitle), statusLabel && slug(statusLabel)]
+    .filter(Boolean)
+    .join("-");
+
   if (format === "pdf") {
-    return pdfResponse("challans", {
+    return pdfResponse(fileName, {
       title: "SkillTek Institute · Fee Challans",
-      subtitle: "List of issued fee challans",
+      subtitle: `${courseTitle || "All courses"}${statusLabel ? ` · ${statusLabel}` : ""} · ${challans.length} challan${challans.length === 1 ? "" : "s"}`,
       headers,
       rows,
     });
   }
-  return csvResponse("challans", [headers, ...rows]);
+  return csvResponse(fileName, [headers, ...rows]);
+}
+
+function slug(text: string) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
 }

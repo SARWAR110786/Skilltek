@@ -28,6 +28,7 @@ import { StudentsAutoSearch } from "@/components/students-auto-search";
 import { createChallan, deleteChallan, markChallanPaid } from "./actions";
 import { FeeItems } from "@/components/fee-items";
 import { FinanceTabs } from "@/components/finance-tabs";
+import { DownloadForm } from "@/components/download-form";
 import { ChallanStudentPicker } from "@/components/challan-student-picker";
 
 async function getData() {
@@ -94,6 +95,7 @@ export default async function ChallansPage({
     q?: string;
     student?: string;
     view?: string;
+    course?: string;
   }>;
 }) {
   const { challans, students, courses } = await getData();
@@ -104,10 +106,13 @@ export default async function ChallansPage({
   const query = (sp.q ?? "").trim();
   const search = query.toLowerCase();
 
+  const course = courses.some((c) => c.id === sp.course) ? (sp.course as string) : "";
+  const courseTitle = courses.find((c) => c.id === course)?.title ?? "";
   const selectedStudent = students.find((s) => s.id === sp.student) ?? null;
   const showAll = sp.view === "all";
 
   const filtered = challans.filter((c) => {
+    if (course && c.student.courseId !== course) return false;
     if (!search) return true;
     const student = c.student;
     return (
@@ -135,6 +140,7 @@ export default async function ChallansPage({
   const years = [now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1];
 
   const listQuery = new URLSearchParams();
+  if (course) listQuery.set("course", course);
   if (query) listQuery.set("q", query);
   const listHref = `/admin/challans${listQuery.toString() ? `?${listQuery}` : ""}`;
   const allQuery = new URLSearchParams(listQuery);
@@ -189,7 +195,26 @@ export default async function ChallansPage({
     );
   }
 
-  const searchBox = <StudentsAutoSearch defaultValue={query} />;
+  const searchBox = (
+    <div className="flex flex-wrap items-center gap-2">
+      <form method="get" className="flex items-center gap-2">
+        {query && <input type="hidden" name="q" value={query} />}
+        {showAll && <input type="hidden" name="view" value="all" />}
+        <Select name="course" defaultValue={course} className="!w-auto !py-1.5 text-xs">
+          <option value="">All courses</option>
+          {courses.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.title}
+            </option>
+          ))}
+        </Select>
+        <Button type="submit" size="sm" variant="secondary">
+          Show
+        </Button>
+      </form>
+      <StudentsAutoSearch defaultValue={query} courseFilter={course || undefined} />
+    </div>
+  );
 
   return (
     <div>
@@ -199,7 +224,7 @@ export default async function ChallansPage({
         subtitle={
           selectedStudent
             ? `${scoped.length} challan${scoped.length === 1 ? "" : "s"} for ${selectedStudent.user.name}`
-            : `${studentsWithChallans.length} student${studentsWithChallans.length === 1 ? "" : "s"} with challans`
+            : `${studentsWithChallans.length} student${studentsWithChallans.length === 1 ? "" : "s"} with challans${courseTitle ? ` · ${courseTitle}` : ""}`
         }
       />
 
@@ -237,6 +262,39 @@ export default async function ChallansPage({
           tone="red"
         />
       </div>
+
+      <Card className="mb-6">
+        <CardHeader title="Download" subtitle="Export fee challans — all courses or one course" />
+        <div className="p-5">
+          <DownloadForm
+            action="/api/export/challans"
+            fields={[
+              {
+                kind: "select",
+                name: "course",
+                label: "Course",
+                defaultValue: course,
+                options: [
+                  { value: "", label: "All courses" },
+                  ...courses.map((c) => ({ value: c.id, label: c.title })),
+                ],
+              },
+              {
+                kind: "select",
+                name: "status",
+                label: "Status",
+                defaultValue: "",
+                options: [
+                  { value: "", label: "All" },
+                  { value: "UNPAID", label: "Unpaid" },
+                  { value: "PARTIAL", label: "Partially paid" },
+                  { value: "PAID", label: "Paid" },
+                ],
+              },
+            ]}
+          />
+        </div>
+      </Card>
 
       <Card className="mb-6">
         <CardHeader
