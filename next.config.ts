@@ -17,6 +17,9 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  // Images are small static files; serve them as-is (the on-server image
+  // optimizer is not available on Hostinger shared hosting).
+  images: { unoptimized: true },
   experimental: {
     // Shared hosting (Hostinger) limits child processes: build in one process.
     webpackBuildWorker: false,
