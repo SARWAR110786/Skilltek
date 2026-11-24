@@ -5,6 +5,7 @@ import type {
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { cn } from "@/lib/utils";
 import { SortableTable } from "@/components/sortable-table";
 
@@ -194,16 +195,22 @@ export function Button({
     sm: "px-3 py-1.5 text-sm",
     md: "px-4 py-2 text-sm",
   };
+  const classes = cn(
+    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-medium transition hover:shadow-sm active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none disabled:active:scale-100",
+    variants[variant],
+    sizes[size],
+    className,
+  );
+  // Submit buttons lock while their form is saving (prevents double submits).
+  if (props.type === "submit") {
+    return (
+      <PendingSubmitButton className={classes} {...props}>
+        {children}
+      </PendingSubmitButton>
+    );
+  }
   return (
-    <button
-      className={cn(
-        "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-medium transition hover:shadow-sm active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none disabled:active:scale-100",
-        variants[variant],
-        sizes[size],
-        className,
-      )}
-      {...props}
-    >
+    <button className={classes} {...props}>
       {children}
     </button>
   );

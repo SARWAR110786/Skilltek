@@ -40,6 +40,19 @@ export async function createAssignment(formData: FormData) {
     redirect("/teacher/assignments?error=required");
   }
 
+  // Double-click / resend guard: the same teacher creating the same title in
+  // the same course within 2 minutes reuses the assignment already created.
+  const recent = await prisma.assignment.findFirst({
+    where: {
+      teacherId: teacher.id,
+      courseId,
+      title,
+      createdAt: { gte: new Date(Date.now() - 2 * 60_000) },
+    },
+    select: { id: true },
+  });
+  if (recent) redirect(`/teacher/assignments/${recent.id}?created=1`);
+
   const upload = await readUploadedFiles(formData);
   if (!upload.ok) redirect(`/teacher/assignments?error=${upload.error}`);
   const attachments = upload.files;
