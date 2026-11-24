@@ -25,9 +25,9 @@ const nextConfig: NextConfig = {
     webpackBuildWorker: false,
     cpus: 1,
     serverActions: {
-      // Assignment uploads are capped at 4 MB in src/lib/uploads.ts; leave a
-      // little headroom for the other form fields. Vercel's hard cap is 4.5 MB.
-      bodySizeLimit: "4.5mb",
+      // Uploads are validated (6 MB) in src/lib/uploads.ts. Accept larger bodies
+      // so an oversized upload gets a friendly error instead of a crash page.
+      bodySizeLimit: "25mb",
     },
   },
   async headers() {

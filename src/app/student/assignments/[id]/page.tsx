@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SmartFileInput } from "@/components/smart-file-input";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { ArrowLeft, Award, Download, Upload } from "lucide-react";
@@ -116,7 +117,7 @@ export default async function StudentAssignmentPage({
                   <Textarea name="note" rows={3} placeholder="Anything to add for your teacher?" />
                 </Field>
                 <Field label="Files" hint="Select multiple files if needed">
-                  <input type="file" name="files" multiple className="block w-full cursor-pointer rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-white" />
+                  <SmartFileInput />
                 </Field>
                 <Button type="submit">
                   <Upload className="h-4 w-4" /> Submit

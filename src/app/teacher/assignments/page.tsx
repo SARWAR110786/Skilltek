@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SmartFileInput } from "@/components/smart-file-input";
 import { connection } from "next/server";
 import { Plus, Trash2, Eye } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -80,7 +81,7 @@ export default async function TeacherAssignmentsPage({
           </div>
           <div className="md:col-span-2">
             <Field label="Reference files" hint="Optional — attach one or more files for students">
-              <input type="file" name="files" multiple className="block w-full cursor-pointer rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-white" />
+              <SmartFileInput />
             </Field>
           </div>
           <div className="md:col-span-2">
