@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { ChatWidget } from "@/components/chat-widget";
 import { Reveal } from "@/components/reveal";
+import { courseWebsite } from "@/lib/course-sites";
 import { ProgramInfo } from "@/components/program-info";
 import { Typewriter } from "@/components/typewriter";
 import { SERVICES } from "@/lib/services";
@@ -239,6 +240,16 @@ export default async function HomePage() {
                         {c.durationMonths} months program
                       </span>
                     </div>
+                  {courseWebsite(c.title) && (
+                    <a
+                      href={courseWebsite(c.title)!.url}
+                      target="_blank"
+                      rel="noopener"
+                      className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-brand-300 hover:text-brand-200"
+                    >
+                      Course website: {courseWebsite(c.title)!.label} ↗
+                    </a>
+                  )}
                     <div className="mt-4 flex items-center justify-between gap-3">
                       <ProgramInfo
                         title={c.title}
@@ -247,6 +258,7 @@ export default async function HomePage() {
                         code={c.code}
                         startLabel={c.startDate ? formatDate(c.startDate) : null}
                         endLabel={c.endDate ? formatDate(c.endDate) : null}
+                        website={courseWebsite(c.title)}
                       />
                       <Link
                         href="/admissions"

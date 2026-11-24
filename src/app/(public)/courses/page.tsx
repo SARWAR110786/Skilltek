@@ -6,6 +6,7 @@ import { ArrowRight, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/reveal";
+import { courseWebsite } from "@/lib/course-sites";
 import { ProgramInfo } from "@/components/program-info";
 
 export const metadata = {
@@ -67,6 +68,16 @@ export default async function CoursesPage() {
                       <Clock className="h-3.5 w-3.5" /> {c.durationMonths} months
                     </span>
                   </div>
+                  {courseWebsite(c.title) && (
+                    <a
+                      href={courseWebsite(c.title)!.url}
+                      target="_blank"
+                      rel="noopener"
+                      className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-brand-300 hover:text-brand-200"
+                    >
+                      Course website: {courseWebsite(c.title)!.label} ↗
+                    </a>
+                  )}
                   <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
                     <ProgramInfo
                       title={c.title}
@@ -75,6 +86,7 @@ export default async function CoursesPage() {
                       code={c.code}
                       startLabel={c.startDate ? formatDate(c.startDate) : null}
                       endLabel={c.endDate ? formatDate(c.endDate) : null}
+                      website={courseWebsite(c.title)}
                     />
                     <Link
                       href="/admissions"

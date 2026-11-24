@@ -21,6 +21,7 @@ export function ProgramInfo({
   code,
   startLabel,
   endLabel,
+  website,
 }: {
   title: string;
   description: string;
@@ -28,6 +29,7 @@ export function ProgramInfo({
   code?: string | null;
   startLabel?: string | null;
   endLabel?: string | null;
+  website?: { url: string; label: string } | null;
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -94,6 +96,20 @@ export function ProgramInfo({
         </div>
 
         <div className="flex-1 overflow-y-auto overscroll-contain p-5 text-sm leading-relaxed text-slate-300 sm:p-6">
+          {website && (
+            <a
+              href={website.url}
+              target="_blank"
+              rel="noopener"
+              className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-brand-400/30 bg-brand-500/10 px-4 py-3 text-brand-200 transition-colors hover:bg-brand-500/20"
+            >
+              <span>
+                <span className="block text-xs uppercase tracking-wider text-brand-300">Full course website</span>
+                <span className="font-semibold text-white">{website.label}</span>
+              </span>
+              <span aria-hidden="true">↗</span>
+            </a>
+          )}
           <RichText text={description} className="break-words" />
         </div>
 
@@ -105,6 +121,16 @@ export function ProgramInfo({
           >
             Close
           </button>
+          {website && (
+            <a
+              href={website.url}
+              target="_blank"
+              rel="noopener"
+              className="rounded-lg border border-brand-400/40 px-4 py-2 text-sm font-semibold text-brand-200 transition hover:bg-brand-500/15"
+            >
+              Visit course website
+            </a>
+          )}
           <Link
             href="/admissions"
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700"
