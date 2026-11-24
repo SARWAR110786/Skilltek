@@ -12,8 +12,29 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  void reset;
   useEffect(() => {
     console.error(error);
+    // After a site update, a page opened before the update can't talk to the
+    // new server ("Server Action not found", old JS chunks, dropped stream).
+    // A fresh page load fixes it, so do that automatically — once per minute
+    // at most, to avoid a reload loop.
+    const msg = `${error?.name ?? ""} ${error?.message ?? ""}`;
+    const stale =
+      /Server Action .* (was )?not found|UnrecognizedActionError|Failed to find Server Action|ChunkLoadError|Loading chunk|Minified React error #412|Connection closed/i.test(
+        msg,
+      );
+    if (stale) {
+      try {
+        const last = Number(sessionStorage.getItem("st-stale-reload") || 0);
+        if (Date.now() - last > 60_000) {
+          sessionStorage.setItem("st-stale-reload", String(Date.now()));
+          window.location.reload();
+        }
+      } catch {
+        window.location.reload();
+      }
+    }
   }, [error]);
 
   return (
@@ -38,7 +59,7 @@ export default function Error({
       </p>
 
       <div className="animate-fade-in-up-delay-2 mt-8 flex flex-wrap items-center justify-center gap-3">
-        <Button onClick={reset}>
+        <Button onClick={() => window.location.reload()}>
           <RefreshCw className="h-4 w-4" /> Try again
         </Button>
         <Link href="/">

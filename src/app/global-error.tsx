@@ -12,6 +12,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  void reset;
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -38,7 +39,7 @@ export default function GlobalError({
         </p>
 
         <div className="animate-fade-in-up-delay-2 mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Button onClick={reset}>
+          <Button onClick={() => window.location.reload()}>
             <RefreshCw className="h-4 w-4" /> Try again
           </Button>
           <Link href="/">
