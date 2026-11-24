@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { ProblemBanner } from "@/components/problem-banner";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
@@ -87,6 +89,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className="min-h-full flex flex-col">
+        <Suspense fallback={null}>
+          <ProblemBanner />
+        </Suspense>
         {children}
         <ServiceWorkerRegister />
       </body>

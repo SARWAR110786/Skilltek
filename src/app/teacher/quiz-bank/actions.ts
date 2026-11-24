@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
@@ -21,7 +23,7 @@ function readForm(formData: FormData) {
   };
 }
 
-export async function createBankQuestion(formData: FormData) {
+async function createBankQuestion__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   if (!teacher) redirect("/teacher/quiz-bank");
@@ -47,7 +49,7 @@ export async function createBankQuestion(formData: FormData) {
   redirect("/teacher/quiz-bank?created=1");
 }
 
-export async function updateBankQuestion(formData: FormData) {
+async function updateBankQuestion__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const id = String(formData.get("id") ?? "");
@@ -76,7 +78,7 @@ export async function updateBankQuestion(formData: FormData) {
   redirect("/teacher/quiz-bank?updated=1");
 }
 
-export async function deleteBankQuestion(formData: FormData) {
+async function deleteBankQuestion__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const id = String(formData.get("id") ?? "");
@@ -85,4 +87,17 @@ export async function deleteBankQuestion(formData: FormData) {
   if (!existing || existing.teacherId !== teacher.id) return;
   await prisma.quizBankQuestion.delete({ where: { id } });
   revalidatePath("/teacher/quiz-bank");
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function createBankQuestion(...args: Parameters<typeof createBankQuestion__impl>) {
+  return guard(() => createBankQuestion__impl(...args));
+}
+
+export async function updateBankQuestion(...args: Parameters<typeof updateBankQuestion__impl>) {
+  return guard(() => updateBankQuestion__impl(...args));
+}
+
+export async function deleteBankQuestion(...args: Parameters<typeof deleteBankQuestion__impl>) {
+  return guard(() => deleteBankQuestion__impl(...args));
 }

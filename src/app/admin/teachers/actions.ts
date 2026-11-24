@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -74,7 +76,7 @@ async function coursesExist(courseIds: string[]): Promise<boolean> {
   return count === courseIds.length;
 }
 
-export async function createTeacher(formData: FormData) {
+async function createTeacher__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const input = readTeacherForm(formData);
@@ -121,7 +123,7 @@ export async function createTeacher(formData: FormData) {
   redirect("/admin/teachers?created=1");
 }
 
-export async function deleteTeacher(formData: FormData) {
+async function deleteTeacher__impl(formData: FormData) {
   await requireUser("ADMIN");
   const id = String(formData.get("id") ?? "");
   if (!id) return;
@@ -145,7 +147,7 @@ export async function deleteTeacher(formData: FormData) {
   revalidatePath("/admin");
 }
 
-export async function updateTeacher(formData: FormData) {
+async function updateTeacher__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const teacherId = String(formData.get("id") ?? "");
@@ -205,4 +207,17 @@ export async function updateTeacher(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/admin/courses");
   redirect("/admin/teachers?updated=1");
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function createTeacher(...args: Parameters<typeof createTeacher__impl>) {
+  return guard(() => createTeacher__impl(...args));
+}
+
+export async function deleteTeacher(...args: Parameters<typeof deleteTeacher__impl>) {
+  return guard(() => deleteTeacher__impl(...args));
+}
+
+export async function updateTeacher(...args: Parameters<typeof updateTeacher__impl>) {
+  return guard(() => updateTeacher__impl(...args));
 }

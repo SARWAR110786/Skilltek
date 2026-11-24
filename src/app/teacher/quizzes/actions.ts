@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
@@ -15,7 +17,7 @@ async function gatherQuestions(teacherId: string, formData: FormData) {
   return { questions, totalMarks };
 }
 
-export async function createQuiz(formData: FormData) {
+async function createQuiz__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   if (!teacher) redirect("/teacher/quizzes");
@@ -49,7 +51,7 @@ export async function createQuiz(formData: FormData) {
   redirect(`/teacher/quizzes/${quiz.id}?created=1`);
 }
 
-export async function updateQuiz(formData: FormData) {
+async function updateQuiz__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const id = String(formData.get("id") ?? "");
@@ -95,7 +97,7 @@ export async function updateQuiz(formData: FormData) {
   redirect(`/teacher/quizzes/${id}?updated=1`);
 }
 
-export async function toggleQuizStatus(formData: FormData) {
+async function toggleQuizStatus__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const id = String(formData.get("id") ?? "");
@@ -111,7 +113,7 @@ export async function toggleQuizStatus(formData: FormData) {
   revalidatePath("/teacher");
 }
 
-export async function deleteQuiz(formData: FormData) {
+async function deleteQuiz__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const id = String(formData.get("id") ?? "");
@@ -122,4 +124,21 @@ export async function deleteQuiz(formData: FormData) {
   revalidatePath("/teacher/quizzes");
   revalidatePath("/teacher");
   redirect("/teacher/quizzes?deleted=1");
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function createQuiz(...args: Parameters<typeof createQuiz__impl>) {
+  return guard(() => createQuiz__impl(...args));
+}
+
+export async function updateQuiz(...args: Parameters<typeof updateQuiz__impl>) {
+  return guard(() => updateQuiz__impl(...args));
+}
+
+export async function toggleQuizStatus(...args: Parameters<typeof toggleQuizStatus__impl>) {
+  return guard(() => toggleQuizStatus__impl(...args));
+}
+
+export async function deleteQuiz(...args: Parameters<typeof deleteQuiz__impl>) {
+  return guard(() => deleteQuiz__impl(...args));
 }

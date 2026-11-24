@@ -1,11 +1,13 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/guard";
 
-export async function createNotice(formData: FormData) {
+async function createNotice__impl(formData: FormData) {
   const admin = await requireUser("ADMIN");
   const title = String(formData.get("title") ?? "").trim();
   // The form's field is "message" ("body" kept for older forms).
@@ -37,7 +39,7 @@ export async function createNotice(formData: FormData) {
   redirect("/admin/notices?created=1");
 }
 
-export async function deleteNotice(formData: FormData) {
+async function deleteNotice__impl(formData: FormData) {
   await requireUser("ADMIN");
   const id = String(formData.get("id") ?? "");
   if (!id) return;
@@ -50,4 +52,13 @@ export async function deleteNotice(formData: FormData) {
   revalidatePath("/teacher");
   revalidatePath("/teacher/notices");
   redirect("/admin/notices?deleted=1");
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function createNotice(...args: Parameters<typeof createNotice__impl>) {
+  return guard(() => createNotice__impl(...args));
+}
+
+export async function deleteNotice(...args: Parameters<typeof deleteNotice__impl>) {
+  return guard(() => deleteNotice__impl(...args));
 }

@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -144,7 +146,7 @@ function isUniqueViolation(error: unknown): boolean {
   );
 }
 
-export async function createStudent(formData: FormData) {
+async function createStudent__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const input = readStudentForm(formData);
@@ -209,7 +211,7 @@ export async function createStudent(formData: FormData) {
   redirect("/admin/students?created=1");
 }
 
-export async function deleteStudent(formData: FormData) {
+async function deleteStudent__impl(formData: FormData) {
   await requireUser("ADMIN");
   const id = String(formData.get("id") ?? "");
   if (!id) return;
@@ -242,7 +244,7 @@ export async function deleteStudent(formData: FormData) {
   revalidatePath("/admin/challans");
 }
 
-export async function updateStudent(formData: FormData) {
+async function updateStudent__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const id = String(formData.get("id") ?? "");
@@ -363,7 +365,7 @@ function parseCsv(text: string): string[][] {
   return rows.filter((r) => r.some((v) => v.trim() !== ""));
 }
 
-export async function importStudents(formData: FormData) {
+async function importStudents__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const file = formData.get("file");
@@ -531,4 +533,21 @@ export async function importStudents(formData: FormData) {
     params.set("errors", errors.slice(0, 8).join(" · ").slice(0, 400));
   }
   redirect(`/admin/students?${params.toString()}`);
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function createStudent(...args: Parameters<typeof createStudent__impl>) {
+  return guard(() => createStudent__impl(...args));
+}
+
+export async function deleteStudent(...args: Parameters<typeof deleteStudent__impl>) {
+  return guard(() => deleteStudent__impl(...args));
+}
+
+export async function updateStudent(...args: Parameters<typeof updateStudent__impl>) {
+  return guard(() => updateStudent__impl(...args));
+}
+
+export async function importStudents(...args: Parameters<typeof importStudents__impl>) {
+  return guard(() => importStudents__impl(...args));
 }

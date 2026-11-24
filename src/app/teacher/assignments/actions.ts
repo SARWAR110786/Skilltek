@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
@@ -16,7 +18,7 @@ function readDays(value: FormDataEntryValue | null, fallback = 0) {
 }
 
 
-export async function createAssignment(formData: FormData) {
+async function createAssignment__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   if (!teacher) redirect("/teacher/assignments");
@@ -74,7 +76,7 @@ export async function createAssignment(formData: FormData) {
   redirect(`/teacher/assignments/${assignment.id}?created=1`);
 }
 
-export async function updateAssignment(formData: FormData) {
+async function updateAssignment__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const id = String(formData.get("id") ?? "");
@@ -111,7 +113,7 @@ export async function updateAssignment(formData: FormData) {
   redirect(`/teacher/assignments/${id}?updated=1`);
 }
 
-export async function deleteAssignmentAttachment(formData: FormData) {
+async function deleteAssignmentAttachment__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const id = String(formData.get("id") ?? "");
@@ -125,7 +127,7 @@ export async function deleteAssignmentAttachment(formData: FormData) {
   revalidatePath(`/teacher/assignments/${attachment.assignmentId}`);
 }
 
-export async function toggleAssignmentStatus(formData: FormData) {
+async function toggleAssignmentStatus__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const id = String(formData.get("id") ?? "");
@@ -141,7 +143,7 @@ export async function toggleAssignmentStatus(formData: FormData) {
   revalidatePath("/teacher");
 }
 
-export async function deleteAssignment(formData: FormData) {
+async function deleteAssignment__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const id = String(formData.get("id") ?? "");
@@ -152,4 +154,25 @@ export async function deleteAssignment(formData: FormData) {
   revalidatePath("/teacher/assignments");
   revalidatePath("/teacher");
   redirect("/teacher/assignments?deleted=1");
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function createAssignment(...args: Parameters<typeof createAssignment__impl>) {
+  return guard(() => createAssignment__impl(...args));
+}
+
+export async function updateAssignment(...args: Parameters<typeof updateAssignment__impl>) {
+  return guard(() => updateAssignment__impl(...args));
+}
+
+export async function deleteAssignmentAttachment(...args: Parameters<typeof deleteAssignmentAttachment__impl>) {
+  return guard(() => deleteAssignmentAttachment__impl(...args));
+}
+
+export async function toggleAssignmentStatus(...args: Parameters<typeof toggleAssignmentStatus__impl>) {
+  return guard(() => toggleAssignmentStatus__impl(...args));
+}
+
+export async function deleteAssignment(...args: Parameters<typeof deleteAssignment__impl>) {
+  return guard(() => deleteAssignment__impl(...args));
 }

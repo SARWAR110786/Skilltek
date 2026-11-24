@@ -1,12 +1,14 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { parseDateInput, todayStart } from "@/lib/utils";
 
-export async function saveAttendance(formData: FormData) {
+async function saveAttendance__impl(formData: FormData) {
   const user = await getSession();
   if (!user || (user.role !== "ADMIN" && user.role !== "TEACHER")) {
     redirect("/login");
@@ -102,4 +104,9 @@ export async function saveAttendance(formData: FormData) {
   const target = back;
   const sep = target.includes("?") ? "&" : "?";
   redirect(`${target}${sep}saved=1`);
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function saveAttendance(...args: Parameters<typeof saveAttendance__impl>) {
+  return guard(() => saveAttendance__impl(...args));
 }

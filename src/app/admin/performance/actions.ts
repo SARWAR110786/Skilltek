@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -43,7 +45,7 @@ async function save(courses: PublishedCourse[], month: number, year: number) {
  *  - With a course: only that course's list is replaced; other courses stay.
  *  - Without a course ("All courses"): every course is replaced by this month.
  */
-export async function publishTopStudents(formData: FormData) {
+async function publishTopStudents__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const year = readYear(String(formData.get("year") ?? ""));
@@ -88,7 +90,7 @@ export async function publishTopStudents(formData: FormData) {
 }
 
 /** Take one course (or, without a course, every course) off the website. */
-export async function unpublishTopStudents(formData: FormData) {
+async function unpublishTopStudents__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const year = readYear(String(formData.get("year") ?? ""));
@@ -111,4 +113,13 @@ export async function unpublishTopStudents(formData: FormData) {
   revalidatePath("/student");
   revalidatePath("/admin/performance");
   redirect(back(year, month, course, "removed=1"));
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function publishTopStudents(...args: Parameters<typeof publishTopStudents__impl>) {
+  return guard(() => publishTopStudents__impl(...args));
+}
+
+export async function unpublishTopStudents(...args: Parameters<typeof unpublishTopStudents__impl>) {
+  return guard(() => unpublishTopStudents__impl(...args));
 }

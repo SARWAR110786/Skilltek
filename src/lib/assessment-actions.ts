@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -43,7 +45,7 @@ function readFields(formData: FormData) {
   return { title, type, description, totalMarks, date, valid };
 }
 
-export async function createAssessment(formData: FormData) {
+async function createAssessment__impl(formData: FormData) {
   const { user, base, courseIds } = await requireManager();
   const courseId = String(formData.get("courseId") ?? "");
   const f = readFields(formData);
@@ -66,7 +68,7 @@ export async function createAssessment(formData: FormData) {
   redirect(`${base}/${created.id}?created=1`);
 }
 
-export async function updateAssessment(formData: FormData) {
+async function updateAssessment__impl(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const { base, assessment } = await ownedAssessment(id);
   const f = readFields(formData);
@@ -100,7 +102,7 @@ export async function updateAssessment(formData: FormData) {
  *  - status ABSENT / NOT_SUBMITTED      -> saved without marks
  *  - blank status and blank marks       -> no record (not entered)
  */
-export async function saveAssessmentMarks(formData: FormData) {
+async function saveAssessmentMarks__impl(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const { base, assessment } = await ownedAssessment(id);
 
@@ -169,11 +171,28 @@ export async function saveAssessmentMarks(formData: FormData) {
   redirect(`${base}/${id}?saved=1`);
 }
 
-export async function deleteAssessment(formData: FormData) {
+async function deleteAssessment__impl(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const { base, assessment } = await ownedAssessment(id);
   await prisma.assessment.delete({ where: { id: assessment.id } });
   revalidatePath(base);
   revalidatePath("/student/assessments");
   redirect(`${base}?deleted=1`);
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function createAssessment(...args: Parameters<typeof createAssessment__impl>) {
+  return guard(() => createAssessment__impl(...args));
+}
+
+export async function updateAssessment(...args: Parameters<typeof updateAssessment__impl>) {
+  return guard(() => updateAssessment__impl(...args));
+}
+
+export async function saveAssessmentMarks(...args: Parameters<typeof saveAssessmentMarks__impl>) {
+  return guard(() => saveAssessmentMarks__impl(...args));
+}
+
+export async function deleteAssessment(...args: Parameters<typeof deleteAssessment__impl>) {
+  return guard(() => deleteAssessment__impl(...args));
 }

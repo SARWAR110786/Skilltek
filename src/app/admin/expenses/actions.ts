@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -20,7 +22,7 @@ function backTo(target: FormDataEntryValue | null, key: string): string {
   return `${clean}${sep}${key}`;
 }
 
-export async function createExpense(formData: FormData) {
+async function createExpense__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const title = String(formData.get("title") ?? "").trim().slice(0, 120);
@@ -58,7 +60,7 @@ export async function createExpense(formData: FormData) {
   redirect(backTo(back, "added=1"));
 }
 
-export async function deleteExpense(formData: FormData) {
+async function deleteExpense__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const id = String(formData.get("id") ?? "");
@@ -69,4 +71,13 @@ export async function deleteExpense(formData: FormData) {
   revalidatePath("/admin/expenses");
   revalidatePath("/admin/reports");
   redirect(backTo(formData.get("back"), "deleted=1"));
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function createExpense(...args: Parameters<typeof createExpense__impl>) {
+  return guard(() => createExpense__impl(...args));
+}
+
+export async function deleteExpense(...args: Parameters<typeof deleteExpense__impl>) {
+  return guard(() => deleteExpense__impl(...args));
 }

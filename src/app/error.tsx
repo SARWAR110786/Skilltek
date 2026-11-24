@@ -37,6 +37,26 @@ export default function Error({
     }
   }, [error]);
 
+  const offline = /Failed to fetch|NetworkError|Load failed|network connection|fetch failed/i.test(
+    `${error?.message ?? ""}`,
+  );
+  if (offline) {
+    return (
+      <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-6 text-center">
+        <h1 className="text-2xl font-bold text-slate-900">Connection problem</h1>
+        <p className="mt-3 max-w-md text-base leading-relaxed text-slate-500">
+          Your internet connection dropped before the page could reach the server. Check your
+          connection and try again — nothing you entered was lost on our side.
+        </p>
+        <div className="mt-6">
+          <Button onClick={() => window.location.reload()}>
+            <RefreshCw className="h-4 w-4" /> Try again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-6 text-center">
       <div className="animate-pop-in relative mb-8">

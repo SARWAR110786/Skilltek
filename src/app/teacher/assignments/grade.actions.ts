@@ -1,11 +1,13 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser, getTeacherProfile } from "@/lib/guard";
 
-export async function gradeSubmission(formData: FormData) {
+async function gradeSubmission__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const id = String(formData.get("id") ?? "");
@@ -37,7 +39,7 @@ export async function gradeSubmission(formData: FormData) {
   }
 }
 
-export async function gradeSubmissionsBulk(formData: FormData) {
+async function gradeSubmissionsBulk__impl(formData: FormData) {
   const user = await requireUser("TEACHER");
   const teacher = await getTeacherProfile(user.id);
   const assignmentId = String(formData.get("assignmentId") ?? "");
@@ -91,4 +93,13 @@ export async function gradeSubmissionsBulk(formData: FormData) {
   revalidatePath(`/teacher/assignments/${assignment.id}/submissions`);
   revalidatePath("/teacher/assignments");
   redirect(`/teacher/assignments/${assignment.id}/submissions?saved=1`);
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function gradeSubmission(...args: Parameters<typeof gradeSubmission__impl>) {
+  return guard(() => gradeSubmission__impl(...args));
+}
+
+export async function gradeSubmissionsBulk(...args: Parameters<typeof gradeSubmissionsBulk__impl>) {
+  return guard(() => gradeSubmissionsBulk__impl(...args));
 }

@@ -1,11 +1,13 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser, getStudentProfile } from "@/lib/guard";
 
-export async function submitQuiz(formData: FormData) {
+async function submitQuiz__impl(formData: FormData) {
   const user = await requireUser("STUDENT");
   const student = await getStudentProfile(user.id);
   const quizId = String(formData.get("quizId") ?? "");
@@ -54,4 +56,9 @@ export async function submitQuiz(formData: FormData) {
 
   revalidatePath("/student/quizzes");
   redirect(`/student/quizzes/${quizId}?submitted=1`);
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function submitQuiz(...args: Parameters<typeof submitQuiz__impl>) {
+  return guard(() => submitQuiz__impl(...args));
 }

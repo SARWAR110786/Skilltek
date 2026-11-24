@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
@@ -7,7 +9,7 @@ import { requireUser } from "@/lib/guard";
 
 export type PasswordState = { error?: string; success?: string };
 
-export async function changePassword(
+async function changePassword__impl(
   _prev: PasswordState,
   formData: FormData,
 ): Promise<PasswordState> {
@@ -52,7 +54,7 @@ export async function changePassword(
   };
 }
 
-export async function updateSettings(formData: FormData) {
+async function updateSettings__impl(formData: FormData) {
   await requireUser("ADMIN");
   const data = {
     instituteName: String(formData.get("instituteName") ?? "SkillTek").trim(),
@@ -79,4 +81,13 @@ export async function updateSettings(formData: FormData) {
   revalidatePath("/admin/settings");
   revalidatePath("/admin");
   revalidatePath("/admin/challans");
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function changePassword(...args: Parameters<typeof changePassword__impl>) {
+  return guard(() => changePassword__impl(...args));
+}
+
+export async function updateSettings(...args: Parameters<typeof updateSettings__impl>) {
+  return guard(() => updateSettings__impl(...args));
 }

@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -33,7 +35,7 @@ function backWithMessage(target: string, key: string): string {
 // Most challans generated in one go (one whole course at a time).
 const MAX_BATCH = 500;
 
-export async function createChallan(formData: FormData) {
+async function createChallan__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   // Several students can be ticked at once; "studentId" is the old single field.
@@ -134,7 +136,7 @@ export async function createChallan(formData: FormData) {
   redirect(`/admin/challans?created=${created}${skipped ? `&skipped=${skipped}` : ""}`);
 }
 
-export async function markChallanPaid(formData: FormData) {
+async function markChallanPaid__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const id = String(formData.get("id") ?? "");
@@ -162,7 +164,7 @@ export async function markChallanPaid(formData: FormData) {
   redirect(backWithMessage(String(formData.get("back") ?? ""), "paid"));
 }
 
-export async function deleteChallan(formData: FormData) {
+async function deleteChallan__impl(formData: FormData) {
   await requireUser("ADMIN");
 
   const id = String(formData.get("id") ?? "");
@@ -176,4 +178,17 @@ export async function deleteChallan(formData: FormData) {
   revalidatePath("/admin/challans");
   revalidatePath("/student/challans");
   redirect(backWithMessage(String(formData.get("back") ?? ""), "deleted"));
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function createChallan(...args: Parameters<typeof createChallan__impl>) {
+  return guard(() => createChallan__impl(...args));
+}
+
+export async function markChallanPaid(...args: Parameters<typeof markChallanPaid__impl>) {
+  return guard(() => markChallanPaid__impl(...args));
+}
+
+export async function deleteChallan(...args: Parameters<typeof deleteChallan__impl>) {
+  return guard(() => deleteChallan__impl(...args));
 }

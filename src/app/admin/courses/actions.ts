@@ -1,5 +1,7 @@
 "use server";
 
+
+import { guard } from "@/lib/safe-action";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -39,7 +41,7 @@ async function titleExists(title: string, excludeId?: string) {
   );
 }
 
-export async function createCourse(formData: FormData) {
+async function createCourse__impl(formData: FormData) {
   await requireUser("ADMIN");
   const title = String(formData.get("title") ?? "")
     .trim()
@@ -74,7 +76,7 @@ export async function createCourse(formData: FormData) {
   redirect("/admin/courses?created=1");
 }
 
-export async function updateCourse(formData: FormData) {
+async function updateCourse__impl(formData: FormData) {
   await requireUser("ADMIN");
   const id = String(formData.get("id") ?? "");
   const title = String(formData.get("title") ?? "")
@@ -120,7 +122,7 @@ export async function updateCourse(formData: FormData) {
   redirect("/admin/courses?updated=1");
 }
 
-export async function deleteCourse(formData: FormData) {
+async function deleteCourse__impl(formData: FormData) {
   await requireUser("ADMIN");
   const id = String(formData.get("id") ?? "");
   if (!id) return;
@@ -140,4 +142,17 @@ export async function deleteCourse(formData: FormData) {
   await prisma.course.delete({ where: { id } });
   revalidatePath("/admin/courses");
   revalidatePath("/admin");
+}
+
+// Friendly errors instead of the crash page (see lib/safe-action.ts).
+export async function createCourse(...args: Parameters<typeof createCourse__impl>) {
+  return guard(() => createCourse__impl(...args));
+}
+
+export async function updateCourse(...args: Parameters<typeof updateCourse__impl>) {
+  return guard(() => updateCourse__impl(...args));
+}
+
+export async function deleteCourse(...args: Parameters<typeof deleteCourse__impl>) {
+  return guard(() => deleteCourse__impl(...args));
 }
