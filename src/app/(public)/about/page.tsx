@@ -38,6 +38,7 @@ type Member = {
   icon: LucideIcon;
   responsibilities: string[];
   linkedin?: string;
+  portfolio?: string;
 };
 
 // Leadership & Management Structure. A member without `image` shows their
@@ -72,6 +73,7 @@ const LEADERS: Member[] = [
       "Ensure smooth and secure operations",
     ],
     linkedin: "https://www.linkedin.com/in/sarwar-ali-6991b1277/",
+    portfolio: "https://sarwar.theskilltek.com/",
   },
   {
     name: "Ashfaq Ahmed",
@@ -170,15 +172,29 @@ function TeamCard({ m }: { m: Member }) {
             </ul>
           </>
         )}
-        {m.linkedin && (
-          <a
-            href={m.linkedin}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-brand-300 hover:text-brand-200"
-          >
-            LinkedIn <ArrowUpRight className="h-4 w-4" />
-          </a>
+        {(m.portfolio || m.linkedin) && (
+          <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
+            {m.portfolio && (
+              <a
+                href={m.portfolio}
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
+              >
+                View portfolio <ArrowUpRight className="h-4 w-4" />
+              </a>
+            )}
+            {m.linkedin && (
+              <a
+                href={m.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-300 hover:text-brand-200"
+              >
+                LinkedIn <ArrowUpRight className="h-4 w-4" />
+              </a>
+            )}
+          </div>
         )}
       </div>
     </article>
