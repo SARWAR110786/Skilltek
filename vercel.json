@@ -2,9 +2,14 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "installCommand": "echo 'redirect-only project: nothing to install'",
-  "buildCommand": "mkdir -p vercel-redirect && echo 'Moved to https://theskilltek.com' > vercel-redirect/index.html",
+  "buildCommand": "mkdir -p vercel-redirect && echo 'Moved to https://theskilltek.com' > vercel-redirect/404.html",
   "outputDirectory": "vercel-redirect",
   "redirects": [
+    {
+      "source": "/",
+      "destination": "https://theskilltek.com/",
+      "permanent": true
+    },
     {
       "source": "/:path*",
       "destination": "https://theskilltek.com/:path*",
