@@ -29,7 +29,7 @@ export function StoryCard({ story, className }: { story: Story; className?: stri
       )}
     >
       {vid && (
-        <div className="relative aspect-[9/16] bg-black">
+        <div className="relative aspect-[2/3] bg-black">
           {playing ? (
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1`}
@@ -59,24 +59,19 @@ export function StoryCard({ story, className }: { story: Story; className?: stri
           )}
         </div>
       )}
-      <div className="flex flex-1 flex-col p-5">
+      <div className="flex flex-1 flex-col p-4">
         {story.quote && (
           <p className="relative flex-1 text-sm leading-relaxed text-slate-300">
             {!vid && <Quote className="mb-2 h-6 w-6 text-brand-400" />}
             {story.quote}
           </p>
         )}
-        <div className={cn("flex items-center gap-3", story.quote && "mt-4")}>
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand-500 to-sky-500 text-sm font-bold text-white">
-            {story.name.charAt(0).toUpperCase()}
-          </span>
-          <div className="min-w-0">
-            <p className="flex items-center gap-1.5 font-semibold text-white">
-              {story.name}
-              {story.featured && <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}
-            </p>
-            {story.role && <p className="truncate text-xs text-slate-400">{story.role}</p>}
-          </div>
+        <div className={cn("border-l-2 border-brand-500 pl-3", story.quote && "mt-4")}>
+          <p className="flex items-center gap-1.5 font-semibold text-white">
+            {story.name}
+            {story.featured && <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}
+          </p>
+          {story.role && <p className="truncate text-xs text-brand-300">{story.role}</p>}
         </div>
       </div>
     </article>
