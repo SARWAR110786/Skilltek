@@ -13,6 +13,7 @@ import { parsePublished } from "@/lib/performance";
 import { plainText } from "@/lib/rich-text";
 import { formatDate } from "@/lib/utils";
 import { StoryCard } from "@/components/story-card";
+import { CoursePromoPopup } from "@/components/course-promo-popup";
 
 export const metadata = { alternates: { canonical: "/" } };
 
@@ -95,6 +96,7 @@ export default async function HomePage() {
 
   return (
     <div className="relative">
+      <CoursePromoPopup />
       {/* ============================== HERO ============================== */}
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="pointer-events-none absolute -top-32 left-1/2 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-brand-600/20 blur-[130px]" />
