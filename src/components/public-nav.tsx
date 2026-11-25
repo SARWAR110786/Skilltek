@@ -12,12 +12,12 @@ const LINKS = [
   { href: "/courses", label: "Programs" },
   { href: "/ai-tools", label: "AI Tools" },
   { href: "/testimonials", label: "Success Stories" },
-  { href: "/services", label: "Services" },
   { href: "/admissions", label: "Admissions" },
 ];
 
 // Less-used pages sit under "More" so the bar stays clean.
 const MORE = [
+  { href: "/services", label: "Services" },
   { href: "/about", label: "About Us" },
   { href: "/verify", label: "Verify Status" },
   { href: "/download", label: "Download App" },
