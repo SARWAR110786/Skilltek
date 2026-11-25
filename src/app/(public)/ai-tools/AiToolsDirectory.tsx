@@ -15,6 +15,36 @@ const BADGE_STYLE: Record<string, string> = {
   "Taught at SkillTek": "bg-brand-500/20 text-brand-200 border-brand-400/40",
 };
 
+// The tool's own site icon (its logo), with the first letter as a fallback.
+function ToolLogo({ name, url }: { name: string; url: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-sky-500 text-lg font-bold text-white">
+        {name.charAt(0)}
+      </span>
+    );
+  }
+  return (
+    <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-white p-1.5">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=128`}
+        alt={`${name} logo`}
+        width={32}
+        height={32}
+        loading="lazy"
+        onError={() => setFailed(true)}
+        onLoad={(e) => {
+          // Google returns a 16px grey globe when a site has no icon.
+          if (e.currentTarget.naturalWidth <= 16) setFailed(true);
+        }}
+        className="h-full w-full object-contain"
+      />
+    </span>
+  );
+}
+
 function host(url: string) {
   return new URL(url).hostname.replace(/^www\./, "");
 }
@@ -117,9 +147,7 @@ export function AiToolsDirectory() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-sky-500 text-lg font-bold text-white">
-                    {t.name.charAt(0)}
-                  </span>
+                  <ToolLogo name={t.name} url={t.url} />
                   <div>
                     <h3 className="font-semibold text-white">{t.name}</h3>
                     <p className="text-xs text-slate-500">{host(t.url)}</p>
