@@ -29,7 +29,7 @@ export function StoryCard({ story, className }: { story: Story; className?: stri
       )}
     >
       {vid && (
-        <div className="relative aspect-[2/3] bg-black">
+        <div className="relative aspect-[2/3] overflow-hidden bg-black">
           {playing ? (
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1`}
@@ -49,7 +49,7 @@ export function StoryCard({ story, className }: { story: Story; className?: stri
                 src={ytThumb(vid)}
                 alt=""
                 loading="lazy"
-                className="h-full w-full object-cover opacity-90 transition group-hover:scale-[1.03] group-hover:opacity-100"
+                className="h-full w-full scale-[1.22] object-cover opacity-90 transition group-hover:scale-[1.26] group-hover:opacity-100"
               />
               <span className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent" />
               <span className="absolute left-1/2 top-1/2 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-brand-600 text-white shadow-xl shadow-brand-600/40 transition group-hover:scale-110">
