@@ -2,7 +2,6 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { ArrowRight, CheckCircle2, Clock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { ChatWidget } from "@/components/chat-widget";
 import { Reveal } from "@/components/reveal";
 import { courseWebsite } from "@/lib/course-sites";
 import { ProgramInfo } from "@/components/program-info";
@@ -70,8 +69,8 @@ const FEATURES = [
     text: "A dedicated portal where students stay connected to notices and their course.",
   },
   {
-    title: "24/7 Assistance",
-    text: "An AI assistant answers admission, program and tech-solution queries at any hour.",
+    title: "Quick WhatsApp Help",
+    text: "Message us on WhatsApp for admissions, programs and tech-solution queries.",
   },
 ];
 
@@ -448,7 +447,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <ChatWidget />
     </div>
   );
 }

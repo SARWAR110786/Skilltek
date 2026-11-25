@@ -2,6 +2,7 @@ import { PublicNav } from "@/components/public-nav";
 import { PublicFooter } from "@/components/public-footer";
 import { CursorGlow } from "@/components/cursor-glow";
 import { StructuredData } from "@/components/structured-data";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -17,6 +18,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         <div className="flex-1">{children}</div>
         <PublicFooter />
       </div>
+      <WhatsAppButton />
     </div>
   );
 }

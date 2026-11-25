@@ -16,6 +16,8 @@ export const AI_TOOL_CATEGORIES = [
   "Education & Research",
   "Music & Audio",
   "Business & Sales",
+  "Security",
+  "Utilities",
 ] as const;
 
 export type AiToolCategory = (typeof AI_TOOL_CATEGORIES)[number];
@@ -32,7 +34,7 @@ export type AiTool = {
 export const AI_TOOLS: AiTool[] = [
   // Chat assistants
   { name: "ChatGPT", url: "https://chatgpt.com", category: "Chat Assistants", text: "OpenAI's assistant for writing, ideas, study help and coding.", tags: ["Chat", "Images", "Voice"], badge: "Popular" },
-  { name: "Claude", url: "https://claude.ai", category: "Chat Assistants", text: "Anthropic's assistant for long documents, writing and code.", tags: ["Long context", "Docs", "Code"], badge: "Taught at SkillTek" },
+  { name: "Claude", url: "https://claude.ai", category: "Chat Assistants", text: "Anthropic's assistant for long documents, writing and code.", tags: ["Long context", "Docs", "Paid plans"] },
   { name: "Gemini", url: "https://gemini.google.com", category: "Chat Assistants", text: "Google's assistant, connected to Gmail, Docs and Search.", tags: ["Google apps", "Images", "Free"], badge: "Free plan" },
   { name: "Microsoft Copilot", url: "https://copilot.microsoft.com", category: "Chat Assistants", text: "Microsoft's free assistant, also built into Windows and Office.", tags: ["Office", "Web search", "Free"] },
   { name: "Grok", url: "https://grok.com", category: "Chat Assistants", text: "xAI's assistant with real-time access to posts on X.", tags: ["Real-time", "Images", "Chat"] },
@@ -88,7 +90,7 @@ export const AI_TOOLS: AiTool[] = [
   { name: "Sudowrite", url: "https://www.sudowrite.com", category: "Writing", text: "AI writing partner for fiction and stories.", tags: ["Fiction", "Brainstorm", "Rewrite"] },
 
   // Coding
-  { name: "Claude Code", url: "https://www.anthropic.com/claude-code", category: "Coding", text: "Agentic coding that builds and edits whole projects.", tags: ["Agent", "Terminal", "Full apps"], badge: "Taught at SkillTek" },
+  { name: "Claude Code", url: "https://www.anthropic.com/claude-code", category: "Coding", text: "Agentic coding that builds and edits whole projects (paid plan).", tags: ["Agent", "Terminal", "Paid"] },
   { name: "Cursor", url: "https://cursor.com", category: "Coding", text: "AI code editor that understands your whole project.", tags: ["Editor", "Agent", "Autocomplete"], badge: "Popular" },
   { name: "GitHub Copilot", url: "https://github.com/features/copilot", category: "Coding", text: "AI pair programmer inside VS Code and GitHub.", tags: ["Autocomplete", "Chat", "Free tier"] },
   { name: "Windsurf", url: "https://windsurf.com", category: "Coding", text: "Agentic IDE that writes and runs code with you.", tags: ["IDE", "Agent", "Flows"] },
@@ -167,4 +169,87 @@ export const AI_TOOLS: AiTool[] = [
   { name: "Lavender", url: "https://www.lavender.ai", category: "Business & Sales", text: "AI coach for writing better sales emails.", tags: ["Email", "Coaching", "Sales"] },
   { name: "Tidio", url: "https://www.tidio.com", category: "Business & Sales", text: "Website live chat with an AI support agent.", tags: ["Live chat", "Support", "E-commerce"] },
   { name: "Shopify Magic", url: "https://www.shopify.com/magic", category: "Business & Sales", text: "AI for product descriptions and store content.", tags: ["E-commerce", "Products", "Email"] },
+
+  // More chat & research
+  { name: "You.com", url: "https://you.com", category: "Education & Research", text: "AI search and research assistant with sources.", tags: ["Search", "Research", "Agents"] },
+  { name: "SciSpace", url: "https://scispace.com", category: "Education & Research", text: "Read, explain and find research papers with AI.", tags: ["Papers", "Explain", "Literature"] },
+  { name: "Speak", url: "https://www.speak.com", category: "Education & Research", text: "Practise speaking English with an AI tutor.", tags: ["English", "Speaking", "Tutor"] },
+  { name: "Mistral Le Chat", url: "https://chat.mistral.ai", category: "Chat Assistants", text: "Fast assistant from Mistral with web search and images.", tags: ["Fast", "Free", "Web search"], badge: "Free plan" },
+  { name: "HuggingChat", url: "https://huggingface.co/chat", category: "Chat Assistants", text: "Chat with free open-source AI models.", tags: ["Open source", "Free", "Models"], badge: "Free plan" },
+  { name: "Character.AI", url: "https://character.ai", category: "Chat Assistants", text: "Chat with AI characters and create your own.", tags: ["Characters", "Roleplay", "Fun"] },
+  { name: "Qwen Chat", url: "https://chat.qwen.ai", category: "Chat Assistants", text: "Alibaba's free assistant for chat, images and code.", tags: ["Free", "Images", "Code"], badge: "Free plan" },
+
+  // More video & image
+  { name: "Higgsfield", url: "https://higgsfield.ai", category: "Video", text: "Cinematic camera moves and effects for AI video.", tags: ["Camera moves", "Effects", "Video"], badge: "Trending" },
+  { name: "Vidnoz", url: "https://www.vidnoz.com", category: "Video", text: "Free AI avatar and talking-head videos.", tags: ["Avatars", "Free", "Templates"] },
+  { name: "Pictory", url: "https://pictory.ai", category: "Video", text: "Turn scripts and blog posts into videos.", tags: ["Script to video", "Stock", "Captions"] },
+  { name: "Fliki", url: "https://fliki.ai", category: "Video", text: "Text to video with realistic voiceovers.", tags: ["Text-to-video", "Voices", "Social"] },
+  { name: "Submagic", url: "https://www.submagic.co", category: "Video", text: "Viral-style animated captions for shorts.", tags: ["Captions", "Shorts", "B-roll"] },
+  { name: "Playground", url: "https://playground.com", category: "Image", text: "Design graphics and images with AI templates.", tags: ["Graphics", "Templates", "Free"] },
+  { name: "Recraft", url: "https://www.recraft.ai", category: "Image", text: "Vector art, icons and brand-consistent images.", tags: ["Vectors", "Icons", "Brand styles"] },
+  { name: "Freepik AI", url: "https://www.freepik.com/ai", category: "Image", text: "Image, video and upscaling tools in one suite.", tags: ["Suite", "Upscale", "Video"] },
+  { name: "Clipdrop", url: "https://clipdrop.co", category: "Image", text: "Quick image edits: relight, clean up, upscale.", tags: ["Edit", "Relight", "Upscale"] },
+
+  // More voice & avatars
+  { name: "Resemble AI", url: "https://www.resemble.ai", category: "Voice & Avatars", text: "Voice cloning with deepfake detection.", tags: ["Cloning", "Detection", "API"] },
+  { name: "Elai.io", url: "https://elai.io", category: "Voice & Avatars", text: "Training videos with AI presenters from text.", tags: ["Presenters", "Training", "Slides"] },
+  { name: "Captions", url: "https://www.captions.ai", category: "Voice & Avatars", text: "AI creators, eye contact fix and auto captions.", tags: ["Creators", "Captions", "Mobile"] },
+
+  // More writing & SEO
+  { name: "Anyword", url: "https://www.anyword.com", category: "Writing", text: "Marketing copy with predicted performance scores.", tags: ["Scores", "Ads", "Brand"] },
+  { name: "Writer", url: "https://writer.com", category: "Writing", text: "Enterprise AI writing with company style rules.", tags: ["Enterprise", "Style guide", "Agents"] },
+  { name: "Wordtune", url: "https://www.wordtune.com", category: "Writing", text: "Rewrite sentences to sound clearer and natural.", tags: ["Rewrite", "Tone", "Summaries"] },
+  { name: "Clearscope", url: "https://www.clearscope.io", category: "SEO & Marketing", text: "Content grading for higher search rankings.", tags: ["Grading", "Keywords", "Reports"] },
+  { name: "MarketMuse", url: "https://www.marketmuse.com", category: "SEO & Marketing", text: "Content strategy and topic planning with AI.", tags: ["Strategy", "Topics", "Briefs"] },
+  { name: "Albert.ai", url: "https://albert.ai", category: "SEO & Marketing", text: "Autonomous AI for running digital ad campaigns.", tags: ["Ads", "Autonomous", "Paid media"] },
+  { name: "Ubersuggest", url: "https://neilpatel.com/ubersuggest/", category: "SEO & Marketing", text: "Simple keyword ideas and site audits.", tags: ["Keywords", "Audit", "Free tier"] },
+  { name: "Buffer AI", url: "https://buffer.com/ai-assistant", category: "SEO & Marketing", text: "Write and schedule social posts in one place.", tags: ["Scheduling", "Posts", "Free tier"] },
+
+  // More coding
+  { name: "BLACKBOX AI", url: "https://www.blackbox.ai", category: "Coding", text: "Coding assistant for chat, autocomplete and agents.", tags: ["Code chat", "Autocomplete", "Agent"] },
+  { name: "Google AI Studio", url: "https://aistudio.google.com", category: "Coding", text: "Try Gemini models free and build apps with them.", tags: ["Gemini API", "Free", "Prototypes"], badge: "Free plan" },
+  { name: "Codeium", url: "https://codeium.com", category: "Coding", text: "Free AI code completion for many editors.", tags: ["Autocomplete", "Free", "Extensions"] },
+  { name: "Firebase Studio", url: "https://firebase.studio", category: "Coding", text: "Google's browser workspace to build full-stack AI apps.", tags: ["Full-stack", "Browser", "Deploy"] },
+
+  // More productivity & design
+  { name: "Mem", url: "https://get.mem.ai", category: "Productivity", text: "AI notes that organise themselves.", tags: ["Notes", "Search", "Organise"] },
+  { name: "Tome", url: "https://tome.app", category: "Productivity", text: "AI-made stories and presentations.", tags: ["Slides", "Stories", "Pages"] },
+  { name: "Galileo AI", url: "https://www.usegalileo.ai", category: "Design & UI", text: "Generate editable UI designs from a prompt.", tags: ["UI", "Prompt", "Figma"] },
+  { name: "Dora", url: "https://www.dora.run", category: "Design & UI", text: "Build animated 3D websites with AI.", tags: ["3D", "Websites", "No-code"] },
+  { name: "Durable", url: "https://durable.co", category: "Design & UI", text: "A business website built in 30 seconds.", tags: ["Websites", "Small business", "CRM"] },
+  { name: "Luzmo", url: "https://www.luzmo.com", category: "Data & Analytics", text: "Embedded analytics dashboards for apps.", tags: ["Embedded", "Dashboards", "SaaS"] },
+  { name: "Docparser", url: "https://docparser.com", category: "Automation & Agents", text: "Pull data from PDFs and documents automatically.", tags: ["PDF", "Parsing", "Integrations"] },
+  { name: "Browserless", url: "https://www.browserless.io", category: "Automation & Agents", text: "Run browsers in the cloud for automation and agents.", tags: ["Browser", "API", "Scraping"] },
+  { name: "Lindy", url: "https://www.lindy.ai", category: "Automation & Agents", text: "AI assistants for email, meetings and support.", tags: ["Assistants", "Email", "No-code"] },
+  { name: "Gumloop", url: "https://www.gumloop.com", category: "Automation & Agents", text: "Drag-and-drop AI automations for teams.", tags: ["Workflows", "No-code", "AI"] },
+  { name: "Flowise", url: "https://flowiseai.com", category: "Automation & Agents", text: "Open-source builder for AI agents and chatbots.", tags: ["Open source", "LLM apps", "Visual"] },
+
+  // More music
+  { name: "Mubert", url: "https://mubert.com", category: "Music & Audio", text: "Endless royalty-free AI music streams.", tags: ["Royalty-free", "Streams", "Creators"] },
+  { name: "Boomy", url: "https://boomy.com", category: "Music & Audio", text: "Make songs in seconds and release them.", tags: ["Songs", "Release", "Easy"] },
+  { name: "AIVA", url: "https://www.aiva.ai", category: "Music & Audio", text: "AI composer for soundtracks and themes.", tags: ["Composer", "Soundtracks", "MIDI"] },
+
+  // More business & sales
+  { name: "PandaDoc AI", url: "https://www.pandadoc.com", category: "Business & Sales", text: "Proposals and contracts written and sent with AI.", tags: ["Proposals", "E-sign", "Contracts"] },
+  { name: "Regie.ai", url: "https://www.regie.ai", category: "Business & Sales", text: "AI agents for sales prospecting.", tags: ["Prospecting", "Agents", "Email"] },
+  { name: "Humantic AI", url: "https://humantic.ai", category: "Business & Sales", text: "Buyer personality insights for sales calls.", tags: ["Personality", "Insights", "Sales"] },
+  { name: "Outplay", url: "https://outplayhq.com", category: "Business & Sales", text: "Multichannel sales outreach with AI.", tags: ["Outreach", "Sequences", "Email"] },
+  { name: "Klenty", url: "https://www.klenty.com", category: "Business & Sales", text: "Sales engagement and email cadences.", tags: ["Cadences", "Email", "CRM"] },
+
+  // Security
+  { name: "Darktrace", url: "https://darktrace.com", category: "Security", text: "Self-learning AI that detects cyber threats.", tags: ["Threats", "Network", "Enterprise"] },
+  { name: "SentinelOne", url: "https://www.sentinelone.com", category: "Security", text: "AI endpoint protection against malware and attacks.", tags: ["Endpoint", "EDR", "Purple AI"] },
+  { name: "CrowdStrike", url: "https://www.crowdstrike.com", category: "Security", text: "AI-native platform that stops breaches.", tags: ["Endpoint", "Cloud", "Threat intel"] },
+  { name: "Huntress", url: "https://www.huntress.com", category: "Security", text: "Managed threat detection for small businesses.", tags: ["SMB", "Managed", "EDR"] },
+  { name: "CrowdSec", url: "https://www.crowdsec.net", category: "Security", text: "Free, crowd-powered protection for servers.", tags: ["Open source", "Servers", "Free"] },
+  { name: "UpGuard", url: "https://www.upguard.com", category: "Security", text: "Monitor data leaks and vendor security risk.", tags: ["Risk", "Leaks", "Vendors"] },
+
+  // Utilities
+  { name: "Cleanup.pictures", url: "https://cleanup.pictures", category: "Utilities", text: "Erase objects, people or text from photos.", tags: ["Erase", "Photos", "Free"] },
+  { name: "Upscale.media", url: "https://www.upscale.media", category: "Utilities", text: "Upscale and sharpen images up to 4x.", tags: ["Upscale", "Enhance", "Free"] },
+  { name: "TinyWow", url: "https://tinywow.com", category: "Utilities", text: "Free PDF, image, video and writing tools.", tags: ["PDF", "Converters", "Free"], badge: "Free plan" },
+  { name: "iLovePDF", url: "https://www.ilovepdf.com", category: "Utilities", text: "Merge, split, compress and convert PDFs.", tags: ["PDF", "Convert", "Free"] },
+  { name: "Photoroom", url: "https://www.photoroom.com", category: "Utilities", text: "Product photos with clean backgrounds.", tags: ["Product photos", "Background", "Mobile"] },
+  { name: "Let's Enhance", url: "https://letsenhance.io", category: "Utilities", text: "Increase image resolution without losing quality.", tags: ["Upscale", "Print", "Batch"] },
+  { name: "TurboScribe", url: "https://turboscribe.ai", category: "Utilities", text: "Transcribe audio and video to text, including Urdu.", tags: ["Transcribe", "Urdu", "Free tier"] },
 ];
