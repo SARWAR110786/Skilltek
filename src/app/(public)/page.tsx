@@ -13,6 +13,7 @@ import { MONTHS } from "@/lib/challan";
 import { parsePublished } from "@/lib/performance";
 import { plainText } from "@/lib/rich-text";
 import { formatDate } from "@/lib/utils";
+import { StoryCard } from "@/components/story-card";
 
 export const metadata = { alternates: { canonical: "/" } };
 
@@ -21,7 +22,7 @@ export const instant = false;
 async function getData() {
   try {
     await connection();
-    const [courses, studentCount, courseCount, topStudents] = await Promise.all([
+    const [courses, studentCount, courseCount, topStudents, stories] = await Promise.all([
       prisma.course.findMany({
         where: { active: true },
         orderBy: { createdAt: "desc" },
@@ -32,10 +33,18 @@ async function getData() {
       prisma.topStudentsPublication
         .findUnique({ where: { id: "current" } })
         .catch(() => null),
+      prisma.testimonial
+        .findMany({
+          where: { published: true },
+          orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+          take: 3,
+          select: { id: true, name: true, role: true, quote: true, youtubeId: true, featured: true },
+        })
+        .catch(() => []),
     ]);
-    return { courses, studentCount, courseCount, topStudents };
+    return { courses, studentCount, courseCount, topStudents, stories };
   } catch {
-    return { courses: [], studentCount: 0, courseCount: 0, topStudents: null };
+    return { courses: [], studentCount: 0, courseCount: 0, topStudents: null, stories: [] };
   }
 }
 
@@ -83,7 +92,7 @@ const ADMISSION_CONTACT = [
 ];
 
 export default async function HomePage() {
-  const { courses, topStudents } = await getData();
+  const { courses, topStudents, stories } = await getData();
 
   return (
     <div className="relative">
@@ -274,6 +283,37 @@ export default async function HomePage() {
           )}
         </div>
       </section>
+
+      {/* ========================= SUCCESS STORIES ======================== */}
+      {stories.length > 0 && (
+        <section className="relative border-b border-white/10">
+          <div className="mx-auto max-w-6xl px-4 py-20">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div className="max-w-2xl">
+                <p className="text-sm font-semibold uppercase tracking-widest text-brand-400">
+                  Success Stories
+                </p>
+                <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
+                  Hear it from our students
+                </h2>
+              </div>
+              <Link
+                href="/testimonials"
+                className="inline-flex items-center gap-1 text-sm font-medium text-brand-300 hover:text-brand-200"
+              >
+                View all stories <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {stories.map((s, i) => (
+                <Reveal key={s.id} delay={i * 90} className="h-full">
+                  <StoryCard story={s} />
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ========================= TECH SOLUTIONS ========================= */}
       <section className="relative">

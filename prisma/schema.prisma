@@ -223,6 +223,21 @@ model Notice {
   createdBy User? @relation("NoticeCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 }
 
+// Student success stories shown on /testimonials. Videos live on YouTube;
+// only the video ID is stored here.
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  quote     String?
+  youtubeId String?
+  featured  Boolean  @default(false)
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([published, featured, createdAt])
+}
+
 model Enquiry {
   id        String        @id @default(cuid())
   name      String

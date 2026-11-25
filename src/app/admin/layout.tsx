@@ -18,6 +18,7 @@ const NAV: NavItem[] = [
     match: ["/admin/challans", "/admin/expenses", "/admin/reports"],
   },
   { href: "/admin/notices", label: "Notices", icon: "notices" },
+  { href: "/admin/testimonials", label: "Success Stories", icon: "stories" },
   { href: "/admin/enquiries", label: "Admissions", icon: "enquiries" },
   { href: "/admin/settings", label: "Settings", icon: "settings" },
 ];

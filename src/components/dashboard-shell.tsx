@@ -22,6 +22,7 @@ import {
   Trophy,
   Users,
   Wallet,
+  Video,
   X,
 } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
@@ -42,6 +43,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   finance: Wallet,
   performance: Trophy,
   assessment: ClipboardCheck,
+  stories: Video,
 };
 
 export type NavItem = {

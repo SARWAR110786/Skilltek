@@ -43,6 +43,7 @@ export function PublicFooter() {
             {[
               { href: "/courses", label: "Programs" },
               { href: "/ai-tools", label: "AI Tools" },
+              { href: "/testimonials", label: "Success Stories" },
               { href: "/services", label: "Tech Solutions" },
               { href: "/admissions", label: "Admissions" },
               { href: "/about", label: "About Us" },
