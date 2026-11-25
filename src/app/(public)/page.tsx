@@ -36,7 +36,7 @@ async function getData() {
         .findMany({
           where: { published: true },
           orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
-          take: 3,
+          take: 4,
           select: { id: true, name: true, role: true, quote: true, youtubeId: true, featured: true },
         })
         .catch(() => []),
@@ -303,7 +303,7 @@ export default async function HomePage() {
                 View all stories <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {stories.map((s, i) => (
                 <Reveal key={s.id} delay={i * 90} className="h-full">
                   <StoryCard story={s} />

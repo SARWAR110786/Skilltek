@@ -29,7 +29,7 @@ export function StoryCard({ story, className }: { story: Story; className?: stri
       )}
     >
       {vid && (
-        <div className="relative aspect-video bg-black">
+        <div className="relative aspect-[9/16] bg-black">
           {playing ? (
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1`}
