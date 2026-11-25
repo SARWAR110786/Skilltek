@@ -42,6 +42,7 @@ export function PublicFooter() {
           <ul className="space-y-2.5 text-sm">
             {[
               { href: "/courses", label: "Programs" },
+              { href: "/ai-tools", label: "AI Tools" },
               { href: "/services", label: "Tech Solutions" },
               { href: "/admissions", label: "Admissions" },
               { href: "/about", label: "About Us" },
