@@ -7,8 +7,8 @@ import { ArrowRight, CalendarDays, Layers, MapPin, Sparkles, Users, X } from "lu
 
 // Agentic AI & Automation weekend batch announcement.
 // Shows once per day per visitor and stops after the batch has started.
-const PROMO_KEY = "promo-agentic-weekend-2026-12";
-const SHOW_UNTIL = new Date("2026-12-08T00:00:00+05:00");
+const PROMO_KEY = "promo-agentic-weekend-2026-12-05";
+const SHOW_UNTIL = new Date("2026-12-12T00:00:00+05:00");
 const DELAY_MS = 2500;
 
 export function CoursePromoPopup() {
@@ -92,14 +92,14 @@ export function CoursePromoPopup() {
         <div className="relative mt-5 overflow-hidden rounded-2xl border border-white/10 bg-white">
           <img
             src="/promo/agentic-ai-weekend.jpg"
-            alt="Agentic AI & Automation — weekend batch starting 1st December 2026 at SkillTek, Thatta"
+            alt="Agentic AI & Automation — weekend batch starting 5th December 2026 at SkillTek, Thatta"
             className="mx-auto max-h-[34vh] w-auto object-contain sm:max-h-[40vh]"
           />
         </div>
 
         <div className="relative mt-4 grid grid-cols-3 gap-2 sm:gap-3">
           {[
-            { icon: CalendarDays, label: "Starts", value: "1 Dec 2026" },
+            { icon: CalendarDays, label: "Starts", value: "5 Dec 2026" },
             { icon: Layers, label: "Projects", value: "14+ real" },
             { icon: Users, label: "Batch", value: "Weekend" },
           ].map(({ icon: Icon, label, value }) => (
